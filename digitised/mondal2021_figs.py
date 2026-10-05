@@ -1,5 +1,5 @@
 """Mondal et al. 2021 Eur. J. Soil Sci. 72:1742-1761 - raster figures (pdfimages -png -p): Fig. 1 BD (m-004-005), Fig. 2 SOC (m-008-010),
-Fig. 3 aggregate-associated SOC, panels a-e (m-010-013), Fig. 6 yields (m-013-019).
+Fig. 3 aggregate-associated SOC, panels a-e (m-010-013), Fig. 5 aggregate SOC stocks (m-011-016), Fig. 6 yields (m-013-019).
 Horizontal bars read with digitised/hbar.py (tick-calibrated, bar-end = right outline), every bar checked on an overlay image; the few bars
 whose outline merged with an error-bar cap / significance letter were set from the column profile (MANUAL, listed below).
 Checks: Fig. 6 rice bars reproduce Table 5 rice yields within 0.05 Mg/ha; Fig. 1 15-30 cm TA 4.7 / 5.6 % above pCA2 / fCA (text 4.7-5.6 %); Fig. 2 fCA +45.5 % / +32.5 % vs TA at 0-7.5 / 7.5-15 cm (text 46 / 33 %);
@@ -50,7 +50,17 @@ G6 = groups(gt, base, 125, gt.shape[0] - 5)
 lab6 = ["Rice 2018", "Rice 2019", "REY (2 crops) 2017-18", "REY (2 crops) 2018-19", "SREY 2017-18", "SREY 2018-19"]
 res["Fig6"] = {lab: dict(zip(TRT, [round((right_end(gt, e[k], e[k + 1], base) - base) / ((702 - 14) / 20), 2) for k in range(4)]))
                for lab, e in zip(lab6, G6)}
-res["manual"] = [f"{p} {l} {t}" for (p, l, t) in MAN] + ["BD 15-30 pCA2"]
+# Fig. 5 aggregate-associated SOC stock (Mg/ha): (a) macro-, (b) micro-aggregates, horizontal bars as Figs 1-3
+g5 = img("m-011-016.png")
+res["Fig5"] = {}
+for k, (ar, ac, xb) in {"macro": (128, 188, 1150), "micro": (129, 1211, 2093)}.items():
+    _, o = read(g5, ar, ac, 0, 2, ar + 2, g5.shape[0], x1=xb, nticks=7)
+    res["Fig5"][k] = tab(o)
+MAN5 = {("macro", "15-30", "TA"): 5.959, ("macro", "0-7.5", "pCA2"): 6.823, ("macro", "30-45", "pCA2"): 6.302, ("macro", "45-60", "pCA2"): 6.425,
+        ("micro", "0-7.5", "TA"): 1.98, ("micro", "7.5-15", "TA"): 1.66}
+for (p, l, t), v in MAN5.items():   # MANUAL: outline picked from the column profile (dotted bars: middle of three full-height runs = outline, outer = error caps)
+    res["Fig5"][p][l][t] = v
+res["manual"] = [f"{p} {l} {t}" for (p, l, t) in MAN] + ["BD 15-30 pCA2"] + [f"Fig5 {p} {l} {t}" for (p, l, t) in MAN5]
 json.dump(res, open("digitised/mondal2021_figs.json", "w"), indent=1, default=float)
 for k in ("BD", "SOC"):
     for l, v in res[k].items():
