@@ -1,0 +1,22 @@
+{"_source": "Gathala et al. 2011 SSSAJ 75:1851-1862 (scanned 300 ppi). Manual readings on 2-4x zoomed crops with calibrated gridlines overlaid (axis ticks located in the bitmap).",
+ "fig2_aggregate_classes_pct": {
+   "_note": "Water-stable aggregate size distribution after 7 cycles (2008-09 wheat harvest), % of soil, 0-15 cm. y: 0 % at px 924.5, 25.54 px per %. Precision about +/-0.5 % (6 overlapping series); classes 2-4 of T3-T6 overlap ('ns'/'a') and are read from the series lines. Sum of classes >0.25 mm reproduces Table 3 2008-09 within ~1 %.",
+   "classes": ["8.00-4.75", "4.75-2.00", "2.00-1.00", "1.00-0.50", "0.50-0.25", "0.25-0.11", "0.11-0.00"],
+   "T1": [8.4, 9.4, 7.4, 10.0, 14.8, 27.2, 13.1],
+   "T2": [10.4, 7.3, 4.9, 6.6, 21.7, 23.2, 14.2],
+   "T3": [20.1, 12.0, 11.6, 10.0, 16.6, 19.2, 6.4],
+   "T4": [16.6, 12.2, 11.9, 10.0, 17.8, 13.9, 4.4],
+   "T5": [22.4, 16.2, 13.0, 8.9, 14.5, 14.2, 5.6],
+   "T6": [19.0, 13.6, 12.1, 10.0, 17.6, 15.3, 3.6]},
+ "fig3_soil_temp_5cm": {
+   "_note": "Weekly mean soil temperature (deg C) at 5 cm, wheat seasons 2006-07 to 2008-09 averaged; only T1, T3, T5 plotted. Morning y: 17 C at px 1544, 53.25 px/C; afternoon: 28 C at px 2235, 33.4 px/C; week 1 at x 772, 56 px/week. +/-0.15 C; where T1 and T3 coincide both get the common value.",
+   "morning_0700": {"T1": [13.12, 14.75, 11.45, 11.75, 10.38, 8.92, 9.11, 7.70, 9.11, 8.97, 7.85, 8.16, 8.27, 8.90, 8.10, 8.29, 11.49, 12.89, 14.65, 13.59],
+                    "T3": [14.67, 14.79, 11.60, 11.81, 10.38, 8.83, 9.00, 7.56, 9.13, 8.97, 7.95, 8.46, 8.36, 8.78, 8.17, 8.31, 11.45, 12.89, 14.80, 13.80],
+                    "T5": [16.64, 15.97, 13.93, 14.14, 12.47, 11.79, 11.54, 9.37, 11.16, 10.94, 10.80, 10.73, 10.68, 11.01, 9.66, 9.80, 12.66, 13.51, 14.85, 14.07]},
+   "afternoon_1500": {"T1": [25.46, 23.81, 21.38, 19.44, 18.94, 18.01, 17.97, 16.43, 17.15, 16.85, 16.58, 15.40, 16.70, 17.00, 18.72, 19.99, 22.88, 22.54, 24.93, 24.48],
+                      "T3": [23.88, 22.31, 20.78, 19.50, 19.35, 18.57, 18.27, 16.82, 18.27, 18.19, 17.18, 16.17, 17.70, 17.85, 19.65, 20.26, 22.88, 22.54, 25.19, 25.01],
+                      "T5": [22.42, 20.77, 19.14, 17.87, 17.75, 16.77, 16.28, 14.45, 16.00, 15.80, 14.87, 14.08, 15.50, 15.60, 17.10, 17.90, 21.53, 20.51, 23.81, 23.43]}},
+ "fig5_LLWR_pct_vv": {
+   "_note": "Least-limiting water range, 2008-09 wheat season, bars measured on the scan (0 at px 419, 67.8 px per unit on the 2x crop). T5 0-5 cm bar top is cut by the crop - text value 6.2 used; text values T2 3.0/3.1 and T5 6.2/5.8 reproduced.",
+   "0-5": {"T1": 3.29, "T2": 3.0, "T3": 5.81, "T4": 5.10, "T5": 6.2, "T6": 4.37},
+   "6-10": {"T1": 3.48, "T2": 3.1, "T3": 5.47, "T4": 4.71, "T5": 5.8, "T6": 3.88}}}
