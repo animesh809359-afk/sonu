@@ -1,0 +1,318 @@
+{
+ "S8 rice season": {
+  "0-15 cm 2020": {
+   "CT0": {
+    "total": 0.628,
+    "straw": 0.0,
+    "root": 0.356,
+    "rhizo": 0.23
+   },
+   "CTR": {
+    "total": 5.759,
+    "straw": 5.026,
+    "root": 0.377,
+    "rhizo": 0.251
+   },
+   "NT0": {
+    "total": 0.649,
+    "straw": 0.0,
+    "root": 0.377,
+    "rhizo": 0.23
+   },
+   "NTR": {
+    "total": 5.257,
+    "straw": 4.482,
+    "root": 0.44,
+    "rhizo": 0.251
+   }
+  },
+  "0-15 cm 2021": {
+   "CT0": {
+    "total": 0.66,
+    "straw": 0.0,
+    "root": 0.356,
+    "rhizo": 0.23
+   },
+   "CTR": {
+    "total": 5.832,
+    "straw": 5.089,
+    "root": 0.398,
+    "rhizo": 0.23
+   },
+   "NT0": {
+    "total": 0.681,
+    "straw": 0.0,
+    "root": 0.377,
+    "rhizo": 0.23
+   },
+   "NTR": {
+    "total": 5.435,
+    "straw": 4.628,
+    "root": 0.44,
+    "rhizo": 0.272
+   }
+  },
+  "15-30 cm 2020": {
+   "CT0": {
+    "total": 0.259,
+    "straw": 0.0,
+    "root": 0.154,
+    "rhizo": 0.097
+   },
+   "CTR": {
+    "total": 0.78,
+    "straw": 0.503,
+    "root": 0.162,
+    "rhizo": 0.102
+   },
+   "NT0": {
+    "total": 0.123,
+    "straw": 0.0,
+    "root": 0.071,
+    "rhizo": 0.045
+   },
+   "NTR": {
+    "total": 0.136,
+    "straw": 0.0,
+    "root": 0.079,
+    "rhizo": 0.05
+   }
+  },
+  "15-30 cm 2021": {
+   "CT0": {
+    "total": 0.264,
+    "straw": 0.0,
+    "root": 0.157,
+    "rhizo": 0.099
+   },
+   "CTR": {
+    "total": 0.793,
+    "straw": 0.508,
+    "root": 0.165,
+    "rhizo": 0.107
+   },
+   "NT0": {
+    "total": 0.126,
+    "straw": 0.0,
+    "root": 0.073,
+    "rhizo": 0.047
+   },
+   "NTR": {
+    "total": 0.141,
+    "straw": 0.0,
+    "root": 0.081,
+    "rhizo": 0.052
+   }
+  },
+  "30-45 cm 2020": {
+   "CT0": {
+    "total": 0.111,
+    "straw": 0.0,
+    "root": 0.06,
+    "rhizo": 0.042
+   },
+   "CTR": {
+    "total": 0.114,
+    "straw": 0.0,
+    "root": 0.066,
+    "rhizo": 0.042
+   },
+   "NT0": {
+    "total": 0.059,
+    "straw": 0.0,
+    "root": 0.031,
+    "rhizo": 0.021
+   },
+   "NTR": {
+    "total": 0.064,
+    "straw": 0.0,
+    "root": 0.034,
+    "rhizo": 0.021
+   }
+  },
+  "30-45 cm 2021": {
+   "CT0": {
+    "total": 0.113,
+    "straw": 0.0,
+    "root": 0.065,
+    "rhizo": 0.042
+   },
+   "CTR": {
+    "total": 0.118,
+    "straw": 0.0,
+    "root": 0.068,
+    "rhizo": 0.042
+   },
+   "NT0": {
+    "total": 0.063,
+    "straw": 0.0,
+    "root": 0.034,
+    "rhizo": 0.024
+   },
+   "NTR": {
+    "total": 0.068,
+    "straw": 0.0,
+    "root": 0.037,
+    "rhizo": 0.024
+   }
+  }
+ },
+ "S9 wheat season": {
+  "0-15 cm 2020": {
+   "CT0": {
+    "total": 0.942,
+    "straw": 0.0,
+    "root": 0.545,
+    "rhizo": 0.356
+   },
+   "CTR": {
+    "total": 5.068,
+    "straw": 4.042,
+    "root": 0.586,
+    "rhizo": 0.356
+   },
+   "NT0": {
+    "total": 0.838,
+    "straw": 0.0,
+    "root": 0.482,
+    "rhizo": 0.293
+   },
+   "NTR": {
+    "total": 4.209,
+    "straw": 3.246,
+    "root": 0.524,
+    "rhizo": 0.335
+   }
+  },
+  "0-15 cm 2021": {
+   "CT0": {
+    "total": 0.984,
+    "straw": 0.0,
+    "root": 0.545,
+    "rhizo": 0.356
+   },
+   "CTR": {
+    "total": 5.298,
+    "straw": 4.188,
+    "root": 0.607,
+    "rhizo": 0.377
+   },
+   "NT0": {
+    "total": 0.859,
+    "straw": 0.0,
+    "root": 0.461,
+    "rhizo": 0.314
+   },
+   "NTR": {
+    "total": 4.377,
+    "straw": 3.351,
+    "root": 0.545,
+    "rhizo": 0.356
+   }
+  },
+  "15-30 cm 2020": {
+   "CT0": {
+    "total": 0.312,
+    "straw": 0.0,
+    "root": 0.186,
+    "rhizo": 0.118
+   },
+   "CTR": {
+    "total": 0.736,
+    "straw": 0.401,
+    "root": 0.196,
+    "rhizo": 0.126
+   },
+   "NT0": {
+    "total": 0.168,
+    "straw": 0.0,
+    "root": 0.097,
+    "rhizo": 0.063
+   },
+   "NTR": {
+    "total": 0.181,
+    "straw": 0.0,
+    "root": 0.105,
+    "rhizo": 0.068
+   }
+  },
+  "15-30 cm 2021": {
+   "CT0": {
+    "total": 0.322,
+    "straw": 0.0,
+    "root": 0.188,
+    "rhizo": 0.123
+   },
+   "CTR": {
+    "total": 0.77,
+    "straw": 0.419,
+    "root": 0.207,
+    "rhizo": 0.131
+   },
+   "NT0": {
+    "total": 0.17,
+    "straw": 0.0,
+    "root": 0.097,
+    "rhizo": 0.063
+   },
+   "NTR": {
+    "total": 0.188,
+    "straw": 0.0,
+    "root": 0.107,
+    "rhizo": 0.071
+   }
+  },
+  "30-45 cm 2020": {
+   "CT0": {
+    "total": 0.131,
+    "straw": 0.0,
+    "root": 0.076,
+    "rhizo": 0.047
+   },
+   "CTR": {
+    "total": 0.136,
+    "straw": 0.0,
+    "root": 0.079,
+    "rhizo": 0.05
+   },
+   "NT0": {
+    "total": 0.071,
+    "straw": 0.0,
+    "root": 0.039,
+    "rhizo": 0.024
+   },
+   "NTR": {
+    "total": 0.079,
+    "straw": 0.0,
+    "root": 0.045,
+    "rhizo": 0.029
+   }
+  },
+  "30-45 cm 2021": {
+   "CT0": {
+    "total": 0.135,
+    "straw": 0.0,
+    "root": 0.076,
+    "rhizo": 0.05
+   },
+   "CTR": {
+    "total": 0.143,
+    "straw": 0.0,
+    "root": 0.081,
+    "rhizo": 0.052
+   },
+   "NT0": {
+    "total": 0.072,
+    "straw": 0.0,
+    "root": 0.039,
+    "rhizo": 0.024
+   },
+   "NTR": {
+    "total": 0.08,
+    "straw": 0.0,
+    "root": 0.045,
+    "rhizo": 0.026
+   }
+  }
+ }
+}
