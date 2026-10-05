@@ -26,6 +26,7 @@ ARIAL_B = Font(name="Arial", size=10, bold=True)
 
 # Unit notes that were blank in updated 53 (taken from the units used in its rows / author list)
 MISSING_UNITS = {
+    "WSA": "g/g soil (water-stable aggregates = sum of ALL water-stable fractions > 0.053 mm; % / 100)",
     "PR": "MPa (soil penetration resistance; 10 cm depth classes 0-10 ... 50-60 CM, >60 CM)",
     "P": "kg/ha (available P; mg/kg x 2.24 when converted - state basis in UNIT column)",
     "total P": "g/kg (total soil P)",
@@ -69,6 +70,8 @@ for name in data_sheets:
             c = ws.cell(r, unit_col)
             if c.value is not None:
                 note_cells.append((r, c.value, copy(c.font), copy(c.fill), copy(c.alignment)))
+        if name == "WSA":
+            note_cells = [(r, MISSING_UNITS[name] if r == 2 else v, f, fl, al) for r, v, f, fl, al in note_cells]
         if name in MISSING_UNITS and not any(r == 2 for r, *_ in note_cells):
             ref = ws.cell(1, unit_col)
             note_cells.insert(0, (2, MISSING_UNITS[name], Font(name="Arial", size=10, bold=True,
@@ -174,12 +177,12 @@ for j in range(1, 7):
 ws.cell(r, 1, f"NEW WORKBOOK SERIES ({TODAY})")
 new_rules = [
     ("Workflow & data management",
-     "NEW workbook: built on the updated 53 structure with NO previous data carried over. Serial numbers start at 1. Each upload is saved as a new numbered version (META_ANALYSIS_NEW_updated_NN.xlsx).",
+     "NEW workbook: built on the updated 53 structure with NO previous data carried over. Serial numbers CONTINUE from the old master: the first new study is 164 (old master ends at 163), so the two files can be merged. Each upload is saved as a new numbered version (META_ANALYSIS_NEW_updated_NN.xlsx).",
      "README, RULES, Codes and FORMULAS are kept as the rulebook; worked examples there cite the OLD master's serials (updated 53), not studies of this workbook.",
      f"Author {TODAY}", "IN FORCE"),
     ("Treatment codes",
      "PARTIAL CA CODES: pCA = puddled / conventional rice + ZT wheat WITH residue; pZT = puddled / conventional rice + ZT wheat, residue removed; pMT = puddled / conventional rice + MT wheat, no residue; pMTR = puddled / conventional rice + MT wheat WITH residue.",
-     "Every parameter sheet carries <prefix>pCA, pZT, pMT, pMTR right after <prefix>DTR (olive-green headers). These treatments are NO LONGER excluded under the rotation-matching rule (rule 22) and are NOT entered in the CA / ZT / MT / MTR columns; they go to the p-columns. The reverse mismatch (ZT / no-till rice + conventional wheat, RNT-WCT) stays EXCLUDED. MT vs MTR for the wheat phase follows the rotary rule (rule 13).",
+     "Every parameter sheet carries <prefix>pCA, pZT, pMT, pMTR right after <prefix>DTR (olive-green headers). These treatments are NO LONGER excluded under the rotation-matching rule (rule 22) and are NOT entered in the CA / ZT / MT / MTR columns; they go to the p-columns. The reverse mismatch (ZT / no-till rice + conventional wheat, RNT-WCT) stays EXCLUDED (author re-confirmed). MT vs MTR for the wheat phase follows the rotary rule (rule 13).",
      f"Author {TODAY}", "IN FORCE"),
     ("Treatment codes",
      "Rotary rule restated: full-width rotary to >= 10 cm, or >= 2 full-width passes = CT / CTR whatever the paper calls it; rotary <= 8 cm, single-pass till-drill, Super / Roto Seeder, strip or zone rotary = MT / MTR.",
@@ -188,8 +191,8 @@ new_rules = [
      "Same treatment type in rice and wheat = include (e.g. puddled transplanted rice + CT wheat = CT). Rice tillage not stated -> classify on the wheat tillage alone.",
      "Rules 22-23 unchanged except for the partial-CA codes above.", f"Author {TODAY}", "IN FORCE"),
     ("Cropping system & design",
-     "Third crop / green manure (mungbean, Sesbania, etc.) in a rice-wheat system: study included; green manuring counts as part of CA (supports CA).",
-     "Flag the row 'GREEN MANURE / 3rd CROP' in Notes. If the green manure / third crop is present only in the CA treatments, the row is entered flagged so it can be dropped in a sensitivity analysis.",
+     "Green manuring / a third crop (mungbean, Sesbania, etc.) in a rice-wheat system: study included. Green manuring is a SUPPLEMENTARY condition for CA, NOT a necessary one: ZT + residue = CA with or without green manure.",
+     "A green manure / third crop grown only in the CA treatment does not exclude that treatment and does not change its code; the crop is named in Notes and 'Fertilizer dose & other management' ('GREEN MANURE'). Green manure never turns a non-CA treatment into CA (e.g. ZT without residue + green manure stays ZT).",
      f"Author {TODAY}", "IN FORCE"),
     ("Cropping system & design",
      "Inclusion: any study with ANY TWO of CT, ZT, CA, DT, MT, MTR, CTR, DTR, pCA, pZT, pMT, pMTR is included. Not restricted to South Asia.",
@@ -198,8 +201,8 @@ new_rules = [
      "Porosity (%) = (1 - BD / PD) x 100 from the TREATMENT BD (changed BD). PD = the treatment's PD if reported, else the paper's initial PD, else 2.65 Mg/m3 (flagged).",
      "Live formula linking the BD sheet (and PD sheet where used). A printed total porosity is entered as printed.", f"Author {TODAY}", "IN FORCE"),
     ("Parameter-specific",
-     "WSA: when the paper gives no WSA but gives water-stable aggregate fractions, WSA = sum of the water-stable macro + micro (meso) aggregate fractions (DERIVED, flagged).",
-     "Live formula referencing MACRO / MICRO rows where possible.", f"Author {TODAY}", "IN FORCE"),
+     "WSA = sum of ALL water-stable aggregate fractions > 0.053 mm, in g/g of soil (0-1). A printed WSA in % is divided by 100; when the paper gives only the fractions, WSA is their sum (DERIVED, flagged).",
+     "The silt + clay fraction (< 0.053 mm) is never included. The old master (updated 53) holds WSA in % - divide by 100 when merging.", f"Author {TODAY}", "IN FORCE"),
     ("Parameter-specific",
      "Penetration resistance: 10 cm classes 0-10, 10-20, 20-30, 30-40, 40-50, 50-60 CM (and >60 CM) - do NOT stop at 30 cm. C stock and sequestration: cumulative 0-10 ... 0-60 CM.",
      "Rule 43 restated.", f"Author {TODAY}", "IN FORCE"),
@@ -233,7 +236,7 @@ ws = wb["README"]
 ws["B1"] = "Conservation agriculture meta-analysis - NEW data extraction workbook (structure of META_ANALYSIS_MASTER updated 53, no previous data)"
 ws.insert_rows(2, 3)
 ws["A2"], ws["B2"] = "NEW SERIES", (f"Started {TODAY}. All data rows of the old master were removed at the author's request; "
-                                    "serials start at 1. The history entries further down describe the OLD master (updated 53) and are kept only as the rulebook.")
+                                    "serials continue from the old master, starting at 164, so the two files can be merged. The history entries further down describe the OLD master (updated 53) and are kept only as the rulebook.")
 ws["A3"], ws["B3"] = "PARTIAL CA COLUMNS", ("Every parameter sheet has <prefix>pCA, pZT, pMT, pMTR (olive-green headers) after <prefix>DTR: "
                                              "puddled / conventional rice + ZT wheat with residue (pCA) / without residue (pZT), + MT wheat without (pMT) / with residue (pMTR). See Codes and RULES.")
 ws["A4"], ws["B4"] = "LAT_LONG", "One row per study x site: coordinates as reported and in decimal degrees, source (paper / Google Maps), climate class."
