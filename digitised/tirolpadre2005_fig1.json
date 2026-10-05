@@ -1,0 +1,7 @@
+{"_source": "Tirol-Padre et al. 2005 SSPN 51:849-860, Fig. 1 upper panel (+N). 300-ppi 1-bit scan; y 8 Mg/ha at px 440.5, 65.3 px per Mg/ha (ticks located in the bitmap); x = LTE year (year 26 = 1989, year 40 = 2003; 1963 + x). Manual reading on 3x crops with 0.1-Mg gridlines; stacked/overlapping markers read from the visible part (+/-0.15).",
+ "years": [1989, 1992, 1993, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003],
+ "C+N": [5.05, 5.20, 3.25, 5.65, 5.80, 5.65, 5.25, 4.35, 5.65, 5.85, 6.00, 5.00],
+ "RS+N": [6.10, 6.00, 3.90, 5.90, 6.70, 5.85, 5.75, 4.90, 6.10, 7.00, 6.10, 5.50],
+ "WS+N": [5.33, 5.75, 4.20, 5.70, 6.05, 5.85, 5.75, 4.55, 6.10, 6.65, 5.45, 5.10],
+ "hidden": {"C+N": [1995, 1997, 2002], "WS+N": [1992, 1995, 1997, 1998, 2000]},
+ "checks": "means C 5.23 / RS 5.82 / WS 5.54 vs Table 11 +N 5.1 / 5.7 / 5.5; C+N regression y = 0.05x + 3.55 -> 5.2 at x = 33."}
