@@ -1,0 +1,32 @@
+{
+ "CT": {
+  "silt+clay": 328.8,
+  "micro": 161.1,
+  "small macro": 351.9,
+  "large macro": 158.1
+ },
+ "CTFR": {
+  "silt+clay": 261.1,
+  "micro": 166.5,
+  "small macro": 377.3,
+  "large macro": 197.3
+ },
+ "RTFR": {
+  "silt+clay": 204.2,
+  "micro": 159.6,
+  "small macro": 386.5,
+  "large macro": 250.4
+ },
+ "CTOM": {
+  "silt+clay": 203.5,
+  "micro": 99.6,
+  "small macro": 404.2,
+  "large macro": 294.2
+ },
+ "RTOM": {
+  "silt+clay": 180.4,
+  "micro": 71.9,
+  "small macro": 415.8,
+  "large macro": 332.7
+ }
+}
