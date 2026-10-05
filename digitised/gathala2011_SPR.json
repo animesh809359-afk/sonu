@@ -1,0 +1,10 @@
+{"_source": "Gathala et al. 2011 SSSAJ 75:1851-1862, Fig. 1 (scanned raster, 300 ppi page image). Manual marker reading on zoomed crops; x calibrated on tick labels (0 MPa at x=628 px, 312.5 px/MPa), depth on y ticks (72.4 px per 5 cm). Cells marked in 'hidden' are read from the series line where the marker is overlapped.",
+ "depth_cm": [5, 10, 15, 20, 25, 30, 35, 40, 45],
+ "T1": [0.93, 1.29, 2.54, 3.46, 3.17, 2.69, 2.21, 2.13, 2.21],
+ "T2": [1.12, 1.48, 2.47, 3.72, 3.58, 2.65, 2.43, 2.35, 2.28],
+ "T3": [1.02, 1.55, 1.96, 2.58, 2.79, 2.33, 2.41, 2.33, 2.30],
+ "T4": [1.08, 1.51, 1.92, 2.51, 2.71, 2.61, 2.43, 2.18, 2.01],
+ "T5": [1.30, 1.68, 2.21, 2.76, 2.38, 2.09, 2.40, 2.35, 2.36],
+ "T6": [1.40, 1.82, 2.26, 2.83, 2.70, 2.65, 2.50, 2.53, 2.57],
+ "hidden": {"T6": [25, 30], "T3": [35, 40, 45], "T4": [35], "T5": [35, 40]},
+ "checks": "20 cm: puddled T1/T2 3.46/3.72 (text 3.46-3.72), ZT T3-T6 2.51-2.83 (text 2.51-2.82); 5 cm: T2 = 1.20 x T1 (text +20%); T5/T6 vs T3/T4 +28% (text 28%); 15 cm T3-T6 9-24% below T1/T2 (text 9-25%)."}
