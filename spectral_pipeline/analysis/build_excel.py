@@ -15,6 +15,7 @@ from xl import F_BOLD, F_NOTE, FILL_KEY, Sheet, error_matrix
 
 C = cfg()
 D, A, K, Cc, X = load("data"), load("partA"), load("partK"), load("partC"), load("compare")
+CR, XR = load("partCR"), load("compareCR")
 TXT = json.loads((WORK / "conclusions.json").read_text()) if (WORK / "conclusions.json").exists() else {}
 FIG = WORK / "figures"
 OUT = (ROOT / C["output"]["dir"]).resolve()
@@ -64,7 +65,7 @@ cA, cK, cC = A["checks"], K["checks"], Cc["checks"]
 readme = S_("00_README", "Healthy vs white-rust-diseased mustard leaves — all dates, growth stages and varieties combined",
             "Four-tier hierarchical analysis of Das et al. (2020, Geocarto International 35:64–77) with imbalance and "
             "pseudo-replication corrections; CART vs Random Forest; disease-sensitive features (Part K); four-tier "
-            "analysis of the combined feature pool (Part C). Leaf level, ASD FieldSpec contact probe.")
+            "analysis of the combined feature pool (Part C: K1 + K2–K4; Part C′: raw reflectance + K2–K4). Leaf level, ASD FieldSpec contact probe.")
 
 # =====================================================================================
 # 01 Summary
@@ -86,6 +87,10 @@ key = [
     ("Part C — CART features", f"{len(Cc['sets'][Cc['cart_name']])}: {', '.join(Cc['sets'][Cc['cart_name']])}"),
     ("Part C — QDA on RF-17 features (V3 / V4)",
      f"{100 * vrow(Cc, 'QDA on RF features', 'V3')['BA']:.1f} % / {100 * vrow(Cc, 'QDA on RF features', 'V4')['BA']:.1f} %"),
+    ("Part C′ — raw reflectance + K2–K4: features / Tier-1 significant", f"{CR['n_features']} / {CR['n_sig']}"),
+    ("Part C′ — CART features", f"{len(CR['sets'][CR['cart_name']])}: {', '.join(CR['sets'][CR['cart_name']])}"),
+    (f"Part C′ — QDA on {CR['rf_name']} features (V3 / V4)",
+     f"{100 * vrow(CR, 'QDA on RF features', 'V3')['BA']:.1f} % / {100 * vrow(CR, 'QDA on RF features', 'V4')['BA']:.1f} %"),
 ]
 S.table(pd.DataFrame(key, columns=["Item", "Result"]), widths={"A": 52, "B": 90})
 S.h2("Table Z.1  All approaches side by side (ranked by the honest V3 balanced accuracy)")
@@ -705,90 +710,101 @@ S.table(pd.DataFrame([(FE["groups"][g][0], len(v), ", ".join(v)) for g, v in K["
         title="Table K5.7  CART trees fitted to all leaves", widths={"C": 110})
 
 # =====================================================================================
-# 23-30 Part C
-pm = Cc["pool_meta"]
-S = S_("23_C0_Feature_Pool", "Part C0 · The combined feature pool (K1 + K2 + K3 + K4)",
-       "The four-tier analysis of Das et al. applied to all extracted features instead of the reflectance bands alone.")
-S.para(f"Pool = K1 smoothed reflectance bands (guard zones excluded) + 30 K2 continuum-removed parameters + 31 K3 vegetation "
-       f"indices + K4 first-derivative bands (guard zones excluded) + 20 K4 edge parameters = {Cc['pool_size_raw']} features. "
-       f"Exact duplicates (|r| ≥ 0.99999) were removed because they make covariance matrices singular in Tiers 3–4, leaving "
-       f"{Cc['n_features']} features. The same Tier 1–4 machinery, settings and folds as in Part A were then applied. RF peaks were "
-       "picked within each spectral series (reflectance and derivative bands ≥ 10 nm apart); every scalar feature (CR, index, "
-       "edge parameter) is its own candidate; a candidate nearly collinear (|r| ≥ 0.999) with an already chosen feature is skipped.")
-S.table(Cc["pool_dups"], title="Table C0.1  Duplicated features removed from the pool")
-S.table(Cc["composition"][["Feature type", "Features", "Tier-1 significant"]], title="Table C0.2  Pool composition")
+# 23-30 Part C (K1 pool) and 30a-30h Part C′ (raw pool)
+def part_c_sheets(R, names, label, pool_txt, figs, all_sheet, reflect_desc):
+    """Sheets C0-C6 for one combined-pool four-tier analysis."""
+    S = S_(names[0], f"{label}0 · The combined feature pool ({pool_txt})",
+           "The four-tier analysis of Das et al. applied to all extracted features instead of the reflectance bands alone.")
+    S.para(f"Pool = {reflect_desc} + 30 K2 continuum-removed parameters + 31 K3 vegetation "
+           f"indices + K4 first-derivative bands (guard zones excluded) + 20 K4 edge parameters = {R['pool_size_raw']} features. "
+           f"Exact duplicates (|r| ≥ 0.99999) were removed because they make covariance matrices singular in Tiers 3–4, leaving "
+           f"{R['n_features']} features. The same Tier 1–4 machinery, settings and folds as in Part A were then applied. RF peaks were "
+           "picked within each spectral series (reflectance and derivative bands ≥ 10 nm apart); every scalar feature (CR, index, "
+           "edge parameter) is its own candidate; a candidate nearly collinear (|r| ≥ 0.999) with an already chosen feature is skipped.")
+    S.table(R["pool_dups"], title=f"Table {label}0.1  Duplicated features removed from the pool")
+    S.table(R["composition"][["Feature type", "Features", "Tier-1 significant"]], title=f"Table {label}0.2  Pool composition")
 
-S = S_("24_C1_Tier1", "Part C1 · Tier 1 on the combined pool — Welch t-test + BH-FDR",
-       f"{Cc['n_sig']} of {Cc['n_features']} features significant (q < 0.05).")
-ct1 = Cc["tier1"]
-S.table(Cc["composition"][["Feature type", "Features", "Tier-1 significant"]], title="Table C1.1  Significant features by type")
-S.table(ct1.sort_values("auc", ascending=False).groupby("type", sort=True).head(5).sort_values(["type", "auc"], ascending=[True, False])[
-    ["name", "type", "mean0", "mean1", "t", "q", "g", "auc", "mm_q"]].rename(
-    columns={"name": "Feature", "type": "Type", "mean0": "Mean healthy", "mean1": "Mean diseased", "t": "Welch t",
-             "q": "q (BH)", "g": "Hedges g", "auc": "AUC", "mm_q": "Mixed-model q"}),
-    title="Table C1.2  Five most sensitive features of each type (by AUC)")
-S.para("All 4150 features with their statistics: sheet 35_C_AllFeatures.", font=F_NOTE)
+    S = S_(names[1], f"{label}1 · Tier 1 on the combined pool — Welch t-test + BH-FDR",
+           f"{R['n_sig']} of {R['n_features']} features significant (q < 0.05).")
+    ct1 = R["tier1"]
+    S.table(R["composition"][["Feature type", "Features", "Tier-1 significant"]], title=f"Table {label}1.1  Significant features by type")
+    S.table(ct1.sort_values("auc", ascending=False).groupby("type", sort=True).head(5).sort_values(["type", "auc"], ascending=[True, False])[
+        ["name", "type", "mean0", "mean1", "t", "q", "g", "auc", "mm_q"]].rename(
+        columns={"name": "Feature", "type": "Type", "mean0": "Mean healthy", "mean1": "Mean diseased", "t": "Welch t",
+                 "q": "q (BH)", "g": "Hedges g", "auc": "AUC", "mm_q": "Mixed-model q"}),
+        title=f"Table {label}1.2  Five most sensitive features of each type (by AUC)")
+    if all_sheet:
+        S.para(f"All {R['n_features']} features with their statistics: sheet {all_sheet}.", font=F_NOTE)
 
-S = S_("25_C2_Tier2", "Part C2 · Tier 2 on the combined pool — CART (rpart) and RF selection")
-csets = pd.DataFrame([(k, len(v), ", ".join(v)) for k, v in Cc["sets"].items()], columns=["Feature set", "Features", "Features (order of selection)"])
-S.table(csets, title="Table C2.1  Selected feature sets", widths={"C": 120})
-cimp = Cc["rf_importance"].set_index("name")
-rows = []
-for nm in Cc["sets"][Cc["cart_name"]] + [v for v in Cc["sets"][Cc["rf_name"]] if v not in Cc["sets"][Cc["cart_name"]]]:
-    r = ct1.set_index("name").loc[nm]
-    rows.append({"Feature": nm, "Type": r["type"], f"In {Cc['cart_name']}": "yes" if nm in Cc["sets"][Cc["cart_name"]] else "",
-                 f"In {Cc['rf_name']}": "yes" if nm in Cc["sets"][Cc["rf_name"]] else "", "Mean healthy": r["mean0"],
-                 "Mean diseased": r["mean1"], "Welch t": r["t"], "q (BH)": r["q"], "AUC": r["auc"],
-                 "Mixed model significant": "yes" if r.get("mm_sig", False) else "no",
-                 "RF importance rank": int(cimp["importance"].rank(ascending=False)[nm])})
-S.table(pd.DataFrame(rows), title="Table C2.2  The selected features")
-S.image(FIG / "F26_C_cart_tree.png", 1000)
-fr = Cc["cart_full"]["frame"][["node", "depth", "var", "label", "n", "nH", "nD", "pred"]].copy()
-fr.columns = ["Node", "Depth", "Split variable", "Rule", "Leaves", "Healthy", "Diseased", "Predicted class"]
-S.table(fr, title="Table C2.3  Tree nodes (rpart frame)")
-S.table(Cc["cart_full"]["cptable"], title="Table C2.4  Complexity-parameter table (plot-grouped CV)")
-S.image(FIG / "F25_C_top_importance.png", 700)
-S.image(FIG / "F24_C_composition.png", 800)
-if Cc["collinear_skipped"]:
-    S.para("Candidates skipped by the collinearity guard (|r| ≥ 0.999 with a chosen feature): " + ", ".join(Cc["collinear_skipped"]), font=F_NOTE)
+    S = S_(names[2], f"{label}2 · Tier 2 on the combined pool — CART (rpart) and RF selection")
+    csets = pd.DataFrame([(k, len(v), ", ".join(v)) for k, v in R["sets"].items()], columns=["Feature set", "Features", "Features (order of selection)"])
+    S.table(csets, title=f"Table {label}2.1  Selected feature sets", widths={"C": 120})
+    cimp = R["rf_importance"].set_index("name")
+    rows = []
+    for nm in R["sets"][R["cart_name"]] + [v for v in R["sets"][R["rf_name"]] if v not in R["sets"][R["cart_name"]]]:
+        r = ct1.set_index("name").loc[nm]
+        rows.append({"Feature": nm, "Type": r["type"], f"In {R['cart_name']}": "yes" if nm in R["sets"][R["cart_name"]] else "",
+                     f"In {R['rf_name']}": "yes" if nm in R["sets"][R["rf_name"]] else "", "Mean healthy": r["mean0"],
+                     "Mean diseased": r["mean1"], "Welch t": r["t"], "q (BH)": r["q"], "AUC": r["auc"],
+                     "Mixed model significant": "yes" if r.get("mm_sig", False) else "no",
+                     "RF importance rank": int(cimp["importance"].rank(ascending=False)[nm])})
+    S.table(pd.DataFrame(rows), title=f"Table {label}2.2  The selected features")
+    S.image(FIG / f"{figs['tree']}.png", 1000)
+    fr = R["cart_full"]["frame"][["node", "depth", "var", "label", "n", "nH", "nD", "pred"]].copy()
+    fr.columns = ["Node", "Depth", "Split variable", "Rule", "Leaves", "Healthy", "Diseased", "Predicted class"]
+    S.table(fr, title=f"Table {label}2.3  Tree nodes (rpart frame)")
+    S.table(R["cart_full"]["cptable"], title=f"Table {label}2.4  Complexity-parameter table (plot-grouped CV)")
+    S.image(FIG / f"{figs['top']}.png", 700)
+    S.image(FIG / f"{figs['comp']}.png", 800)
+    if R["collinear_skipped"]:
+        S.para("Candidates skipped by the collinearity guard (|r| ≥ 0.999 with a chosen feature): " + ", ".join(R["collinear_skipped"]), font=F_NOTE)
 
-S = S_("26_C3_Tier3_JM", "Part C3 · Tier 3 on the combined pool — J–M distance")
-t3 = Cc["tier3"][["Set", "Features", "alpha", "cond0", "cond1"]].copy()
-t3.columns = ["Feature set", "Features", "α (Bhattacharyya)", "Condition no. healthy", "Condition no. diseased"]
-f, l, L = S.table(t3, title="Table C3.1  Separability of healthy and diseased leaves")
-for j, h_ in enumerate(["J–M 0–2 (Excel)", "√J–M (Excel)", "≥ 1.90 ?", "≥ 1.94 ?"]):
-    S.cell(f - 1, 6 + j, h_, xl.F_HEAD, fill=xl.FILL_HEAD, border=True, align=xl.CENTER)
-for r in range(f, l + 1):
-    S.cell(r, 6, f"=2*(1-EXP(-C{r}))", fmt="0.0000", border=True)
-    S.cell(r, 7, f"=SQRT(F{r})", fmt="0.0000", border=True)
-    S.cell(r, 8, f'=IF(F{r}>=1.9,"separable","not separable")', border=True)
-    S.cell(r, 9, f'=IF(F{r}>=1.94,"separable","not separable")', border=True)
-S.table(Cc["tier3_incremental"], title="Table C3.2  J–M and QDA BA as features are added", fmts={"CART QDA BA": PCT, "RF QDA BA": PCT})
-S.image(FIG / "F27_C_incremental.png", 900)
+    S = S_(names[3], f"{label}3 · Tier 3 on the combined pool — J–M distance")
+    t3 = R["tier3"][["Set", "Features", "alpha", "cond0", "cond1"]].copy()
+    t3.columns = ["Feature set", "Features", "α (Bhattacharyya)", "Condition no. healthy", "Condition no. diseased"]
+    f, l, L = S.table(t3, title=f"Table {label}3.1  Separability of healthy and diseased leaves",
+                      note="Condition numbers of the class correlation matrices (scale-free).")
+    for j, h_ in enumerate(["J–M 0–2 (Excel)", "√J–M (Excel)", "≥ 1.90 ?", "≥ 1.94 ?"]):
+        S.cell(f - 1, 6 + j, h_, xl.F_HEAD, fill=xl.FILL_HEAD, border=True, align=xl.CENTER)
+    for r in range(f, l + 1):
+        S.cell(r, 6, f"=2*(1-EXP(-C{r}))", fmt="0.0000", border=True)
+        S.cell(r, 7, f"=SQRT(F{r})", fmt="0.0000", border=True)
+        S.cell(r, 8, f'=IF(F{r}>=1.9,"separable","not separable")', border=True)
+        S.cell(r, 9, f'=IF(F{r}>=1.94,"separable","not separable")', border=True)
+    S.table(R["tier3_incremental"], title=f"Table {label}3.2  J–M and QDA BA as features are added", fmts={"CART QDA BA": PCT, "RF QDA BA": PCT})
+    S.image(FIG / f"{figs['inc']}.png", 900)
 
-S = S_("27_C4_Tier4_QDA", "Part C4 · Tier 4 on the combined pool — QDA with equal priors (V1)")
-t4 = Cc["tier4"][["Set", "Classifier", "HH", "HD", "DH", "DD", "OA", "BA", "PA_H", "PA_D", "UA_H", "UA_D", "kappa", "AUC"]].copy()
-t4.columns = ["Feature set", "Classifier", "H → H", "H → D", "D → H", "D → D", "OA", "BA", "PA healthy", "PA diseased", "UA healthy", "UA diseased", "κ", "AUC"]
-S.table(t4, title="Table C4.1  10-fold cross-validated classification (V1)", fmts={c: PCT for c in ["OA", "BA", "PA healthy", "PA diseased", "UA healthy", "UA diseased"]})
-error_matrix(S, Cc["errmat"][Cc["cart_name"]], f"Error matrix — QDA (equal priors) on {Cc['cart_name']} (combined pool)")
-error_matrix(S, Cc["errmat"][Cc["rf_name"]], f"Error matrix — QDA (equal priors) on {Cc['rf_name']} (combined pool)")
-checks_table(S, [c for c in cC if c[0] in ("Tier 3", "Tier 4")])
+    S = S_(names[4], f"{label}4 · Tier 4 on the combined pool — QDA with equal priors (V1)")
+    t4 = R["tier4"][["Set", "Classifier", "HH", "HD", "DH", "DD", "OA", "BA", "PA_H", "PA_D", "UA_H", "UA_D", "kappa", "AUC"]].copy()
+    t4.columns = ["Feature set", "Classifier", "H → H", "H → D", "D → H", "D → D", "OA", "BA", "PA healthy", "PA diseased", "UA healthy", "UA diseased", "κ", "AUC"]
+    S.table(t4, title=f"Table {label}4.1  10-fold cross-validated classification (V1)", fmts={c: PCT for c in ["OA", "BA", "PA healthy", "PA diseased", "UA healthy", "UA diseased"]})
+    error_matrix(S, R["errmat"][R["cart_name"]], f"Error matrix — QDA (equal priors) on {R['cart_name']} ({pool_txt})")
+    error_matrix(S, R["errmat"][R["rf_name"]], f"Error matrix — QDA (equal priors) on {R['rf_name']} ({pool_txt})")
+    checks_table(S, [c for c in R["checks"] if c[0] in ("Tier 3", "Tier 4")])
 
-S = S_("28_C5_Validation", "Part C5 · Validation of the combined-pool four-tier pipeline",
-       "Identical folds to Part A; Tier 1 + CART/RF selection + classifier refitted inside every training set (V3, V4, V5).")
-vc = Cc["validation"][["Pipeline", "Scheme", "repeats", "OA", "BA", "BA_SD", "kappa", "AUC", "PA_H", "PA_D", "UA_H", "UA_D"]]
-S.table(vc, title="Table C5.1  Validation results", fmts={c: PCT for c in ["OA", "BA", "BA_SD", "PA_H", "PA_D", "UA_H", "UA_D"]})
-S.image(FIG / "F28_C_pipelines.png", 860)
-S.table(Cc["wilcoxon"], title="Table C5.2  Paired comparisons within Part C", fmts={"Mean difference": PCT, "SD": PCT})
-for p in ["QDA on CART features", "QDA on RF features"]:
-    error_matrix(S, Cc["pooled"][(p, "V4")], f"Error matrix — {p}, V4 hold-out plots (combined pool)")
+    S = S_(names[5], f"{label}5 · Validation of the combined-pool four-tier pipeline",
+           "Identical folds to Part A; Tier 1 + CART/RF selection + classifier refitted inside every training set (V3, V4, V5).")
+    vc = R["validation"][["Pipeline", "Scheme", "repeats", "OA", "BA", "BA_SD", "kappa", "AUC", "PA_H", "PA_D", "UA_H", "UA_D"]]
+    S.table(vc, title=f"Table {label}5.1  Validation results", fmts={c: PCT for c in ["OA", "BA", "BA_SD", "PA_H", "PA_D", "UA_H", "UA_D"]})
+    S.image(FIG / f"{figs['pipes']}.png", 860)
+    S.table(R["wilcoxon"], title=f"Table {label}5.2  Paired comparisons within this pool", fmts={"Mean difference": PCT, "SD": PCT})
+    for p in ["QDA on CART features", "QDA on RF features"]:
+        error_matrix(S, R["pooled"][(p, "V4")], f"Error matrix — {p}, V4 hold-out plots ({pool_txt})")
 
-S = S_("29_C6_Stability", "Part C6 · Stability of the features selected from the combined pool")
-S.table(Cc["stability"]["index"], title="Table C6.1  Stability index")
-S.table(Cc["fold_composition"], title="Table C6.2  Feature types selected in the 50 nested training sets", fmts={"Share": PCT})
-S.table(Cc["stability"]["reselect_CART"], title="Table C6.3  Re-selection of the all-leaf CART features", fmts={c: PCT for c in Cc["stability"]["reselect_CART"].columns if c.startswith("Re-")})
-S.table(Cc["stability"]["reselect_RF"], title="Table C6.4  Re-selection of the all-leaf RF features", fmts={c: PCT for c in Cc["stability"]["reselect_RF"].columns if c.startswith("Re-")})
-S.image(FIG / "F28b_C_stability.png", 900)
+    S = S_(names[6], f"{label}6 · Stability of the features selected from the combined pool")
+    S.table(R["stability"]["index"], title=f"Table {label}6.1  Stability index")
+    S.table(R["fold_composition"], title=f"Table {label}6.2  Feature types selected in the 50 nested training sets", fmts={"Share": PCT})
+    S.table(R["stability"]["reselect_CART"], title=f"Table {label}6.3  Re-selection of the all-leaf CART features", fmts={c: PCT for c in R["stability"]["reselect_CART"].columns if c.startswith("Re-")})
+    S.table(R["stability"]["reselect_RF"], title=f"Table {label}6.4  Re-selection of the all-leaf RF features", fmts={c: PCT for c in R["stability"]["reselect_RF"].columns if c.startswith("Re-")})
+    S.image(FIG / f"{figs['stab']}.png", 900)
+    return S
+
+
+S = part_c_sheets(Cc, ["23_C0_Feature_Pool", "24_C1_Tier1", "25_C2_Tier2", "26_C3_Tier3_JM", "27_C4_Tier4_QDA", "28_C5_Validation", "29_C6_Stability"],
+                  "C", "K1 + K2 + K3 + K4",
+                  dict(tree="F26_C_cart_tree", top="F25_C_top_importance", comp="F24_C_composition", inc="F27_C_incremental",
+                       pipes="F28_C_pipelines", stab="F28b_C_stability"),
+                  "35_C_AllFeatures", "K1 smoothed, splice-corrected reflectance bands (guard zones excluded)")
 S.table(X["guard_edge"], title="Table C6.5  Are selected derivative/reflectance bands crowding the detector guard zones? (artefact-leakage check)",
         fmts={"Share": PCT}, note="Guard zones: reflectance 990–1010 and 1795–1835 nm; first derivative 988–1012 and 1793–1837 nm. A feature within 5 nm outside a guard zone may still carry some join artefact.")
 for meth in ("CART", "RF"):
@@ -797,6 +813,39 @@ for meth in ("CART", "RF"):
 S = S_("30_C7_Comparison", "Part C7 · Combined pool vs reflectance (Part A) vs K5 — paired tests on identical folds")
 S.table(X["cross_wilcoxon"], title="Table C7.1  Paired Wilcoxon signed-rank tests (balanced accuracy, positive = first better)",
         fmts={"Mean difference (BA)": PCT, "SD": PCT}, widths={"A": 44, "B": 44})
+
+# ---- Part C′: the same four tiers on raw reflectance + K2 + K3 + K4
+S = part_c_sheets(CR, ["30a_CR0_Pool_Raw", "30b_CR1_Tier1", "30c_CR2_Tier2", "30d_CR3_Tier3_JM", "30e_CR4_Tier4_QDA",
+                       "30f_CR5_Validation", "30g_CR6_Stability"],
+                  "C′", "raw reflectance + K2 + K3 + K4",
+                  dict(tree="F32_CR_cart_tree", top="F33_CR_top_importance", comp="F34_CR_composition", inc="F35_CR_incremental",
+                       pipes="F36_CR_pipelines", stab="F37_CR_stability"),
+                  "35b_CR_AllFeatures", "all 2101 RAW reflectance bands, 400–2500 nm (exactly as in Part A; no smoothing, no splice correction, no guard zones)")
+for meth in ("CART", "RF"):
+    S.table(CR["stability"]["freq"][meth].head(25), title=f"Features most often selected by {meth}", fmts={"Share of training sets": PCT})
+
+S = S_("30h_C_vs_CRaw_Compare", "Part C vs Part C′ · Which reflectance should enter the combined pool — K1 or raw?",
+       "Same features K2 + K3 + K4 in both pools; only the reflectance part differs (K1 smoothed and splice-corrected vs raw). Identical folds.")
+S.para("Part C uses K1 reflectance (splice-corrected and Savitzky–Golay-smoothed, guard zones removed: 2039 bands); Part C′ uses the raw "
+       "reflectance exactly as measured (2101 bands, the input of Part A and of Das et al. 2020). Everything else — K2, K3, K4, the "
+       "four tiers, the settings, seeds and folds — is identical, so differences come only from the reflectance part of the pool.")
+S.table(XR["side_by_side"], title="Table CC.1  Side by side: pool, Tier 1, selected features, J–M, QDA (V1)", widths={"A": 46, "B": 60, "C": 60, "D": 30})
+S.table(XR["val_side"], title="Table CC.2  Balanced accuracy of the four pipelines in Part A, Part C′ and Part C",
+        fmts={c: PCT for c in XR["val_side"].columns if c.startswith(("Part", "Δ"))})
+S.image(FIG / "F38_A_CR_C_comparison.png", 900)
+S.table(XR["wilcoxon"], title="Table CC.3  Paired Wilcoxon tests on identical folds (positive = first better)",
+        fmts={"Mean difference (BA)": PCT, "SD": PCT}, widths={"A": 46, "B": 46})
+S.table(XR["comp_side"], title="Table CC.4  Feature types chosen by CART and RF in the 50 nested training sets", fmts={c: PCT for c in XR["comp_side"].columns if "share" in c.lower()})
+S.table(XR["overlap"], title="Table CC.5  Overlap of the selected features (a raw band R λ (raw) and a K1 band R λ count as the same wavelength)")
+S.table(XR["raw_bands"], title="Table CC.6  Where the raw bands chosen in the 50 nested training sets of Part C′ lie",
+        note="Raw bands inside a guard zone or at the noisy spectral ends are bands that K1 removes or smooths in Part C. "
+             "All-leaf selections that are raw bands: " + (", ".join(XR["raw_bands_allleaf"]) or "none") + ".")
+lo = XR["lodo"].pivot_table(index=["Feature set", "Pipeline"], columns="Held-out date", values="BA mean", sort=False).reset_index()
+S.table(lo, title="Table CC.7  V5 — balanced accuracy on each held-out date (new plots)", fmts={c: PCT for c in lo.columns[2:]})
+if TXT.get("cr"):
+    S.h2("Reading")
+    for t in TXT["cr"]:
+        S.para(t)
 
 # =====================================================================================
 # 31 V5, 32 strata
@@ -822,6 +871,7 @@ rows = [("Step 0", c[0], "data audit", str(c[1]), c[2]) for c in D["audit"]["che
 rows += [(c[0], c[1], c[2], c[3], c[4]) for c in cA]
 rows += [(c[0], c[1], c[2], c[3], c[4]) for c in cK]
 rows += [(f"Part C · {c[0]}", c[1], c[2], c[3], c[4]) for c in cC]
+rows += [(f"Part C′ · {c[0]}", c[1], c[2], c[3], c[4]) for c in CR["checks"]]
 fa = F
 rows += [("Validation", "No plot in both training and test", "assertion on every V3, V4 and V5 fold", "passed for all folds", "PASS"),
          ("Validation", "No date in both training and test (V5)", "assertion on every V5 unit", "passed", "PASS"),
@@ -871,6 +921,13 @@ ca = ct1[["name", "type", "position", "mean0", "sd0", "mean1", "sd1", "t", "df",
 ca.columns = ["Feature", "Type", "Wavelength (nm)", "Mean healthy", "SD healthy", "Mean diseased", "SD diseased", "Welch t", "df",
               "p", "q (BH)", "Hedges g", "AUC", "Mixed-model q", "ICC plot", "Significant"]
 ca = ca.merge(Cc["rf_importance"][["name", "importance"]].rename(columns={"name": "Feature", "importance": "RF importance"}), on="Feature", how="left")
+f, l, L = S.table(ca)
+S.ws.freeze_panes = S.ws.cell(row=f, column=2)
+S = S_("35b_CR_AllFeatures", "Part C′ — Tier 1 statistics of every feature of the raw-reflectance pool")
+ca = CR["tier1"][["name", "type", "position", "mean0", "sd0", "mean1", "sd1", "t", "df", "p", "q", "g", "auc", "mm_q", "icc", "sig"]].copy()
+ca.columns = ["Feature", "Type", "Wavelength (nm)", "Mean healthy", "SD healthy", "Mean diseased", "SD diseased", "Welch t", "df",
+              "p", "q (BH)", "Hedges g", "AUC", "Mixed-model q", "ICC plot", "Significant"]
+ca = ca.merge(CR["rf_importance"][["name", "importance"]].rename(columns={"name": "Feature", "importance": "RF importance"}), on="Feature", how="left")
 f, l, L = S.table(ca)
 S.ws.freeze_panes = S.ws.cell(row=f, column=2)
 S = S_("36_Folds", "Fold assignments used by every step (identical everywhere)",

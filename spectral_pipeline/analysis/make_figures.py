@@ -503,8 +503,9 @@ def f23_k5():
     save(fig, "F23_K5_cart_vs_rf")
 
 
-def f24_composition():
-    comp = Cc["composition"].set_index("Feature type")
+def f24_composition(R=None, name="F24_C_composition", title="Part C: which feature families the selectors pick from the combined pool"):
+    R = Cc if R is None else R
+    comp = R["composition"].set_index("Feature type")
     sets = [c for c in comp.columns if c.startswith(("CART", "RF"))]
     fig, ax = plt.subplots(figsize=(8, 3.4))
     x = np.arange(len(comp))
@@ -514,14 +515,15 @@ def f24_composition():
         ax.bar(x + (k - (len(sets) - 1) / 2) * w, comp[s], w * 0.92, color=cols[k % len(cols)], label=s)
     ax.set_xticks(x, comp.index, rotation=15, fontsize=8)
     ax.set(ylabel="Features selected")
-    ax.set_title("Part C: which feature families the selectors pick from the combined pool")
+    ax.set_title(title)
     ax.legend(fontsize=7.5)
-    save(fig, "F24_C_composition")
+    save(fig, name)
 
 
-def f25_c_top():
-    imp = Cc["rf_importance"].nlargest(30, "importance").iloc[::-1]
-    tcol = {"K1 band reflectance": "#9a998f", "K2 continuum removal": "#1baf7a", "K3 vegetation index": "#e87ba4",
+def f25_c_top(R=None, name="F25_C_top_importance", title="Part C: 30 most important features of the combined pool (Balanced RF)"):
+    R = Cc if R is None else R
+    imp = R["rf_importance"].nlargest(30, "importance").iloc[::-1]
+    tcol = {"K1 band reflectance": "#9a998f", "Raw reflectance band": "#52514e", "K2 continuum removal": "#1baf7a", "K3 vegetation index": "#e87ba4",
             "K4 first-derivative band": CART_COL, "K4 edge parameter": RF_COL}
     fig, ax = plt.subplots(figsize=(7, 6.5))
     ax.barh(imp["name"], imp["importance"] * 1000, color=[tcol.get(t, INK2) for t in imp["type"]])
@@ -529,19 +531,46 @@ def f25_c_top():
     present = [t for t in tcol if t in set(imp["type"])]
     ax.legend(handles=[Patch(color=tcol[t], label=t) for t in present], fontsize=8, loc="lower right")
     ax.set(xlabel="Mean decrease in Gini × 1000")
-    ax.set_title("Part C: 30 most important features of the combined pool (Balanced RF)")
+    ax.set_title(title)
     ax.grid(axis="y", visible=False)
     ax.tick_params(axis="y", labelsize=7)
-    save(fig, "F25_C_top_importance")
+    save(fig, name)
+
+
+def f38_compare(CR):
+    """Balanced accuracy of the four pipelines: Part A (raw reflectance), Part C′ (raw + K2–K4), Part C (K1 + K2–K4)."""
+    pipes = ["CART classifier", "RF classifier", "QDA on CART features", "QDA on RF features"]
+    sets = (("Part A · raw reflectance", A, "#9a998f"), ("Part C′ · raw + K2–K4", CR, "#52514e"), ("Part C · K1 + K2–K4", Cc, CART_COL))
+    fig, axs = plt.subplots(1, 3, figsize=(12, 3.6), sharey=True)
+    for ax, sch, ttl in zip(axs, ("V3", "V4", "V5"), ("V3 nested plot-grouped CV", "V4 30 % plot hold-out", "V5 new date + new plots")):
+        x = np.arange(len(pipes))
+        w = 0.8 / len(sets)
+        for k, (lab, R, col) in enumerate(sets):
+            v = R["validation"]
+            q = v[v.Scheme == sch].set_index("Pipeline").reindex(pipes)
+            xs = x + (k - 1) * w
+            ax.bar(xs, q["BA"] * 100, w * 0.92, color=col, label=lab, yerr=q["BA_SD"] * 100 if sch != "V5" else None,
+                   error_kw=dict(lw=0.6, capsize=1.5, ecolor=INK2))
+            for xi, b in zip(xs, q["BA"] * 100):
+                ax.text(xi, 41, f"{b:.0f}", ha="center", fontsize=6, color="white", rotation=90, va="bottom")
+        ax.set_xticks(x, [p.replace(" features", "").replace(" classifier", "\nclassifier") for p in pipes], fontsize=7)
+        ax.set_title(ttl)
+        ax.set_ylim(40, 100)
+    axs[0].set_ylabel("Balanced accuracy (%)")
+    axs[0].legend(fontsize=7, loc="upper left")
+    fig.suptitle("Does the combined pool need K1 or raw reflectance? Same folds, same settings", fontsize=10, fontweight="bold", y=1.03)
+    save(fig, "F38_A_CR_C_comparison")
 
 
 def f29_synthesis():
     rows = []
-    for lab, R in (("A", A), ("C", Cc)):
+    CR = _try("partCR")
+    labs = {"A": "Reflectance", "C": "Combined pool", "CR": "Raw + K2–K4 pool"}
+    for lab, R in (("A", A), ("C", Cc)) + ((("CR", CR),) if CR is not None else ()):
         v = R["validation"]
         for p in ["CART classifier", "RF classifier", "QDA on CART features", "QDA on RF features"]:
             s = v[(v.Pipeline == p)].set_index("Scheme")
-            rows.append((f"{'Reflectance' if lab == 'A' else 'Combined pool'} · {p}", s.loc["V3", "BA"], s.loc["V3", "BA_SD"],
+            rows.append((f"{labs[lab]} · {p}", s.loc["V3", "BA"], s.loc["V3", "BA_SD"],
                          s.loc["V4", "BA"], s.loc["V4", "BA_SD"]))
     t = K["k5"]
     for g, nm in (("G2", "K2 continuum"), ("G3", "K3 indices"), ("G4", "K4 derivatives"), ("G5", "K1–K4 combined")):
@@ -550,7 +579,7 @@ def f29_synthesis():
             b = t[(t.Group == g) & (t.Classifier == clf) & (t.Scheme == "Hold-out")].iloc[0]
             rows.append((f"K5 {nm} · RF classifier", a["BA"], a["BA_SD"], b["BA"], b["BA_SD"]))
     df = pd.DataFrame(rows, columns=["Approach", "V3", "V3sd", "V4", "V4sd"]).sort_values("V3")
-    fig, ax = plt.subplots(figsize=(8, 5.4))
+    fig, ax = plt.subplots(figsize=(8, 5.4 + 0.25 * max(0, len(df) - 12)))
     yv = np.arange(len(df))
     ax.errorbar(df["V3"] * 100, yv + 0.12, xerr=df["V3sd"] * 100, fmt="o", color=CART_COL, ms=5, capsize=2, label="V3 nested plot-grouped CV (± SD over repeats)")
     ax.errorbar(df["V4"] * 100, yv - 0.12, xerr=df["V4sd"] * 100, fmt="s", color=RF_COL, mec=INK, mew=0.4, ms=5, capsize=2, label="V4 30 % plot hold-out (± SD over splits)")
@@ -634,4 +663,13 @@ if __name__ == "__main__":
         f29_synthesis()
         lodo = f30_lodo()
         lodo.to_pickle(WORK / "lodo_by_date.pkl")
+    if only in ("all", "CR"):
+        CR = load("partCR")
+        tree_diagram(CR["cart_full"]["frame"], "F32_CR_cart_tree", f"Part C′, Tier 2: CART tree on raw + K2 + K3 + K4 ({CR['cart_name']})")
+        f25_c_top(CR, "F33_CR_top_importance", "Part C′: 30 most important features of raw + K2 + K3 + K4 (Balanced RF)")
+        f24_composition(CR, "F34_CR_composition", "Part C′: which feature families the selectors pick from raw + K2 + K3 + K4")
+        f09_incremental(CR, "F35_CR_incremental", "Part C′: CART vs RF feature order (raw + K2 + K3 + K4)")
+        pipelines_chart(CR, "F36_CR_pipelines", "Part C′: four pipelines on raw + K2 + K3 + K4")
+        f14_stability(CR, "F37_CR_stability", "Part C′: re-selection in the 50 nested training sets")
+        f38_compare(CR)
     print(len(done), "figures:", done)

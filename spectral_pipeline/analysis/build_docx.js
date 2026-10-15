@@ -10,7 +10,7 @@ const OUT = process.argv[3];
 const J = JSON.parse(fs.readFileSync(path.join(WORK, "results.json"), "utf8"));
 const T = J.txt || {};
 const FIG = (n) => path.join(J.fig, n + ".png");
-const A = J.A, K = J.K, CC = J.C, X = J.X;
+const A = J.A, K = J.K, CC = J.C, X = J.X, CR = J.CR, XR = J.XR;
 const pct = (v) => (v == null ? "–" : (100 * v).toFixed(1) + " %");
 const vA = (p, s) => A.v[p + "|" + s].BA, vC = (p, s) => CC.v[p + "|" + s].BA;
 const CW = 9638; // content width (A4, 2 cm margins) in DXA
@@ -103,13 +103,14 @@ H1("Summary");
 H1("1. Introduction");
 P("White rust, caused by the oomycete _Albugo candida_ (Pers.) Roussel ex Kuntze, is one of the most damaging foliar diseases of Indian mustard (_Brassica juncea_). Local infection produces white, raised sori (pustules) mainly on the abaxial leaf surface, with chlorosis of the surrounding tissue; systemic infection deforms inflorescences into 'stag heads' (Saharan et al., 2014). Because symptoms change leaf pigments, cell structure and water status, they alter the leaf reflectance spectrum, which can be measured rapidly and non-destructively with a field spectroradiometer (Mahlein, 2016).");
 P("A hyperspectral spectrum contains about two thousand strongly correlated bands, many more than the number of samples needed to estimate a classifier reliably. Das et al. (2020) proposed a four-tier hierarchical method to reduce such data to a few discriminating wavelengths and to test whether these are sufficient: Tier 1 screens every band with one-way ANOVA; Tier 2 selects a small set of wavelengths with classification and regression trees (CART); Tier 3 quantifies the spectral separability of the classes with the Jeffries–Matusita (J–M) distance on the selected wavelengths; Tier 4 classifies the samples with quadratic discriminant analysis (QDA) under 10-fold cross-validation. They discriminated 14 rice genotypes from 336 canopy spectra with 98 % overall accuracy.");
-P("This study applies the same hierarchy to a different problem — healthy versus white-rust-diseased mustard leaves measured with a contact probe on four dates, three growth stages and three varieties, all pooled — and adds what this problem requires: (i) corrections for the 1 : 5 class imbalance, for multiple testing and for the nesting of leaves in plots; (ii) honest validation in which every selection step is repeated inside the training data and test plots (and test dates) are never seen during training; (iii) a comparison of CART with Random Forest (RF) as the Tier-2 selector and as a classifier; (iv) extraction of disease-sensitive spectral features (band reflectance, continuum-removed absorption features, vegetation indices, first-derivative spectra and the red-edge inflection point); and (v) the four-tier analysis applied to the combined pool of all these features.");
+P("This study applies the same hierarchy to a different problem — healthy versus white-rust-diseased mustard leaves measured with a contact probe on four dates, three growth stages and three varieties, all pooled — and adds what this problem requires: (i) corrections for the 1 : 5 class imbalance, for multiple testing and for the nesting of leaves in plots; (ii) honest validation in which every selection step is repeated inside the training data and test plots (and test dates) are never seen during training; (iii) a comparison of CART with Random Forest (RF) as the Tier-2 selector and as a classifier; (iv) extraction of disease-sensitive spectral features (band reflectance, continuum-removed absorption features, vegetation indices, first-derivative spectra and the red-edge inflection point); and (v) the four-tier analysis applied to the combined pool of all these features, once with the denoised (K1) and once with the raw reflectance as its reflectance block.");
 H2("1.1 Objectives");
 B(["Identify the wavelengths at which healthy and white-rust-diseased mustard leaves differ, irrespective of date, growth stage and variety (Tier 1).",
    "Select a minimal discriminating band set with CART as in Das et al. (2020), and with Random Forest as an alternative (Tier 2).",
    "Quantify the separability of the two classes on the selected bands (Tier 3) and the classification accuracy of QDA (Tier 4).",
    "Validate the complete pipeline on new plots and new dates, and test whether the differences between approaches are significant.",
-   "Extract disease-sensitive spectral features (K1–K4) and evaluate CART and RF on each feature family and on the combined feature pool, including the full four-tier analysis of the combined pool."]);
+   "Extract disease-sensitive spectral features (K1–K4) and evaluate CART and RF on each feature family and on the combined feature pool, including the full four-tier analysis of the combined pool.",
+   "Test whether the combined pool works better with the raw reflectance (as in Das et al., 2020) or with the denoised K1 reflectance (Part C′ versus Part C)."]);
 
 // ============================================================ 2 methods
 pageBreak();
@@ -166,12 +167,14 @@ H3("K5 — CART versus Random Forest on each feature group");
 P("Each feature group — raw spectrum, K1, K2, K3, K4, the combined pool, and K4 including the guard bands (artefact test) — was classified by CART and by a Balanced RF in V3 and V4 without pre-screening; RF − CART was tested with the paired Wilcoxon test. A compact set of 15 non-redundant features (|r| < 0.9) with the highest AUC was also chosen inside every training set and classified by RF, CART and QDA.");
 H2("2.11 Four-tier analysis of the combined feature pool (Part C)");
 P(`The K1 bands, 30 K2 parameters, 31 K3 indices, K4 first-derivative bands and 20 edge parameters (guard zones excluded) form a pool of ${CC.pool_raw} features; exact duplicates (|r| ≥ 0.99999) were removed, leaving ${CC.n_features}. The four tiers were then applied exactly as in Part A: Welch t + FDR; CART (rpart, equal priors) and Balanced RF selection (peaks within each spectral series; every scalar feature its own candidate; candidates with |r| ≥ 0.999 to a chosen feature skipped to keep covariances invertible); J–M; QDA with equal priors; validation V1–V5 with identical folds; comparison with Part A and K5 by paired Wilcoxon tests.`);
-H2("2.12 Additional checks");
+H2("2.12 Variant: four-tier analysis of raw reflectance + K2 + K3 + K4 (Part C′)");
+P(`Part C used the K1 reflectance (splice-corrected, Savitzky–Golay-smoothed, guard zones removed) as the reflectance part of the pool. Because Das et al. (2020) and Part A apply the four tiers to the reflectance as measured, a variant pool was built in which K1 was replaced by the raw reflectance — all 2101 bands from 400 to 2500 nm, with no splice correction, smoothing or guard zones (named “R λ (raw)”) — while K2, K3 and K4 were left unchanged. This gave ${CR.pool_raw} features; after removing exact duplicates (|r| ≥ 0.99999) ${CR.n_features} remained. Every tier, setting, random seed and fold was identical to Part C. The two pools therefore differ only in the reflectance block, and the paired Wilcoxon signed-rank test on the per-fold balanced accuracies (V3: 50 nested folds; V4: 10 plot hold-out splits) tests whether raw or K1 reflectance gives the better combined pool. Part C′ was also compared with Part A (raw reflectance alone) to measure what K2–K4 add to the raw spectrum. The raw bands selected in the 50 nested training sets were counted inside and next to the guard zones, in the noisy spectral ends and in the water-absorption regions, to see whether the selectors pick up detector-join or noise artefacts that K0 removes in Part C.`);
+H2("2.13 Additional checks");
 B(["V5: transfer to an unseen date in unseen plots (Section 2.9).",
    "Stratified checks: the AUC of key features and the balanced accuracy of the classifiers within each date, growth stage and variety.",
    "Sensitivity analyses: band range (350–2500 and 450–2450 nm) and the four duplicate spectra kept.",
    "Cross-checks at every step (independent implementations, Excel recomputation, R versus Python) — workbook sheet 33."]);
-H2("2.13 Software");
+H2("2.14 Software");
 P("Python 3.13 with NumPy, SciPy, pandas, statsmodels (Seabold and Perktold, 2010), scikit-learn (Pedregosa et al., 2011), imbalanced-learn and matplotlib; R 4.3.3 (R Core Team, 2024) with rpart, MASS and randomForest. The code is organised as a reusable, configuration-driven pipeline.");
 
 // ============================================================ 3 results
@@ -271,13 +274,32 @@ figure("F28_C_pipelines", "Four pipelines on the combined pool under V1, V3, V4 
 table(CC.validation, "Validation of the combined-pool pipelines.", [3, 1, 1, 1, 1, 1]);
 table(X.cross, "Combined pool vs reflectance only vs K5: paired Wilcoxon tests on identical folds.", [3, 3, 1.6, 1.2, 0.9, 0.9, 1.1], 15);
 (T.c5 || []).concat(T.c7 || []).forEach((t) => P(t));
-H2("3.10 Additional checks");
+H2("3.10 Variant: four tiers on raw reflectance + K2 + K3 + K4 (Part C′)");
+table(CR.composition, "Part C′ pool (raw reflectance + K2 + K3 + K4): features by type, Tier-1 significant and selected by CART and RF.", null, 16);
+P(`Of ${CR.n_features} features, ${CR.n_sig} passed Tier 1 (Part C: ${CC.n_sig} of ${CC.n_features}). CART selected ${CR.set_sizes[CR.cart_name]} features (${CR.sets[CR.cart_name]}); ${CR.rf_name} comprised ${CR.sets[CR.rf_name]}.`);
+figure("F32_CR_cart_tree", "CART tree on the Part C′ pool (raw reflectance + K2 + K3 + K4).", 620);
+figure("F33_CR_top_importance", "The 30 most important features of the Part C′ pool (Balanced RF), coloured by type.", 470);
+table(CR.tier3, "J–M distance for the feature sets selected from the Part C′ pool.", [4, 2, 2]);
+table(em(CR.errmat[CR.rf_name]), `Error matrix of QDA (equal priors, 10-fold CV) on ${CR.rf_name} of the Part C′ pool.`, [3, 2, 2, 2, 2]);
+figure("F36_CR_pipelines", "Four pipelines on the Part C′ pool under V1, V3, V4 and V5.");
+table(CR.stability, "Stability of the Part C′ selections over the 50 nested training sets.", [1.2, 1.4, 1.9, 1.8, 1.9]);
+H3("Part C′ versus Part C and Part A");
+table(XR.side, "Part C′ and Part C side by side (identical K2–K4, settings and folds; only the reflectance block differs).", [3, 4, 4, 1.4], 15);
+figure("F38_A_CR_C_comparison", "Balanced accuracy of the four pipelines in Part A (raw reflectance), Part C′ (raw + K2–K4) and Part C (K1 + K2–K4) under V3, V4 and V5.");
+table(XR.val_all, "Balanced accuracy of Part A, Part C′ and Part C by pipeline and validation scheme.", [2.6, 0.8, 1.4, 1.4, 1.4, 1.1, 1.1], 15);
+table(XR.wilcoxon, "Part C′ versus Part C and Part A: paired Wilcoxon tests on identical folds (positive = Part C′ better).", [3, 3, 1.6, 1.2, 0.9, 0.9, 1.1], 15);
+table(XR.comp, "Feature types selected by CART and RF in the 50 nested training sets of Part C′ and Part C.", [1, 3, 1.2, 1.2, 1.2, 1.2], 16);
+table(XR.raw_bands, "Where the raw bands selected in the 50 nested training sets of Part C′ lie.", [1, 1.4, 1.6, 1.4, 1.4, 1.6, 1.1], 15);
+table(XR.overlap, "Overlap of the all-leaf CART and RF sets of Part C′ and Part C (raw band R λ (raw) = K1 band R λ).", [1.2, 1, 1, 2, 1, 2, 2], 14);
+table(XR.lodo, "Balanced accuracy by held-out date (V5) for Part A, Part C′ and Part C.", [4, 1.5, 1.5, 1.5, 1.5], 15);
+(T.cr || []).forEach((t) => P(t));
+H2("3.11 Additional checks");
 figure("F30_V5_leave_one_date_out", "V5: balanced accuracy on each held-out date in held-out plots.");
 table(X.lodo, "Balanced accuracy by held-out date (V5).", [4, 1.5, 1.5, 1.5, 1.5]);
 (T.v5 || []).forEach((t) => P(t));
 table(X.strata_range, "AUC of the key features on all leaves and its range within dates, growth stages and varieties.", [3.5, 1.3, 1.6, 1.6, 1.6]);
 (T.strata || []).forEach((t) => P(t));
-H2("3.11 Synthesis");
+H2("3.12 Synthesis");
 figure("F29_synthesis", "All approaches ranked by balanced accuracy on new plots (V3 and V4).");
 table(X.synthesis, "All approaches side by side.", [5, 1.3, 1.3, 1.3], 15);
 

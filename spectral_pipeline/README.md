@@ -3,7 +3,7 @@
 Reusable implementation of the four-tier hierarchical method of Das et al. (2020,
 *Geocarto International* 35:64–77) with imbalance / pseudo-replication / selection-bias
 corrections, CART vs Random Forest, disease-sensitive feature extraction (Part K) and the
-four-tier analysis of the combined feature pool (Part C).
+four-tier analysis of the combined feature pool (Part C: K1 + K2–K4; Part C′: raw reflectance + K2–K4).
 
 First application: white rust (*Albugo candida*) in mustard leaves, four dates, three growth
 stages, three varieties pooled (`configs/whiterust_all_dates.yaml`). Results are in
@@ -18,7 +18,9 @@ stages, three varieties pooled (`configs/whiterust_all_dates.yaml`). Results are
 | K | `analysis/stage_K.py` | K0 denoising checks, K1 band reflectance, K2 continuum removal, K3 31 vegetation indices, K3b optimised NDSI/DI (nested), K4 first/second derivative + 20 edge parameters, K4b REIP (4 methods), K6 correlation spectra, K5 CART vs RF on every feature group + nested top-15 |
 | K3b-JF | `analysis/stage_K3b_joinfree.py` | optimised two-band index repeated without band pairs that straddle a detector join (run after stage K) |
 | C | `analysis/stage_C.py` | the four tiers on the combined K1–K4 pool (CART and RF selection, J–M, QDA, V1–V5, stability) |
+| C′ | `analysis/stage_CR.py` | variant of C: the four tiers on raw reflectance (all bands, as in Part A) + K2 + K3 + K4 — same engine, seeds and folds |
 | compare | `analysis/stage_compare.py` | C vs A vs K5 paired tests, V5 by date, stratified checks, guard-edge check, synthesis |
+| compare C′ | `analysis/stage_compare_CR.py` | C′ vs C vs A side by side, paired Wilcoxon on identical folds, feature-type composition, overlap, raw bands near joins / noisy ends, V5 by date; adds C′ rows to the synthesis (run after `stage_compare.py`) |
 | (history) | `analysis/patch_mixed.py`, `analysis/patch_cond.py` | one-off fixes applied to the first white-rust run (statsmodels mixed model → R nlme; scale-free condition numbers); both are now built into the stage scripts and are not needed for new runs |
 | report | `make_figures.py`, `build_excel.py`, `export_json.py`, `build_ppt.js`, `build_docx.js` | figures, workbook (formulas recalculated by LibreOffice), deck, Word report |
 
@@ -35,8 +37,8 @@ Mixed models use R `nlme::lme` (REML; t-test with between-plot df). CART uses R 
    spectrum, wavelength columns) instead of `sp/load_asd.py` in `stage_data.py`.
 3. Run, from `analysis/`:
    ```
-   python stage_data.py && python stage_A.py && python stage_K.py && python stage_K3b_joinfree.py && python stage_C.py
-   python stage_compare.py && python make_figures.py
+   python stage_data.py && python stage_A.py && python stage_K.py && python stage_K3b_joinfree.py && python stage_C.py && python stage_CR.py
+   python stage_compare.py && python stage_compare_CR.py && python make_figures.py
    python build_excel.py && python <xlsx-skill>/scripts/recalc.py <workbook>
    python export_json.py
    PPTX_SKILL=<pptx-skill> node build_ppt.js ../work <deck.pptx>

@@ -330,6 +330,61 @@ for (let i = 1; i < X.cross.length; i += 2) {
 table(s, cx, M, 1.2, W - 2 * M, { colW: [3.4, 3.4, 0.95, 0.85, 0.85, 0.95, 0.85, 1.08], fontSize: 10, rowH: 0.36 });
 bullets(s, (J.txt.c7 || []), M, 5.2, W - 2 * M, 1.3, 13);
 
+// ----------------------------------------------------------------- Part C′
+const CR = J.CR, XR = J.XR;
+sec("Part C′ · Four tiers on raw + K2 + K3 + K4");
+s = pres.addSlide({ masterName: "SECTION", sectionTitle: section });
+s.addText("Part C′ · The four-tier method on raw reflectance + K2 + K3 + K4", { placeholder: "title" });
+s.addText(`Variant of Part C: the reflectance part of the pool is the RAW reflectance (2101 bands, as in Part A and Das et al. 2020) instead of K1. Pool = ${CR.pool_raw} features; same settings, seeds and folds.`, { placeholder: "body" });
+
+s = content(`C′0–C′1 · Pool of ${CR.n_features} features; ${CR.n_sig} pass Tier 1`);
+table(s, CR.composition, M, 1.2, W - 2 * M, { fontSize: 11, rowH: 0.34 });
+bullets(s, [`Raw reflectance: all 2101 bands 400–2500 nm exactly as measured — no splice correction, no smoothing, no guard zones (names "R λ (raw)").`,
+            `Duplicates removed before Tier 1: ${CR.dups.map((d) => d[1] + " (= " + d[0] + ")").join("; ") || "none"}.`,
+            `K2, K3, K4 identical to Part C, so any difference between C′ and C comes only from raw vs K1 reflectance.`], M, 3.9, W - 2 * M, 2.4, 14);
+
+s = content(`C′2 · CART on raw + K2–K4 selects ${CR.set_sizes[CR.cart_name]} features`);
+img(s, "F32_CR_cart_tree", M, 1.1, W - 2 * M, 4.6);
+note(s, `${CR.cart_name}: ${CR.sets[CR.cart_name]}`, 5.9);
+
+s = content("C′2 · Which feature families CART and RF pick from raw + K2–K4");
+img(s, "F33_CR_top_importance", M, 1.1, 5.3, 5.8);
+img(s, "F34_CR_composition", 6.0, 1.1, 6.8, 3.0);
+s.addText(`${CR.rf_name}: ${CR.sets[CR.rf_name]}`, { x: 6.0, y: 4.3, w: 6.8, h: 2.4, fontSize: 12, color: "1B1B1A", isTextBox: true, valign: "top" });
+
+s = content("C′3–C′4 · J–M and QDA on the selected features");
+table(s, CR.tier3, M, 1.2, 4.8, { colW: [2.6, 1.0, 1.2], fontSize: 12, rowH: 0.34 });
+table(s, CR.tier4.filter((r, i) => i === 0 || r[1].startsWith("QDA equal")), M, 3.4, 7.6, { colW: [2.2, 1.6, 0.6, 0.6, 0.65, 0.65, 0.65, 0.65], fontSize: 10.5 });
+table(s, em(CR.errmat[CR.rf_name]), 8.3, 1.2, 4.5, { colW: [1.4, 0.8, 0.8, 0.75, 0.75], fontSize: 10, rowH: 0.3 });
+s.addText(`Error matrix · QDA on ${CR.rf_name} (V1)`, { x: 8.3, y: 0.95, w: 4.5, h: 0.25, fontSize: 11, bold: true, color: "C98500", isTextBox: true, margin: 0 });
+img(s, "F35_CR_incremental", 8.3, 3.3, 4.5, 2.0);
+
+s = content("C′5–C′6 · Validation and stability of the raw + K2–K4 pipeline");
+img(s, "F36_CR_pipelines", M, 1.1, 7.0, 2.9);
+img(s, "F37_CR_stability", M, 4.1, 7.0, 2.4);
+table(s, CR.stability, 7.7, 1.2, 5.1, { colW: [0.7, 0.8, 1.1, 1.2, 1.3], fontSize: 9 });
+table(s, CR.fold_comp, 7.7, 3.4, 5.1, { colW: [0.8, 2.4, 1.1, 0.8], fontSize: 9, rowH: 0.24 });
+
+s = content("C′ vs C · Same folds: raw or K1 reflectance in the combined pool?");
+img(s, "F38_A_CR_C_comparison", M, 1.05, W - 2 * M, 3.2);
+table(s, XR.val, M, 4.3, 8.0, { colW: [2.0, 0.7, 1.35, 1.35, 1.35, 1.25], fontSize: 8.5, rowH: 0.19 });
+bullets(s, (J.txt.cr || []).slice(0, 3), 8.7, 4.3, 4.1, 2.4, 11.5);
+
+s = content("C′ vs C and C′ vs A · Paired Wilcoxon tests on identical folds");
+const cr = [["First", "Second", "V3 Δ BA", "V3 wins", "V3 p", "V4 Δ BA", "V4 wins", "V4 p"]];
+for (let i = 1; i < XR.wilcoxon.length; i += 2) {
+  const a = XR.wilcoxon[i], b = XR.wilcoxon[i + 1];
+  cr.push([a[0], a[1], a[3], a[4] + "/" + (+a[4] + +a[5]), a[6], b[3], b[4] + "/" + (+b[4] + +b[5]), b[6]]);
+}
+table(s, cr, M, 1.2, W - 2 * M, { colW: [3.4, 3.4, 0.95, 0.85, 0.85, 0.95, 0.85, 1.08], fontSize: 10, rowH: 0.34 });
+bullets(s, (J.txt.cr || []).slice(3, 5), M, 4.6, W - 2 * M, 2.0, 13);
+
+s = content("C′ vs C · What the selectors take: raw bands vs K1 bands, overlap");
+table(s, XR.comp, M, 1.2, 6.2, { colW: [0.8, 2.6, 0.7, 0.7, 0.7, 0.7], fontSize: 9.5, rowH: 0.26 });
+table(s, XR.raw_bands, M, 4.25, 6.2, { colW: [0.7, 0.9, 1.0, 0.9, 0.9, 1.0, 0.8], fontSize: 8, rowH: 0.3 });
+table(s, XR.overlap.map((r) => [r[0], r[3], r[4], r[5], r[6]]), 6.9, 1.2, 5.9, { colW: [1.0, 1.5, 0.7, 1.4, 1.3], fontSize: 8.5 });
+bullets(s, (J.txt.cr || []).slice(5), 6.9, 4.25, 5.9, 2.5, 11.5);
+
 // ----------------------------------------------------------------- additional
 sec("Additional checks and synthesis");
 s = content("Additional step · V5: an unseen date in unseen plots");

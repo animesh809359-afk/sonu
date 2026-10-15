@@ -136,8 +136,9 @@ J["K"]["k5_wilcoxon"] = tab(K["k5_wilcoxon"], ["Feature group", "Units", "RF −
                              "CART better": lambda v: str(int(v)), "Wilcoxon p": lambda v: f"{v:.1e}" if v < 0.001 else f"{v:.3f}"})
 J["K"]["k5_share"] = tab(K["k5_type_share"], ["Feature type", "Features", "Share of RF importance", "Importance per feature (K1 band = 1)"],
                          {"Share of RF importance": pct, "Features": lambda v: str(int(v)), "Importance per feature (K1 band = 1)": lambda v: f"{v:.2f}"})
-# ---- C
-J["C"] = {
+# ---- C (and C′)
+def cblock(Cc):
+    return {
     "pool_raw": Cc["pool_size_raw"], "n_features": Cc["n_features"], "n_sig": Cc["n_sig"],
     "dups": [[r["Kept"], r["Removed"]] for _, r in Cc["pool_dups"].iterrows()],
     "composition": [list(map(str, Cc["composition"].columns))] + [[str(v) for v in r] for r in Cc["composition"].values.tolist()],
@@ -159,6 +160,32 @@ J["C"] = {
     "v": {f"{p}|{s}": {"BA": float(vrow(Cc, p, s)["BA"]), "AUC": float(vrow(Cc, p, s)["AUC"])}
           for p in ["CART classifier", "RF classifier", "QDA on CART features", "QDA on RF features"] for s in ["V1", "V3", "V4", "V5"]},
     "jm": {r["Set"]: float(r["JM"]) for _, r in Cc["tier3"].iterrows()},
+    "stab_v": {r["Method"]: float(r["Mean pairwise Jaccard (±10 nm)"]) for _, r in Cc["stability"]["index"].iterrows()},
+}
+
+
+J["C"] = cblock(Cc)
+CR, XR = load("partCR"), load("compareCR")
+J["CR"] = cblock(CR)
+pp = lambda v: f"{100 * v:+.1f} pts"  # noqa: E731
+pv = lambda v: f"{v:.1e}" if v < 0.001 else f"{v:.3f}"  # noqa: E731
+J["XR"] = {
+    "side": tab(XR["side_by_side"], list(XR["side_by_side"].columns)),
+    "val": tab(XR["val_side"][XR["val_side"].Scheme != "V1"], ["Pipeline", "Scheme", "Part A (raw reflectance)", "Part C′ (raw + K2–K4)", "Part C (K1 + K2–K4)", "Δ C′ − C"],
+               {"Part A (raw reflectance)": pct, "Part C′ (raw + K2–K4)": pct, "Part C (K1 + K2–K4)": pct, "Δ C′ − C": pp}),
+    "val_all": tab(XR["val_side"], ["Pipeline", "Scheme", "Part A (raw reflectance)", "Part C′ (raw + K2–K4)", "Part C (K1 + K2–K4)", "Δ C′ − A", "Δ C′ − C"],
+                   {"Part A (raw reflectance)": pct, "Part C′ (raw + K2–K4)": pct, "Part C (K1 + K2–K4)": pct, "Δ C′ − A": pp, "Δ C′ − C": pp}),
+    "wilcoxon": tab(XR["wilcoxon"], ["First", "Second", "Units", "Mean difference (BA)", "First better", "Second better", "Wilcoxon p"],
+                    {"Mean difference (BA)": pp, "First better": lambda v: str(int(v)), "Second better": lambda v: str(int(v)), "Wilcoxon p": pv}),
+    "comp": tab(XR["comp_side"], ["Selector", "Feature type", "C′ selected", "C′ share", "C selected", "C share"],
+                {"C′ share": pct, "C share": pct, "C′ selected": lambda v: str(int(v)), "C selected": lambda v: str(int(v))}),
+    "overlap": tab(XR["overlap"], ["Selector", "C′ set", "C set", "Same feature (exact)", "Same within ±10 nm", "Only in C′", "Only in C"],
+                   {"Same within ±10 nm": lambda v: str(int(v))}),
+    "raw_bands": tab(XR["raw_bands"], list(XR["raw_bands"].columns)),
+    "raw_allleaf": XR["raw_bands_allleaf"],
+    "lodo": [["Feature set · pipeline"] + D["folds"]["V5_dates"]] + [
+        [f"{fs.split(' (')[0]} · {p}"] + [pct(XR["lodo"].query("`Feature set`==@fs and Pipeline==@p and `Held-out date`==@d")["BA mean"].iloc[0]) for d in D["folds"]["V5_dates"]]
+        for fs, p in XR["lodo"][["Feature set", "Pipeline"]].drop_duplicates().values],
 }
 J["X"] = {
     "cross": tab(X["cross_wilcoxon"], ["First", "Second", "Units", "Mean difference (BA)", "First better", "Second better", "Wilcoxon p"],
