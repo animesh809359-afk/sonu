@@ -22,7 +22,7 @@ plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 9, "axes.edgecol
                      "axes.grid": True, "grid.color": GRID, "grid.linewidth": 0.6, "legend.frameon": False,
                      "axes.titleweight": "bold", "axes.titlesize": 10, "savefig.dpi": 200, "savefig.bbox": "tight",
                      "lines.linewidth": 1.6})
-R = load("partFS")
+R = load(__import__("os").environ.get("FS_RES", "partFS"))
 D = load("data")
 meta = R["pool_meta"]
 ser = meta["series"].to_numpy()

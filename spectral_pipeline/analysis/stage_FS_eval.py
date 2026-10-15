@@ -96,7 +96,9 @@ def main():
     ser, pos = series_pos(meta)
     U = load_units()
     test_units = [u for u in U if u != "ALL"]
-    assert len(test_units) == 20, test_units
+    import os
+    if not os.environ.get("FS_PARTIAL"):
+        assert len(test_units) == 20, test_units
     out = {"methods": pd.DataFrame(METHODS, columns=["Method", "Family", "Principle", "Reference"])}
 
     # ------------------------------------------------ consensus (Borda) inside each unit
@@ -367,7 +369,7 @@ def main():
     out["pool_meta"] = meta
     out["cwt"] = {"names": cw["names"], "shape": cw["shape"], "wl": cw["wl"], "scales": cw["scales"], "valid": cw["valid"]}
     out["test_units"] = test_units
-    save(out, "partFS")
+    save(out, "partFS_partial" if os.environ.get("FS_PARTIAL") else "partFS")
     pd.set_option("display.width", 250)
     print(out["composite"].round(3).to_string())
     print(out["friedman"])

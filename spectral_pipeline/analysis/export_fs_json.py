@@ -8,7 +8,7 @@ import pandas as pd
 
 from common import ROOT, WORK, load
 
-R = load("partFS")
+R = load(__import__("os").environ.get("FS_RES", "partFS"))
 D = load("data")
 REFS = json.loads((ROOT / "analysis" / "fs_references.json").read_text())
 TXT = json.loads((WORK / "fs_conclusions.json").read_text()) if (WORK / "fs_conclusions.json").exists() else {}
