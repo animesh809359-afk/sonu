@@ -1,0 +1,4 @@
+Region_nm,Width_nm,Direction,Max_abs_Cohen_d,Peak_wavelength_nm
+580-710,140,Diseased > Healthy,0.9801912623254055,650
+1390-1560,180,Diseased > Healthy,0.6845240659623285,1420
+1840-2400,570,Diseased > Healthy,0.855414788758727,1890

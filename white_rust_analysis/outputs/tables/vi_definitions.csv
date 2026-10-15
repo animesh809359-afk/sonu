@@ -1,0 +1,47 @@
+Index,Reference,Trait
+NDVI,"Rouse et al., 1974",Chlorophyll/biomass
+GNDVI,"Gitelson et al., 1996",Chlorophyll
+SR,"Jordan, 1969",Chlorophyll/biomass
+mND705,"Sims & Gamon, 2002",Chlorophyll
+mSR705,"Sims & Gamon, 2002",Chlorophyll
+MCARI,"Daughtry et al., 2000",Chlorophyll
+TCARI,"Haboudane et al., 2002",Chlorophyll
+OSAVI,"Rondeaux et al., 1996",Structure/biomass
+TCARI/OSAVI,"Haboudane et al., 2002",Chlorophyll
+MTCI,"Dash & Curran, 2004",Chlorophyll (red edge)
+Datt,"Datt, 1999",Chlorophyll
+PSSRa,"Blackburn, 1998",Chlorophyll a
+PSSRb,"Blackburn, 1998",Chlorophyll b
+CIred-edge,"Gitelson et al., 2003",Chlorophyll (red edge)
+NDRE,"Barnes et al., 2000",Chlorophyll (red edge)
+TVI,"Broge & Leblanc, 2001",Chlorophyll/LAI
+NRI,"Filella et al., 1995",Nitrogen/chlorophyll
+CCI,"Gamon et al., 2016",Carotenoid/chlorophyll
+PRI,"Gamon et al., 1992",Xanthophyll/photosynthesis
+SIPI,"Penuelas et al., 1995",Carotenoid/chlorophyll
+PSRI,"Merzlyak et al., 1999",Senescence (Car/Chl)
+CRI1,"Gitelson et al., 2002",Carotenoid
+CRI2,"Gitelson et al., 2002",Carotenoid
+ARI1,"Gitelson et al., 2001",Anthocyanin
+ARI2,"Gitelson et al., 2001",Anthocyanin
+RGR,"Gamon & Surfus, 1999",Anthocyanin/chlorophyll
+REP_LI,"Guyot & Baret, 1988",Red-edge position
+Vog1,"Vogelmann et al., 1993",Red edge
+Vog2,"Vogelmann et al., 1993",Red edge
+RVSI,"Merton & Huntington, 1999",Red-edge stress
+WI,"Penuelas et al., 1997",Water
+NDWI,"Gao, 1996",Water
+MSI,"Hunt & Rock, 1989",Water stress
+NDII,"Hardisky et al., 1983",Water
+LWVI1,"Galvao et al., 2005",Water
+DWSI,"Apan et al., 2004",Disease-water stress
+NDNI,"Serrano et al., 2002",Nitrogen
+NDLI,"Serrano et al., 2002",Lignin
+CAI,"Nagler et al., 2000",Cellulose/dry matter
+HI,"Mahlein et al., 2013",Disease-specific (Healthy index)
+PMI,"Mahlein et al., 2013",Disease-specific (powdery mildew)
+LRDSI,"Ashourloo et al., 2014",Disease-specific (leaf rust)
+RBI,"Selvaprakash et al., 2026",Disease-specific (rice blast)
+BI_ratio,"Mandal et al., 2023",Disease-specific (rice blast)
+REP_FD,"Mandal et al., 2022",Red-edge position (derivative)
+REV,"Mandal et al., 2022",Red-edge value (max derivative)
