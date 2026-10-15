@@ -917,7 +917,7 @@ kb = pd.DataFrame({"Wavelength (nm)": wl, "Guard (R)": np.where(spec.guard["R"],
 f, l, L = S.table(kb)
 S.ws.freeze_panes = S.ws.cell(row=f, column=2)
 S = S_("35_C_AllFeatures", "Part C — Tier 1 statistics of every feature of the combined pool")
-ca = ct1[["name", "type", "position", "mean0", "sd0", "mean1", "sd1", "t", "df", "p", "q", "g", "auc", "mm_q", "icc", "sig"]].copy()
+ca = Cc["tier1"][["name", "type", "position", "mean0", "sd0", "mean1", "sd1", "t", "df", "p", "q", "g", "auc", "mm_q", "icc", "sig"]].copy()
 ca.columns = ["Feature", "Type", "Wavelength (nm)", "Mean healthy", "SD healthy", "Mean diseased", "SD diseased", "Welch t", "df",
               "p", "q (BH)", "Hedges g", "AUC", "Mixed-model q", "ICC plot", "Significant"]
 ca = ca.merge(Cc["rf_importance"][["name", "importance"]].rename(columns={"name": "Feature", "importance": "RF importance"}), on="Feature", how="left")

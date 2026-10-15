@@ -366,9 +366,18 @@ table(s, CR.stability, 7.7, 1.2, 5.1, { colW: [0.7, 0.8, 1.1, 1.2, 1.3], fontSiz
 table(s, CR.fold_comp, 7.7, 3.4, 5.1, { colW: [0.8, 2.4, 1.1, 0.8], fontSize: 9, rowH: 0.24 });
 
 s = content("C′ vs C · Same folds: raw or K1 reflectance in the combined pool?");
-img(s, "F38_A_CR_C_comparison", M, 1.05, W - 2 * M, 3.2);
-table(s, XR.val, M, 4.3, 8.0, { colW: [2.0, 0.7, 1.35, 1.35, 1.35, 1.25], fontSize: 8.5, rowH: 0.19 });
-bullets(s, (J.txt.cr || []).slice(0, 3), 8.7, 4.3, 4.1, 2.4, 11.5);
+img(s, "F38_A_CR_C_comparison", M, 1.0, W - 2 * M, 2.95);
+table(s, XR.val, M, 4.05, 8.0, { colW: [2.0, 0.7, 1.35, 1.35, 1.35, 1.25], fontSize: 8.5, rowH: 0.19 });
+const vCR = (p, sc) => CR.v[p + "|" + sc].BA;
+const pmin = Math.min(...XR.wilcoxon.slice(1).filter((r) => r[1].startsWith("Part C (")).map((r) => parseFloat(r[6])));
+bullets(s, [`Same CART set (${CR.cart_name}); J–M ${CR.jm[CR.cart_name].toFixed(3)} vs ${CC.jm[CC.cart_name].toFixed(3)}.`,
+            `QDA on RF features: V3 ${pct(vCR("QDA on RF features", "V3"))} vs ${pct(vC("QDA on RF features", "V3"))}; V4 ${pct(vCR("QDA on RF features", "V4"))} vs ${pct(vC("QDA on RF features", "V4"))}.`,
+            `RF classifier: V3 ${pct(vCR("RF classifier", "V3"))} vs ${pct(vC("RF classifier", "V3"))}.`,
+            `No C′ vs C difference is significant (smallest paired p = ${pmin.toFixed(3)}).`,
+            `C′ beats raw reflectance alone (Part A) by 6–16 points in every pipeline.`], 8.7, 4.05, 4.1, 2.5, 12);
+
+s = content("C′ vs C · Reading the comparison");
+bullets(s, (J.txt.cr || []).slice(0, 3), M, 1.2, W - 2 * M, 5.4, 15);
 
 s = content("C′ vs C and C′ vs A · Paired Wilcoxon tests on identical folds");
 const cr = [["First", "Second", "V3 Δ BA", "V3 wins", "V3 p", "V4 Δ BA", "V4 wins", "V4 p"]];
@@ -401,7 +410,7 @@ img(s, "F29_synthesis", M, 1.1, 6.6, 5.6);
 table(s, X.synthesis.slice(0, 13).map((r) => [r[0].slice(0, 52), r[1], r[2], r[3]]), 7.3, 1.2, 5.5, { colW: [3.1, 0.8, 0.8, 0.8], fontSize: 8.5, rowH: 0.27 });
 
 s = content("Conclusions");
-bullets(s, (J.txt.conclusions || []).slice(0, 6), M, 1.2, W - 2 * M, 5.6, 15);
+bullets(s, (J.txt.conclusions || []).slice(0, 7), M, 1.15, W - 2 * M, 5.8, 14);
 s = content("Recommendations");
 bullets(s, (J.txt.recommendations || []), M, 1.2, W - 2 * M, 5.6, 15);
 
