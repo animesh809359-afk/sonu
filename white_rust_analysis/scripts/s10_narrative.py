@@ -151,6 +151,15 @@ if have('cv_main_summary.csv'):
                           "but sensor design should prefer the join-free features (cf. Panda 2026, detector-join check).")
         N['e8_best'] = dict(svm=bs, svm_ba=float(svm10[bs]), s8=float(s8v), full=float(fsv), drop=dict(dd.items()))
 
+    if have('collinearity_summary.csv'):
+        CS_ = T('collinearity_summary.csv').set_index('Feature_set'); STG = T('collinearity_filter_stages.csv')
+        s8c = CS_.loc['Robust S8 (final)']
+        N['coll'] = (f"Final robust set: max |r| {s8c.Max_abs_r:.2f}, max VIF {s8c.Max_VIF:.1f} (all < 10), condition number {s8c.Condition_number:.1f}: no harmful multicollinearity. "
+                     f"Correlations are weak to moderate, so each feature adds separate information (water shoulder, NIR slope, red edge, SWIR).")
+        hi = CS_[CS_.Max_VIF > 10]
+        N['coll2'] = (f"The redundancy + VIF filter reduced the candidate pool from max VIF {STG.Max_VIF.iloc[0]:,.0f} ({int(STG.n_VIF_gt_10.iloc[0])} of {int(STG.n_features.iloc[0])} features > 10) "
+                      f"to {STG.Max_VIF.iloc[2]:.1f}. A |r| < 0.95 rule alone is not enough: " + ', '.join(f"{i.replace(' (top-10)', '')} top-10 (max VIF {r.Max_VIF:.0f})" for i, r in hi.iterrows()) +
+                      " remain collinear, whereas OFC, SVM-RFE, LASSO and CARS sets stay below 10 (Dormann et al., 2013).")
     # ---------------- discussion
     vi_best = VR.AUC.iloc[0]
     N['discussion'] = [

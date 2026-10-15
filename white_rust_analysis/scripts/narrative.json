@@ -44,6 +44,8 @@
    "SVM-RFE": -0.023232272918465413
   }
  },
+ "coll": "Final robust set: max |r| 0.69, max VIF 3.2 (all < 10), condition number 4.9: no harmful multicollinearity. Correlations are weak to moderate, so each feature adds separate information (water shoulder, NIR slope, red edge, SWIR).",
+ "coll2": "The redundancy + VIF filter reduced the candidate pool from max VIF 131,387 (37 of 40 features > 10) to 9.0. A |r| < 0.95 rule alone is not enough: ReliefF top-10 (max VIF 119), SFFS (QDA) top-10 (max VIF 12), Consensus (Borda) top-10 (max VIF 74) remain collinear, whereas OFC, SVM-RFE, LASSO and CARS sets stay below 10 (Dormann et al., 2013).",
  "discussion": [
   {
    "title": "Discussion 1: the spectral signature of white rust",

@@ -96,3 +96,6 @@ F14,"Thomas, S., Kuska, M.T., Bohnenkamp, D., Brugger, A., Alisaac, E., Wahabzad
 F15,"Tibshirani, R. (1996). Regression shrinkage and selection via the lasso. Journal of the Royal Statistical Society B, 58(1), 267-288.",LASSO
 F16,"Wei, X., Johnson, M.A., Langston, D.B., Mehl, H.L., Li, S. (2021). Identifying optimal wavelengths as disease signatures using hyperspectral sensor and machine learning. Remote Sensing, 13(14), 2833.","RFE, minimum band distance"
 F17,"Nogueira, S., Sechidis, K., Brown, G. (2018). On the stability of feature selection algorithms. Journal of Machine Learning Research, 18(174), 1-54.",Stability
+F18,"Belsley, D.A., Kuh, E., Welsch, R.E. (1980). Regression Diagnostics: Identifying Influential Data and Sources of Collinearity. Wiley, New York.",Condition number / collinearity diagnostics
+F19,"Chong, I.-G., Jun, C.-H. (2005). Performance of some variable selection methods when multicollinearity is present. Chemometrics and Intelligent Laboratory Systems, 78, 103-112.",Multicollinearity in variable selection
+F20,"Dormann, C.F., Elith, J., Bacher, S., et al. (2013). Collinearity: a review of methods to deal with it and a simulation study evaluating their performance. Ecography, 36, 27-46.","VIF thresholds, |r| filters"

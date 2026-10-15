@@ -90,6 +90,11 @@ if have('E8_fs_reps.csv'):
                     ('E8_fs_final_sets.csv', 'E8_final'), ('E8_fs_friedman.csv', 'E8_friedman')]:
         if have(fn):
             D[key] = rec(T(fn), 4)
+if have('collinearity_summary.csv'):
+    C8 = pd.read_csv(os.path.join(TAB, 'collinearity_corr_S8.csv'), index_col=0)
+    D['coll_corr'] = dict(names=list(C8.columns), values=C8.round(3).values.tolist())
+    V = T('collinearity_vif.csv'); D['coll_vif'] = rec(V[V['Feature_set'] == 'Robust S8 (final)'], 3)
+    D['coll_summary'] = rec(T('collinearity_summary.csv'), 3); D['coll_stages'] = rec(T('collinearity_filter_stages.csv'), 2)
 D['refs'] = rec(pd.read_csv(os.path.join(ROOT, 'scripts', 'references.csv')))
 json.dump(D, open(os.path.join(ROOT, 'cache', 'ppt_data.json'), 'w'))
 print('exported', len(D), 'keys')

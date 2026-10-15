@@ -166,6 +166,8 @@ const WHAT = {
   lr: 'Coefficients of the full-spectrum logistic regression: positive values push towards "diseased"; the magnitude shows the influence of each band.',
   subgroups: 'Accuracy of the single pooled model computed separately within each date, variety and growth stage.',
   transfer: 'The model is trained without a whole date / variety / stage and tested on it (plots kept separate): this measures extrapolation to new conditions.',
+  coll: 'Pearson r between every pair of final features (blue = negative, red = positive); VIF = how much a coefficient variance is inflated by the other features (VIF > 10 = serious collinearity).',
+  coll2: 'Max |r|, max VIF and condition number at each stage of the robust selection, and for every final feature set of E7 and E8.',
   extras: 'E4 = accuracy vs number of training plots; E5 = simulated satellite/UAV bands; table = effect of metadata inputs (E3) and of outlier removal (E6).',
 };
 function explain(s, key, o) {
@@ -462,7 +464,7 @@ newSection('4. Materials and methods', 'Data, quality control, features, selecti
 {
   const s = content('Robust feature selection (inside every training fold)');
   const st = [['ReliefF per date', 'Rank all features separately within each date (k = 10 neighbours)'], ['Temporal stability', 'Keep features in the top 10% on >= 3 of 4 dates'],
-    ['Redundancy', 'Drop features with |r| >= 0.98 to a better-ranked feature'], ['VIF < 10', 'Iteratively remove collinear features'], ['SFFS-LDA', 'Floating forward search, inner plot-grouped CV, <= 10 features']];
+    ['Redundancy', 'Drop features with |r| >= 0.98 to a better-ranked feature'], ['VIF < 10', 'Iteratively remove collinear features (diagnostics in R15g-h)'], ['SFFS-LDA', 'Floating forward search, inner plot-grouped CV, <= 10 features']];
   st.forEach((x, i) => {
     const y = 1.35 + i * 1.02;
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.5, y, w: 6.2, h: 0.85, rectRadius: 0.08, fill: { color: C.background2 }, line: { color: C.background2 } });
@@ -757,6 +759,38 @@ if (D.summary) {
   table(s, ['Final feature', 'd', 'AUC', 'Perm. imp.', '|SHAP|'], rows, { x: 5.8, y: 1.3, w: 7.0, colW: [2.4, 1.0, 1.0, 1.3, 1.3], fontSize: 11, rowH: 0.36 });
   explain(s, 'features', { x: 5.8, y: 4.75, w: 7.0, h: 1.9, fontSize: 12 });
   source(s, 'Permutation importance: Breiman 2001; TreeSHAP: Lundberg & Lee 2017; workbook sheets 25-26');
+}
+function corrCell(v) {
+  const t = Math.max(-1, Math.min(1, v)); const a = Math.abs(t);
+  const base = t >= 0 ? [176, 58, 46] : [42, 111, 176];
+  const rgb = base.map((c) => Math.round(255 + (c - 255) * a));
+  const hex = rgb.map((x) => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+  return { text: v.toFixed(2), options: { fill: { color: hex }, color: a > 0.55 ? 'FFFFFF' : HX.INK, align: 'center' } };
+}
+if (D.coll_corr) {
+  const s = content('R15g. Correlation matrix and VIF of the final features');
+  const nm = D.coll_corr.names; const short2 = (x) => x.replace('CR1800-2100_pos', 'CR1800-2100 pos');
+  const rows = D.coll_corr.values.map((r, i) => [{ text: short2(nm[i]), options: { bold: true, align: 'left' } }].concat(r.map((v) => corrCell(v))));
+  table(s, [''].concat(nm.map(short2)), rows, { x: 0.5, y: 1.3, w: 7.3, colW: [1.45].concat(nm.map(() => 5.85 / nm.length)), fontSize: 10, rowH: 0.48 });
+  s.addText('Colour: blue = negative r, red = positive r, white = 0 (|r| >= 0.8 would indicate redundancy)', { x: 0.5, y: 5.25, w: 7.3, h: 0.3, fontSize: 10, italic: true, color: C.accent6, isTextBox: true, margin: 0 });
+  const v = D.coll_vif;
+  s.addChart(pres.charts.BAR, [{ name: 'VIF', labels: v.map((r) => short2(r.Feature)), values: v.map((r) => +(+r.VIF).toFixed(2)) }],
+    Object.assign(AX(), { x: 8.1, y: 1.25, w: 4.7, h: 2.95, barDir: 'bar', chartColors: [HX.H], title: 'VIF of each final feature (limit 10)', showLegend: false, showValue: true,
+      dataLabelPosition: 'outEnd', dataLabelFormatCode: '0.0', valAxisMinVal: 0, valAxisMaxVal: 10, catAxisOrientation: 'maxMin', catAxisLabelFontSize: 9 }));
+  explain(s, 'coll', { x: 8.1, y: 4.35, w: 4.7, h: 2.3, fontSize: 11 });
+  source(s, 'Final robust set selected on all spectra (R15); Belsley et al. 1980; Dormann et al. 2013; workbook sheet 26b_Collinearity_VIF');
+}
+if (D.coll_stages) {
+  const s = content('R15h. How the selection removed multicollinearity');
+  const st = D.coll_stages;
+  const rows = st.map((r) => [r.Stage.replace(/^\d\. /, ''), String(r.n_features), f2(r.Max_abs_r), (+r.Max_VIF).toLocaleString('en-US', { maximumFractionDigits: +r.Max_VIF >= 100 ? 0 : 1 }), String(r.n_VIF_gt_10), (+r.Condition_number).toLocaleString('en-US', { maximumFractionDigits: +r.Condition_number >= 100 ? 0 : 1 })]);
+  table(s, ['Stage of robust selection', 'n', 'max |r|', 'max VIF', 'VIF > 10', 'Cond. no.'], rows, { x: 0.5, y: 1.3, w: 7.0, colW: [2.9, 0.6, 0.8, 1.1, 0.8, 0.8], fontSize: 11, rowH: 0.48 });
+  const cs = D.coll_summary;
+  s.addChart(pres.charts.BAR, [{ name: 'Max VIF', labels: cs.map((r) => r.Feature_set.replace(' (top-10)', '').replace(' (final)', '')), values: cs.map((r) => +(+r.Max_VIF).toFixed(1)) }],
+    Object.assign(AX(), { x: 7.8, y: 1.25, w: 5.0, h: 5.35, barDir: 'bar', chartColors: [HX.D], title: 'Maximum VIF of each final feature set', showLegend: false, showValue: true,
+      dataLabelPosition: 'outEnd', dataLabelFormatCode: '0.0', catAxisOrientation: 'maxMin', catAxisLabelFontSize: 10 }));
+  explain(s, 'coll2', { x: 0.5, y: 4.1, w: 7.0, h: 2.0, fontSize: 12 });
+  source(s, 'Tian et al. 2021; Lv et al. 2023; Chong & Jun 2005; Dormann et al. 2013; workbook sheet 26b_Collinearity_VIF');
 }
 if (D.E7) {
   const s = content('R15b. OFCs from wrapper-based SFFS (Tian et al., 2021)');

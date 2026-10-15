@@ -473,6 +473,46 @@ if have('cv_main_reps.csv'):
     bar(ws, f'{get_column_letter(c1b + 2)}5', 'Balanced accuracy by sub-group', c0b, list(range(c0b + 1, c1b + 1)), r0b, r1b, [COL_H, COL_D], 'Balanced accuracy', ymin=0.5, ymax=1.0, w=20, h=9)
     ws.freeze_panes = None
 
+if have('collinearity_summary.csv'):
+    ws = sheet('26b_Collinearity_VIF', 'Step 6d - Multicollinearity check: correlation matrix and VIF of the final selected features',
+               'Pearson r between features on all 2290 spectra; VIF = diagonal of the inverse correlation matrix (VIF > 10 = serious collinearity); tolerance = 1/VIF; '
+               'condition number = sqrt(largest / smallest eigenvalue of the correlation matrix). Computed by scripts/s13_collinearity.py.',
+               'Tian et al. (2021); Lv et al. (2023); Chong & Jun (2005); Belsley et al. (1980); Dormann et al. (2013)')
+    ST = T('collinearity_filter_stages.csv')
+    ws.cell(5, 1, 'A. Effect of the redundancy + VIF filter in the robust selection (all spectra)').font = Font(name=FONT, bold=True)
+    r0, c0, r1, c1 = write_df(ws, ST, 6, 1, fmt={'Max_VIF': '#,##0.0', 'Median_VIF': '#,##0.0', 'Condition_number': '#,##0.0'}, widths={'Stage': 42})
+    CRS = pd.read_csv(os.path.join(TAB, 'collinearity_corr_S8.csv'), index_col=0)
+    rr = r1 + 3
+    ws.cell(rr, 1, 'B. Correlation matrix of the final robust feature set (S8, 7 features)').font = Font(name=FONT, bold=True)
+    CRS.index.name = 'Feature'
+    rA, cA, rB, cB = write_df(ws, CRS.reset_index(), rr + 1, 1, fmt={c: '0.00' for c in CRS.columns})
+    ws.conditional_formatting.add(f'B{rA + 1}:{get_column_letter(cB)}{rB}', ColorScaleRule(start_type='num', start_value=-1, start_color='2A6FB0',
+                                  mid_type='num', mid_value=0, mid_color='FFFFFF', end_type='num', end_value=1, end_color='B03A2E'))
+    V = T('collinearity_vif.csv'); VS8 = V[V['Feature_set'] == 'Robust S8 (final)'][['Feature', 'VIF']]
+    rr = rB + 3
+    ws.cell(rr, 1, 'C. VIF of the final robust feature set (tolerance and flag are formulas)').font = Font(name=FONT, bold=True)
+    rV, cV, rW, cW = write_df(ws, VS8, rr + 1, 1, fmt={'VIF': '0.00'})
+    for j, h in enumerate(['Tolerance (=1/VIF)', 'Flag (VIF > 10)'], start=3):
+        c = ws.cell(rV, j, h); c.font = HDR_FONT; c.fill = HDR_FILL
+    for i in range(rV + 1, rW + 1):
+        ws.cell(i, 3, f'=1/B{i}').number_format = '0.000'
+        ws.cell(i, 4, f'=IF(B{i}>10,"High collinearity","Acceptable")')
+    bar(ws, f'{get_column_letter(cB + 2)}{rr}', 'VIF of the final robust features (threshold 10)', 1, [2], rV, rW, [COL_H], 'VIF', horizontal=True, w=16, h=8)
+    rr = rW + 3
+    ws.cell(rr, 1, 'D. Collinearity of every final feature set (OFCs of E7 and top-10 sets of E8)').font = Font(name=FONT, bold=True)
+    SM = T('collinearity_summary.csv')
+    rS, cS, rT, cT = write_df(ws, SM, rr + 1, 1, fmt={'Max_VIF': '0.0', 'Mean_VIF': '0.0', 'Condition_number': '0.0'}, widths={'Feature_set': 28})
+    bar(ws, f'{get_column_letter(cT + 2)}{rr}', 'Maximum VIF per feature set', 1, [6], rS, rT, [COL_D], 'Max VIF', horizontal=True, w=18, h=10)
+    CRV = pd.read_csv(os.path.join(TAB, 'collinearity_corr_SVMRFE.csv'), index_col=0); CRV.index.name = 'Feature'
+    rr = rT + 3
+    ws.cell(rr, 1, 'E. Correlation matrix of the SVM-RFE top-10 set (E8)').font = Font(name=FONT, bold=True)
+    rA, cA, rB, cB = write_df(ws, CRV.reset_index(), rr + 1, 1, fmt={c: '0.00' for c in CRV.columns})
+    ws.conditional_formatting.add(f'B{rA + 1}:{get_column_letter(cB)}{rB}', ColorScaleRule(start_type='num', start_value=-1, start_color='2A6FB0',
+                                  mid_type='num', mid_value=0, mid_color='FFFFFF', end_type='num', end_value=1, end_color='B03A2E'))
+    ws.cell(rB + 3, 1, 'F. VIF of every feature in every final set').font = Font(name=FONT, bold=True)
+    write_df(ws, V, rB + 4, 1, fmt={'VIF': '0.00', 'Tolerance': '0.000'}, widths={'Feature_set': 28})
+    ws.freeze_panes = None
+
 if have('E7_ofc_reps.csv'):
     ws = sheet('27b_OFC_Tian2021', 'Step 6b - E7: optimal feature combinations (OFCs) from wrapper-based SFFS (Tian et al., 2021)',
                "Disease-specific feature (DSF) pool: top-5% ReliefF on >= 3 of 4 dates, |r| < 0.98, VIF < 10 (all families F1-F6). SFFS wrapped around LDA, kNN or SVM gives OFC-LDA/kNN/SVM; "
