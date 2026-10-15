@@ -491,8 +491,8 @@ def cart_importance(X, y, groups):
     base = dict(class_weight="balanced", min_samples_split=20, min_samples_leaf=7, random_state=0)
     path = DecisionTreeClassifier(**base).cost_complexity_pruning_path(X, y)
     alphas = np.unique(path.ccp_alphas)
-    alphas = alphas[np.linspace(0, len(alphas) - 1, min(25, len(alphas))).astype(int)]
-    folds = inner_folds(y, groups)
+    alphas = alphas[np.unique(np.linspace(0, len(alphas) - 1, min(10, len(alphas))).astype(int))]
+    folds = inner_folds(y, groups, 3)
     sc = []
     for a in alphas:
         v = []
