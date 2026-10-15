@@ -186,9 +186,7 @@ def main():
                     "BA LDA": ("BA LDA", "mean"), "AUC QDA": ("AUC QDA", "mean"), "BA RF": ("BA RF", "mean"),
                     "SD RF": ("BA RF", "std")}).reset_index()
     out["summary"] = summ
-    nat = ev[ev.Guard == "native"].groupby(["Method", "Family"]).agg(**{"Mean size": ("Size", "mean"), "Min size": ("Size", "min"),
-                                                                      "Max size": ("Size", "max"), "BA QDA": ("BA QDA", "mean"),
-                                                                      "BA RF": ("BA RF", "mean")}).reset_index()
+    nat = native_table(ev)
     out["native"] = nat
 
     # ------------------------------------------------ stability (k = 10)
@@ -300,7 +298,8 @@ def main():
     # ------------------------------------------------ best methods vs the four-tier sets of Part C (same 20 units)
     fr4 = out["fourtier_ref"].pivot_table(index="Unit", columns="Method", values="BA QDA")
     vs = []
-    for m in list(out["composite"]["Method"].head(6)) + ["Consensus (Borda)"]:
+    acc_top = list(q.mean().sort_values(ascending=False).index[:3])
+    for m in list(dict.fromkeys(acc_top + list(out["composite"]["Method"].head(6)) + ["Consensus (Borda)"])):
         if m not in q.columns:
             continue
         for ref_ in fr4.columns:
@@ -369,12 +368,24 @@ def main():
     out["pool_meta"] = meta
     out["cwt"] = {"names": cw["names"], "shape": cw["shape"], "wl": cw["wl"], "scales": cw["scales"], "valid": cw["valid"]}
     out["test_units"] = test_units
+    out["edge"] = edge_sensitivity(out, U, X, y, meta, cw)
+    out["consensus"] = annotate_consensus(out["consensus"])
     save(out, "partFS_partial" if os.environ.get("FS_PARTIAL") else "partFS")
     pd.set_option("display.width", 250)
     print(out["composite"].round(3).to_string())
     print(out["friedman"])
     print(cons.head(15).to_string())
     print("errors:", list(out["errors"]))
+
+
+def native_table(ev):
+    """Native subsets: QDA is reported only when every unit's subset has <= 30 features (QDA was fitted)."""
+    e = ev[ev.Guard == "native"]
+    nat = e.groupby(["Method", "Family"]).agg(**{"Mean size": ("Size", "mean"), "Min size": ("Size", "min"), "Max size": ("Size", "max"),
+                                                 "Units": ("Unit", "size"), "QDA fitted": ("BA QDA", "count"), "BA QDA": ("BA QDA", "mean"),
+                                                 "BA RF": ("BA RF", "mean")}).reset_index()
+    nat.loc[nat["QDA fitted"] < nat["Units"], "BA QDA"] = np.nan
+    return nat.drop(columns=["QDA fitted"])
 
 
 def checks(U, X, y, cw, F, test_units):
@@ -434,5 +445,84 @@ def checks(U, X, y, cw, F, test_units):
     return pd.DataFrame(rows, columns=["Step", "What was checked", "Method", "Result", "Status"])
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and len(__import__("sys").argv) == 1:
     main()
+
+
+def edge_sensitivity(R, U, X, y, meta, cw, tol=10):
+    """Share of top-10 selections within `tol` nm of a detector-join guard zone, and QDA accuracy when such
+    features are excluded before the redundancy-controlled top-10 is taken (artefact check)."""
+    gz = {"R": C["spectra"]["guard"]["R"], "D1": C["spectra"]["guard"]["D1"]}
+    ser, pos = series_pos(meta)
+    near = np.array([s in gz and np.isfinite(p) and any((a - tol) <= p < a or b < p <= (b + tol) for a, b in gz[s])
+                     for s, p in zip(ser, pos)])
+    rows = []
+    for m in NAMES:
+        if m in ("CWT scalogram",) or m in EQUIV:
+            continue
+        n_near = n_all = 0
+        base, excl = [], []
+        for u in R["test_units"]:
+            Ru = U[u]
+            if "rank" not in Ru.get(m, {}):
+                continue
+            tr, te = Ru["train"], Ru["test"]
+            Xz = fm.zs(X[tr])
+            S = list(Ru[m]["sets"][10]) if "sets" in Ru[m] else fm.guard_topk(Ru[m]["rank"], Xz, 10)
+            n_near += int(near[S].sum())
+            n_all += len(S)
+            if "sets" in Ru[m]:
+                cand = [c for c in Ru[m]["sets"][20] if not near[c]] + [c for c in Ru["candidates"] if not near[c] and c not in Ru[m]["sets"][20]]
+            else:
+                cand = [c for c in Ru[m]["rank"] if not near[c]]
+            S2 = fm.guard_topk(np.array(cand), Xz, 10)
+            p1, _ = models.fit_predict(models.qda("equal"), X[tr][:, S], y[tr], X[te][:, S])
+            p2, _ = models.fit_predict(models.qda("equal"), X[tr][:, S2], y[tr], X[te][:, S2])
+            base.append(fm.ba(y[te], p1))
+            excl.append(fm.ba(y[te], p2))
+        d = np.array(excl) - np.array(base)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            p = wilcoxon(d).pvalue if (d != 0).any() else 1.0
+        rows.append({"Method": m, "Family": FAMILY[m], "Top-10 selections within 10 nm of a detector join": n_near,
+                     "Of": n_all, "Share": n_near / max(n_all, 1), "QDA BA top-10": np.mean(base),
+                     "QDA BA, join-adjacent bands excluded": np.mean(excl), "Difference": d.mean(), "Wilcoxon p": p})
+    return pd.DataFrame(rows)
+
+
+def annotate_consensus(cons):
+    gz = {"R": C["spectra"]["guard"]["R"], "D1": C["spectra"]["guard"]["D1"]}
+    notes = []
+    for _, r in cons.iterrows():
+        n = []
+        ser_ = "D1" if str(r["Feature"]).startswith("D1_") else ("R" if str(r["Feature"]).startswith("R") and np.isfinite(r["Wavelength (nm)"]) else None)
+        w = r["Wavelength (nm)"]
+        if ser_ and any((a - 10) <= w < a or b < w <= (b + 10) for a, b in gz[ser_]):
+            n.append("within 10 nm of a detector join — interpret with caution")
+        if r["AUC"] < 0.6:
+            n.append("weak on its own (AUC < 0.60): complementary in multivariate sets")
+        notes.append("; ".join(n))
+    cons = cons.copy()
+    cons.insert(cons.columns.get_loc("idx"), "Note", notes)
+    return cons
+
+
+def post():
+    """Additions computed from the saved results (python stage_FS_eval.py post)."""
+    D, P, cw = build_pool()
+    R = load("partFS")
+    U = load_units()
+    for u, Ru in U.items():
+        Xz = fm.zs(P.X[Ru["train"]])
+        o, pts = borda(Ru, Xz, [m for m in UNIQUE if m != "Consensus (Borda)"])
+        Ru["Consensus (Borda)"] = {"rank": o, "score": pts}
+    R["edge"] = edge_sensitivity(R, U, P.X, D["y"], P.meta, cw)
+    if "Note" not in R["consensus"]:
+        R["consensus"] = annotate_consensus(R["consensus"])
+    save(R, "partFS")
+    pd.set_option("display.width", 250)
+    print(R["edge"].round(3).to_string())
+
+
+if __name__ == "__main__" and len(__import__("sys").argv) > 1 and __import__("sys").argv[1] == "post":
+    post()

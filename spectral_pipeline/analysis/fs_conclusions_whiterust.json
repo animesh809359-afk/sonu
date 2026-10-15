@@ -1,0 +1,76 @@
+{
+ "summary": [
+  "Twenty-three feature-selection methods (11 filter, 6 wrapper, 6 embedded and a consensus) were applied to the same 4150-feature K1–K4 pool. Each method selected features only inside the training leaves of 20 units (10 plot-grouped folds and 10 hold-outs of 30 % of plots); the selected features were then tested on the leaves of plots that the selection never saw.",
+  "Most accurate with 10 features (QDA, equal priors): SFFS with a QDA criterion 87.9 ± 2.8 %, SVM-RFE 87.1 ± 3.6 % and CARS 86.8 ± 2.6 %. These three are statistically tied (Holm-corrected Wilcoxon p = 0.55) and significantly better than all other methods (Friedman χ² = 333, p < 10⁻⁵⁷). All three beat the four-tier RF-17 set of Part C (84.5 %) in 15 of the 20 held-out sets.",
+  "Best overall, balancing accuracy (QDA and RF), stability and J–M separability: SVM-RFE (rank 1). It is followed by LASSO, CARS, the Borda consensus and ReliefF. ReliefF is the most stable selector (Jaccard 0.84) at 84.9 % accuracy. The wrappers SFFS, the genetic algorithm and CARS are accurate but unstable (Jaccard 0.22–0.34): many different feature combinations work almost equally well.",
+  "Stable and disease-specific features chosen by most methods: the width of the 970-nm water absorption feature (CR3; 17 of 21 methods), the position and symmetry of the 1940-nm water feature (CR6), first-derivative bands on the 1940-nm water band wing (1915–1934 nm), first-derivative bands across the NIR plateau (848–911 nm), the 1724 and 2223–2306 nm C–H / dry-matter regions, and the anthocyanin index ARI."
+ ],
+ "key_messages": [
+  "SFFS (QDA criterion), SVM-RFE and CARS give the most accurate 10-feature sets on new plots (86.8–87.9 % balanced accuracy), 2.3–3.4 points above the four-tier RF-17 set and 8.5–9.6 points above the four-tier CART-13 set.",
+  "SVM-RFE is the best all-round method for this dataset (composite rank 1): accurate with QDA (87.1 %) and RF (87.2 %), moderately stable (Jaccard 0.65). ReliefF is the most stable (0.84) and still accurate (84.9 %).",
+  "Univariate filters (r = ANOVA F = Fisher score, χ², MI) need redundancy control: skipping near-duplicate bands raises their accuracy by 3.6–6.1 points.",
+  "J–M is a poor criterion for choosing features here: the J–M-optimised sets have the highest J–M (1.75–1.80) but only 70–73 % accuracy on new plots.",
+  "Water features dominate the disease signature: 970-nm band width and 1940-nm band position/symmetry, plus derivative bands at 1915–1934 nm and 848–911 nm. CARS, LASSO and SVM-RFE partly rely on bands next to the detector joins, which needs caution."
+ ],
+ "accuracy": [
+  "With 10 features, SFFS (QDA) reaches 87.9 %, SVM-RFE 87.1 %, CARS 86.8 %, LASSO 85.4 %, ReliefF 84.9 % and the genetic algorithm 84.1 % (QDA balanced accuracy, mean of 20 held-out sets).",
+  "Univariate filters stay at 78–81 % (ANOVA F 81.2 %, χ² 79.6 %, MI 77.8 %), as do the tree importances (RF 78.0 %, CART 77.8 %, gradient boosting 77.4 %) and Boruta (78.5 %). PLS-VIP, univariate J–M, SPA and the CWT scalogram fall to 67–72 %.",
+  "With a Random Forest instead of QDA the differences shrink (75–87 %). The best RF results are on the SVM-RFE (87.2 %), RF-RFE (86.4 %) and LASSO (85.5 %) features."
+ ],
+ "k": [
+  "Accuracy rises from 5 to 15 features and then levels off (SFFS 85.0 → 87.9 → 88.3 → 88.3 %; CARS 77.3 → 86.8 → 88.3 → 88.9 %). SFFS and SVM-RFE already exceed 84 % with five features; 10–15 features are enough."
+ ],
+ "redundancy": [
+  "Top-ranked features of a univariate ranking are neighbouring bands of the same region (e.g. D1_848–D1_920) and carry almost the same information.",
+  "Skipping a feature correlated |r| ≥ 0.95 with one already chosen raised accuracy for χ² (+6.1 points), ReliefF (+5.2), MC-UVE (+4.5), ANOVA F (+3.7), mutual information (+3.6) and RF importance (+2.9).",
+  "Methods that already handle redundancy (SFFS, GA, SPA, CARS, LASSO) gain nothing. This agrees with Wei et al. (2021), where a minimum distance between selected wavelengths improved disease classification."
+ ],
+ "stability": [
+  "Accuracy and stability trade off. Filters and penalised or importance-based methods are stable (ReliefF 0.84, univariate J–M 0.76, RF importance 0.73, LASSO 0.70, χ² 0.69, SVM-RFE 0.65); search-based wrappers are not (CARS 0.34, SFFS 0.24, GA 0.22) because many equally good feature combinations exist in collinear spectra."
+ ],
+ "tests": [
+  "Friedman test across the 22 distinct methods and 20 units: χ² = 333.4, p = 4.7 × 10⁻⁵⁸; Nemenyi critical difference 7.4 ranks.",
+  "SFFS (QDA), SVM-RFE and CARS are not significantly different (Holm p = 0.55). Every other method is significantly less accurate than SFFS (Holm p ≤ 0.003)."
+ ],
+ "vs4": [
+  "The four-tier analysis of Part C (CART-13: 78.3 %; RF-17: 84.5 % on the same 20 held-out sets) is beaten by SFFS (QDA) (+3.4 points vs RF-17, 15/20 sets, p = 0.001), SVM-RFE (+2.6, p = 0.004) and CARS (+2.3, p = 0.019).",
+  "LASSO and ReliefF are equivalent to RF-17 (p = 0.17 and 0.96); Boruta's top-10 is 6.0 points worse (0/20, p < 0.001). Against CART-13 every method in this table except Boruta gains 4–10 points."
+ ],
+ "runtime": [
+  "Per training set (≈ 2000 leaves × 4150 features, one CPU core): univariate filters, χ², mRMR and the CWT scalogram ≤ 1 s; ReliefF 3 s; gradient boosting 4 s; GA 5 s; CARS 6 s; SFFS 10 s; RF importance 14 s; LASSO 17 s; SPA 17 s; MC-UVE 23 s; SVM-RFE 26 s; mutual information 28 s; PLS-VIP 30 s; RF-RFE 67 s; CART (with pruning by inner CV) 112 s; Boruta 304 s.",
+  "SFFS and the GA are fast here only because they search a pre-filtered pool of 100 non-redundant candidates."
+ ],
+ "consensus": [
+  "Consensus score = mean, over the 21 distinct methods, of how often the feature (±10 nm) was in the method's top-10 across the 20 training sets.",
+  "The width of the 970-nm water feature (CR3) is the most universal disease feature: 17 of 21 methods choose it in at least half of the training sets (consensus 0.78; AUC 0.77; narrower in diseased leaves). Next come the 1940-nm water feature position (0.59; 13 methods; shifted to longer wavelengths in diseased leaves) and symmetry (0.48; 10 methods).",
+  "Derivative bands follow: D1_1934 (0.37) and D1_1915 (0.32) on the 1940-nm water band wing, and D1_898 (0.36), D1_848 (0.25), D1_872 and D1_911 across the NIR plateau.",
+  "D1_1724, D1_2306 and D1_1792 are weak on their own (AUC < 0.60) but complementary in multivariate sets. D1_1792 and D1_981 lie within 10 nm of a detector join and need caution.",
+  "A 10-feature consensus set gives J–M 1.60 and 82.2 % (Das protocol). The honest in-fold Borda consensus reaches 82.7 % on new plots — a consensus is stable and interpretable, but not more accurate than the best single method."
+ ],
+ "interpretation": [
+  "970 and 1940 nm: liquid-water absorption. White rust pustules rupture the epidermis and disturb leaf water status, changing the depth, width and shape of the water bands.",
+  "848–911 nm (first derivative): slope of the NIR plateau, set by mesophyll scattering. Hyphae and pustules alter the internal leaf structure.",
+  "1724 and 2223–2306 nm: C–H, lignin, cellulose and protein (dry-matter) absorption. These are complementary rather than strong on their own.",
+  "ARI: anthocyanins accumulate in stressed, infected leaves."
+ ],
+ "edge": [
+  "Linear-model selectors pick bands next to the ASD detector joins (≈ 1000 and 1800 nm) more often: SVM-RFE 18 % of its top-10 selections within 10 nm of a join, LASSO 15 %, CARS 13.5 %, ReliefF 11 % (univariate filters 0 %).",
+  "Excluding such bands lowers CARS by 4.6 points (to 82.2 %), LASSO by 3.2 (to 82.2 %), the consensus by 2.5 and SVM-RFE by 1.5 (to 85.6 %). SFFS (QDA) loses only 1.1 points (not significant; 86.9 %).",
+  "Part of the advantage of CARS and LASSO may therefore come from residual splice effects (or from the 970-nm water-band shoulder at 981 nm). SFFS (QDA) and SVM-RFE remain the best methods after this correction."
+ ],
+ "conclusions": [
+  "For discriminating healthy and white-rust leaves from the K1–K4 feature pool, wrapper methods that search for complementary features — SFFS with a QDA criterion, SVM-RFE and CARS — give the most accurate compact feature sets (≈ 87–88 % with 10 features on new plots), significantly better than univariate filters (78–81 %) and tree importances (77–79 %).",
+  "SVM-RFE is the best all-round method (composite rank 1): it is as accurate as SFFS, accurate with both QDA and RF, more stable than the other wrappers, and robust to the detector-join check (85.6 % after excluding join-adjacent bands).",
+  "ReliefF, LASSO and RF importance are the most stable selectors; ReliefF combines high stability (0.84) with good accuracy (84.9 %) and is the best filter.",
+  "Univariate rankings (Pearson r = ANOVA F = Fisher score for two classes, χ², MI) must be combined with redundancy control; J–M-driven selection, SPA, PLS-VIP top-k and the CWT scalogram are not suitable for this dataset.",
+  "Boruta, MC-UVE and PLS-VIP (VIP > 1) are screening tools: they keep about 120 (Boruta) to 1300–1400 (PLS-VIP, MC-UVE) relevant features rather than a compact set.",
+  "The stable disease-specific signature of white rust is the leaf-water signal — 970-nm band width and 1940-nm band position and symmetry, with derivative bands at 1915–1934 nm — together with the NIR-plateau slope at 848–911 nm. Dry-matter bands (1724, 2223–2306 nm) and ARI add complementary information."
+ ],
+ "recommendations": [
+  "Use SVM-RFE (linear SVM, balanced weights) with redundancy control as the main selector for this dataset. Report SFFS (QDA) and CARS as equally accurate alternatives, and give their selection frequencies because their exact feature sets are unstable.",
+  "For interpretation and sensor design, use the consensus features (CR3 970-nm width, CR6 1940-nm position and symmetry, D1 1915–1934 nm, D1 848–911 nm) or ReliefF, which are reproducible across training sets.",
+  "Always select features inside the training data only, evaluate on new plots, and report accuracy together with stability (Jaccard or Kuncheva) and a Friedman–Nemenyi comparison.",
+  "Apply a redundancy rule (|r| < 0.95, or a minimum spectral distance) to any ranking-based method, and exclude or flag bands within 10 nm of the detector joins.",
+  "Use Boruta or MC-UVE as a first screening step and a wrapper (SFFS or RFE) for the final compact set, as Mustafa et al. (2023) did with Boruta followed by SFFS."
+ ]
+}

@@ -69,9 +69,10 @@ J["vs4"] = [["Method", "vs", "Method BA", "Four-tier BA", "Δ", "Wins", "p"]] + 
     [r["Method (top-10)"], r["Four-tier set"].replace(" (Part C)", ""), pct(r["Method BA"]), pct(r["Four-tier BA"]), f"{100 * r['Mean difference']:+.1f} pts",
      f"{r['Method better']}/{r['Method better'] + r['Four-tier better']}", f"{r['Wilcoxon p']:.3f}"] for _, r in R["vs_fourtier"].iterrows()]
 co = R["consensus"].head(15)
-J["consensus"] = [["Feature", "Type", "Consensus", "Methods ≥ 50 %", "AUC", "Diseased"]] + [
+short = lambda n: "; ".join(x for x in (("next to join" if "detector join" in n else ""), ("complementary" if "weak on its own" in n else "")) if x)  # noqa: E731
+J["consensus"] = [["Feature", "Type", "Consensus", "Methods ≥ 50 %", "AUC", "Diseased", "Note"]] + [
     [r["Feature"], r["Type"].replace("K4 first-derivative band", "K4 D1 band").replace("K2 continuum removal", "K2 CR").replace("K1 band reflectance", "K1 R"),
-     f3(r["Consensus score"], 2), str(int(r["Methods ≥ 50 % of training sets"])), f3(r["AUC"], 3), r["Direction in diseased"]] for _, r in co.iterrows()]
+     f3(r["Consensus score"], 2), str(int(r["Methods ≥ 50 % of training sets"])), f3(r["AUC"], 3), r["Direction in diseased"], short(r.get("Note", ""))] for _, r in co.iterrows()]
 J["consensus_set"] = {"names": R["consensus_set"]["names"], "jm": float(R["consensus_set"]["J–M"]), "v1": float(R["consensus_set"]["QDA BA V1"])}
 st2 = st[st.Guard == "yes"].sort_values("Jaccard (±10 nm)", ascending=False)
 J["stability"] = [["Method", "Kuncheva", "Jaccard exact", "Jaccard ±10 nm"]] + [
@@ -80,6 +81,10 @@ J["stability"] = [["Method", "Kuncheva", "Jaccard exact", "Jaccard ±10 nm"]] + 
 rt = R["runtime"].dropna(subset=["Mean seconds per training set"])
 J["runtime"] = {r["Method"]: float(r["Mean seconds per training set"]) for _, r in rt.iterrows()}
 J["checks"] = [["Check", "Result", "Status"]] + [[r["What was checked"], str(r["Result"]), r["Status"]] for _, r in R["checks"].iterrows()]
+e = R["edge"]
+J["edge"] = [["Method", "Near-join share", "QDA BA", "Join bands excluded", "Δ", "p"]] + [
+    [r["Method"], pct(r["Share"]), pct(r["QDA BA top-10"]), pct(r["QDA BA, join-adjacent bands excluded"]), f"{100 * r['Difference']:+.1f} pts",
+     f"{r['Wilcoxon p']:.3f}"] for _, r in e.sort_values("Share", ascending=False).iterrows() if r["Share"] > 0]
 J["refs"] = REFS
 J["txt"] = TXT
 (WORK / "fs_results.json").write_text(json.dumps(J, indent=1, ensure_ascii=False, default=lambda o: o.item() if hasattr(o, "item") else str(o)))

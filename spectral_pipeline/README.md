@@ -21,6 +21,8 @@ stages, three varieties pooled (`configs/whiterust_all_dates.yaml`). Results are
 | C′ | `analysis/stage_CR.py` | variant of C: the four tiers on raw reflectance (all bands, as in Part A) + K2 + K3 + K4 — same engine, seeds and folds |
 | compare | `analysis/stage_compare.py` | C vs A vs K5 paired tests, V5 by date, stratified checks, guard-edge check, synthesis |
 | compare C′ | `analysis/stage_compare_CR.py` | C′ vs C vs A side by side, paired Wilcoxon on identical folds, feature-type composition, overlap, raw bands near joins / noisy ends, V5 by date; adds C′ rows to the synthesis (run after `stage_compare.py`) |
+| FS | `analysis/stage_FS.py` (+ `sp/fs_methods.py`) | 23 feature-selection methods (filter: r, ANOVA F, Fisher, χ², MI, ReliefF, J–M, mRMR, SPA, MC-UVE, CWT scalogram; wrapper: SVM-RFE, RF-RFE, CARS, SFFS-QDA, SFFS-J–M, GA; embedded: RF, CART, Boruta, PLS-VIP, LASSO, gradient boosting) run on all leaves and inside 20 training sets (V3 repeat 1 + V4); cached per unit in `work/fs_units/` |
+| FS eval | `analysis/stage_FS_eval.py` | top-k (5–20, plain / redundancy-controlled) → QDA, LDA, RF on held-out plots; stability (Kuncheva, Jaccard ±10 nm); Friedman–Nemenyi, Wilcoxon–Holm; composite ranking; consensus features; detector-join check |
 | (history) | `analysis/patch_mixed.py`, `analysis/patch_cond.py` | one-off fixes applied to the first white-rust run (statsmodels mixed model → R nlme; scale-free condition numbers); both are now built into the stage scripts and are not needed for new runs |
 | report | `make_figures.py`, `build_excel.py`, `export_json.py`, `build_ppt.js`, `build_docx.js` | figures, workbook (formulas recalculated by LibreOffice), deck, Word report |
 
@@ -39,15 +41,19 @@ Mixed models use R `nlme::lme` (REML; t-test with between-plot df). CART uses R 
    ```
    python stage_data.py && python stage_A.py && python stage_K.py && python stage_K3b_joinfree.py && python stage_C.py && python stage_CR.py
    python stage_compare.py && python stage_compare_CR.py && python make_figures.py
+   OMP_NUM_THREADS=1 python stage_FS.py 4 && python stage_FS_eval.py && python make_fs_figures.py   # feature-selection comparison (≈ 1.5 h on 4 cores)
    python build_excel.py && python <xlsx-skill>/scripts/recalc.py <workbook>
    python export_json.py
    PPTX_SKILL=<pptx-skill> node build_ppt.js ../work <deck.pptx>
    DOCX_MODULE=<path to docx> node build_docx.js ../work <report.docx>
+   python build_fs_excel.py && python export_fs_json.py && PPTX_SKILL=<pptx-skill> node build_fs_ppt.js ../work <fs_deck.pptx>
    ```
    Stages A and K can run in parallel (≈ 30 and ≈ 60 min for 2264 spectra on 4 cores).
 4. Write `work/conclusions.json` (interpretation text used by the summary sheet, the deck and
    the report) after reading the results — `analysis/conclusions_whiterust_all_dates.json` is the
-   white-rust example. Every number in it must be checked against the workbook.
+   white-rust example. Every number in it must be checked against the workbook. The feature-selection deliverables read
+   `work/fs_conclusions.json` in the same way (example: `analysis/fs_conclusions_whiterust.json`; references in
+   `analysis/fs_references.json`).
 
 Requirements: Python ≥ 3.11 (numpy, scipy, pandas, statsmodels, scikit-learn,
 imbalanced-learn, matplotlib, openpyxl, pyyaml), R ≥ 4.3 with rpart, nlme, MASS,

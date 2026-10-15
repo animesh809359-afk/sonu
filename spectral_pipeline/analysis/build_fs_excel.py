@@ -77,6 +77,12 @@ cs = R["consensus_set"]
 S.para(f"Consensus set (10 features, redundancy-controlled): {', '.join(cs['names'])} — J–M {cs['J–M']:.3f}; QDA balanced accuracy "
        f"{100 * cs['QDA BA V1']:.1f} % in the leaf-level 10-fold protocol of Das et al. (optimistic, all leaves used to choose the set). "
        f"The honest estimate of the consensus approach is the 'Consensus (Borda)' method, whose rank aggregation is redone inside every training set.")
+S.h2("Conclusions")
+for i, t in enumerate(TXT.get("conclusions", [])):
+    S.para(f"{i + 1}. {t}")
+S.h2("Recommendations")
+for t in TXT.get("recommendations", []):
+    S.para("• " + t)
 
 # ============================================================== 02 Design
 S = S_("02_Design", "Study design — data, feature pool, training/test units, evaluation")
@@ -264,6 +270,8 @@ S = S_("18_Accuracy", "Accuracy of the selected features on held-out plots (mean
        "Selection inside each training set; QDA/LDA/RF trained on the training leaves with the selected features; balanced accuracy on the test leaves.")
 S.image(FIG / "FS05_accuracy_k10.png", 700)
 S.image(FIG / "FS04_ba_vs_k.png", 1000)
+for t in TXT.get("accuracy", []) + TXT.get("k", []):
+    S.para(t)
 g = summ[summ.Guard == "yes"]
 pv = g.pivot_table(index=["Method", "Family"], columns="k", values="BA QDA").reset_index()
 pv.columns = ["Method", "Family"] + [f"QDA BA k = {k}" for k in pv.columns[2:]]
@@ -299,10 +307,21 @@ S.table(nt, fmts={"BA QDA": PCT, "BA RF": PCT, "Mean size": "0.0"},
 
 S = S_("21_Redundancy_Control", "Does removing near-duplicate features help? Plain vs redundancy-controlled top-10")
 S.image(FIG / "FS15_redundancy_control.png", 650)
+for t in TXT.get("redundancy", []):
+    S.para(t)
 S.table(R["guard_effect"], fmts={c: PCT for c in R["guard_effect"].columns if c != "Method"})
+
+S = S_("21b_Detector_Join_Check", "Do the selectors exploit bands next to the ASD detector joins (≈ 1000 and 1800 nm)?",
+       "Share of top-10 selections within 10 nm of a guard zone, and QDA accuracy when such bands are excluded before the top-10 is taken.")
+for t in TXT.get("edge", []):
+    S.para(t)
+S.table(R["edge"], fmts={"Share": PCT, "QDA BA top-10": PCT, "QDA BA, join-adjacent bands excluded": PCT, "Difference": PCT, "Wilcoxon p": "0.000"},
+        note="Guard zones: first derivative 988–1012 and 1793–1837 nm; reflectance 990–1010 and 1795–1835 nm (already excluded from the pool).")
 
 S = S_("22_Stability", "Stability of the selections over the 20 training sets (k = 10)")
 S.image(FIG / "FS06_stability_vs_accuracy.png", 750)
+for t in TXT.get("stability", []):
+    S.para(t)
 S.table(R["stability"], fmts={"Kuncheva index": "0.000", "Jaccard (exact)": "0.000", "Jaccard (±10 nm)": "0.000", "SD Jaccard (±10 nm)": "0.000"},
         note="Kuncheva index: 0 = chance overlap, 1 = identical lists (corrected for chance). Jaccard (±10 nm): a feature of the same spectral series "
              "within 10 nm counts as the same (neighbouring bands carry the same information).")
@@ -313,6 +332,8 @@ S.table(pd.DataFrame([("Methods compared (k)", fr["k"]), ("Units (N)", fr["N"]),
                       ("q(0.05, k, ∞)/√2", fr["q_alpha"]), ("Nemenyi critical difference (mean rank)", fr["CD"]), ("Best mean BA", fr["best"])],
                      columns=["Statistic", "Value"]))
 S.image(FIG / "FS07_cd_diagram.png", 1000)
+for t in TXT.get("tests", []):
+    S.para(t)
 S.table(R["mean_ranks"], title="Mean rank over the 20 units (1 = best)", fmts={"Mean rank": "0.00"})
 S.table(R["wilcoxon"], title=f"Paired Wilcoxon tests: {fr['best']} vs every other method", fmts={"Mean difference": PCT, "p": "0.0E+00", "Holm p": "0.0E+00"})
 bm = R["ba_matrix"].reset_index()
@@ -331,9 +352,12 @@ for r in range(f, l + 1):
     S.cell(r, 11, f"=AVERAGE(G{r}:J{r})", fmt="0.00", border=True)
     S.cell(r, 12, f"=RANK(K{r},K${f}:K${l},1)", fmt="0", border=True)
 S.para("Ranks with ties averaged (RANK + tie correction); lower mean rank = better. The Python ranking on sheet 01 must match these formulas.", font=F_NOTE)
+for t in TXT.get("vs4", []):
+    S.para(t)
 S.table(R["vs_fourtier"], title="Best methods vs the four-tier sets of Part C on the same 20 units (QDA)",
         fmts={"Method BA": PCT, "Four-tier BA": PCT, "Mean difference": PCT, "Wilcoxon p": "0.000"})
 S.table(R["runtime"], title="Computing cost (seconds, one CPU core)", fmts={"Mean seconds per training set": "0.0", "All leaves (s)": "0.0"})
+S.para("Blank = below 0.1 s (Pearson r, ANOVA F, Fisher score and univariate J–M are computed together in one vectorised pass). " + " ".join(TXT.get("runtime", [])), font=F_NOTE)
 
 # ============================================================== 25-26 consensus
 S = S_("25_Consensus_Features", "Stable and informative disease-specific features — agreement between methods")
@@ -341,6 +365,9 @@ for t in TXT.get("consensus", []):
     S.para(t)
 S.image(FIG / "FS08_selection_frequency.png", 1000)
 S.image(FIG / "FS09_consensus_on_spectrum.png", 900)
+S.h2("Physiological interpretation")
+for t in TXT.get("interpretation", []):
+    S.para("• " + t)
 S.table(R["consensus"].drop(columns=["idx"]), fmts={"Consensus score": "0.000", "AUC": "0.000", "Hedges g": "0.00", "Mixed-model q": "0.0E+00", "Wavelength (nm)": "0"},
         note="Consensus score = mean over the 21 distinct methods of the share of the 20 training sets in which the feature (±10 nm) was in the "
              "method's redundancy-controlled top-10. One representative per ±10 nm region.")

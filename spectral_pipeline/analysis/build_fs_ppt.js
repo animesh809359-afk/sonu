@@ -206,6 +206,11 @@ img(s, "FS15_redundancy_control", M, 1.05, 6.0, 5.6);
 bullets(s, (T.redundancy || []), 6.8, 1.2, 6.0, 5.4, 13);
 refnote(s, "Wei et al. 2021 (minimum distance between selected wavelengths)");
 
+s = content("Detector-join check: do selectors exploit bands next to the ASD joins?");
+table(s, J.edge.slice(0, 13), M, 1.2, 7.2, { colW: [2.0, 1.2, 1.0, 1.2, 0.9, 0.9], fontSize: 10, rowH: 0.3 });
+bullets(s, (T.edge || []), 7.9, 1.2, 4.9, 5.4, 12.5);
+refnote(s, "Guard zones 988–1012 and 1793–1837 nm (first derivative); see Part K of the main analysis");
+
 s = content("Stable and informative: stability against accuracy");
 img(s, "FS06_stability_vs_accuracy", M, 1.05, 7.4, 5.0);
 table(s, J.stability.slice(0, 13), 8.1, 1.2, 4.7, { colW: [1.9, 0.9, 0.95, 0.95], fontSize: 9.5, rowH: 0.27 });
@@ -223,8 +228,8 @@ img(s, "FS10_composite_ranking", M, 1.05, 5.6, 5.8);
 table(s, J.composite.slice(0, 13), 6.3, 1.2, 6.5, { colW: [0.35, 1.8, 0.85, 0.75, 0.75, 0.7, 0.6, 0.7], fontSize: 9.5, rowH: 0.3, highlight: [1, 2, 3] });
 
 s = content("Best selectors vs the four-tier sets (Das et al. 2020 approach, Part C)");
-table(s, J.vs4, M, 1.2, W - 2 * M, { colW: [2.8, 2.6, 1.3, 1.4, 1.3, 1.1, 1.0], fontSize: 11, rowH: 0.32 });
-bullets(s, (T.vs4 || []), M, 5.1, W - 2 * M, 1.6, 13);
+table(s, J.vs4, M, 1.2, 8.3, { colW: [1.7, 1.6, 1.0, 1.1, 1.0, 0.9, 1.0], fontSize: 9.5, rowH: 0.27 });
+bullets(s, (T.vs4 || []), 9.0, 1.2, 3.8, 5.4, 12.5);
 
 s = content("Computing cost");
 img(s, "FS11_runtime", M, 1.05, 6.6, 5.6);
@@ -236,8 +241,8 @@ s = content("Where the methods agree");
 img(s, "FS08_selection_frequency", M, 1.05, W - 2 * M, 5.8);
 
 s = content("Consensus disease-specific features");
-table(s, J.consensus, M, 1.2, 7.4, { colW: [2.2, 1.4, 1.0, 1.1, 0.8, 0.9], fontSize: 10, rowH: 0.3 });
-bullets(s, (T.consensus || []), 8.1, 1.2, 4.7, 5.5, 12.5);
+table(s, J.consensus, M, 1.2, 7.6, { colW: [2.0, 1.2, 0.9, 1.0, 0.7, 0.8, 1.0], fontSize: 9.5, rowH: 0.3 });
+bullets(s, (T.consensus || []).slice(1), 8.3, 1.2, 4.5, 5.5, 11.5);
 
 s = content("Consensus features on the healthy and diseased spectra");
 img(s, "FS09_consensus_on_spectrum", M, 1.05, 8.4, 5.7);
