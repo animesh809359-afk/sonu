@@ -1,0 +1,12 @@
+# Smoke test: synthetic data, reduced repeats and trees.
+title: "SYNTHETIC TEST DATA (fast smoke test)"
+data:
+  file: ../test_data/synthetic.csv
+  plot_col: Plot
+  class_col: Rep
+  class_map: {C: Healthy, R1: Diseased, R2: Diseased, R3: Diseased}
+  date_col: Date
+output:
+  dir: ../output/synthetic_fast
+  stem: SYNTHETIC_FAST
+fast: true

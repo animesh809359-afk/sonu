@@ -1,0 +1,14 @@
+# Synthetic data - for testing the pipeline only (numbers are NOT results).
+title: "SYNTHETIC TEST DATA - healthy vs diseased leaves"
+subtitle: "Pipeline test run on simulated spectra with the structure of the white-rust flowering data"
+author: "Pipeline test"
+data:
+  file: ../test_data/synthetic.csv
+  plot_col: Plot
+  class_col: Rep
+  class_map: {C: Healthy, R1: Diseased, R2: Diseased, R3: Diseased}
+  date_col: Date
+  id_cols: [Variety, Leaf, File]
+output:
+  dir: ../output/synthetic_test
+  stem: SYNTHETIC_TEST
