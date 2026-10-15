@@ -52,13 +52,17 @@ def splice_correct(R, wl, joins, fit_nm=10):
 def preprocess(ds, cfg) -> Spectra:
     s = cfg["spectra"]
     wl_full, R_full = ds.wl_full, ds.R_full
+    steps = np.unique(np.round(np.diff(wl_full), 6))
+    if len(steps) != 1:
+        raise ValueError(f"wavelength grid is not regular: steps {steps}")
+    dl = float(steps[0])          # 1 nm for ASD exports; SG windows below are in bands (= nm at 1-nm spacing)
     R_sc_full, offsets = splice_correct(R_full, wl_full, s["joins"], s["splice_fit_nm"])
     w, p = s["sg_smooth"]
     Rs_full = savgol_filter(R_sc_full, w, p, axis=1, mode="interp")
     w1, p1 = s["sg_d1"]
-    D1_full = savgol_filter(R_sc_full, w1, p1, deriv=1, delta=1.0, axis=1, mode="interp")
+    D1_full = savgol_filter(R_sc_full, w1, p1, deriv=1, delta=dl, axis=1, mode="interp")
     w2, p2 = s["sg_d2"]
-    D2_full = savgol_filter(R_sc_full, w2, p2, deriv=2, delta=1.0, axis=1, mode="interp")
+    D2_full = savgol_filter(R_sc_full, w2, p2, deriv=2, delta=dl, axis=1, mode="interp")
 
     lo, hi = s["keep_range"]
     keep = (wl_full >= lo) & (wl_full <= hi)
