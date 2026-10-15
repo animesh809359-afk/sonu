@@ -131,6 +131,52 @@ const BEST = (D.best || [])[0] || {}; const COMPACT = (D.best || [])[1] || {};
 const BS = SUMK[BEST.scenario + '|' + BEST.clf] || {}; const CS = SUMK[COMPACT.scenario + '|' + COMPACT.clf] || {};
 const pipeName = (r) => `${r.scenario} ${SCN[r.scenario] || ''} + ${r.clf}`;
 
+
+// ------------------------------------------------------------------ flowchart helpers
+function box(s, x, y, w, h, title, sub, fill, dark) {
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h, rectRadius: 0.06, fill: { color: fill || HX.LT }, line: { color: dark ? fill : 'C9D3C6', width: 0.75 } });
+  const runs = [{ text: title, options: { bold: true, fontSize: 12.5, color: dark ? 'FFFFFF' : HX.DK, breakLine: !!sub } }];
+  if (sub) runs.push({ text: sub, options: { fontSize: 10.5, color: dark ? 'F2F2F2' : '333333' } });
+  s.addText(runs, { x: x + 0.06, y, w: w - 0.12, h, align: 'center', valign: 'middle', isTextBox: true, margin: 0.02 });
+}
+function arrow(s, x1, y1, x2, y2, color) {
+  let x = x1, y = y1, w = x2 - x1, h = y2 - y1, flipH = false, flipV = false;
+  if (w < 0) { x = x2; w = -w; flipH = true; }
+  if (h < 0) { y = y2; h = -h; flipV = true; }
+  s.addShape(pres.shapes.LINE, { x, y, w, h, flipH, flipV, line: { color: color || '7A7A7A', width: 1.5, endArrowType: 'triangle' } });
+}
+const WHAT = {
+  spectral_response: 'Mean reflectance of all healthy vs all diseased spectra; the difference spectrum (D - H) shows where, and by how much, white rust changes reflectance.',
+  by_date: 'Difference spectra (D - H) computed within each date; the spectral angle (SAM) measures the overall shape difference between class means (0° = identical).',
+  regions: "Cohen's d = standardised mean difference (|d| >= 0.8 is large); J-M distance = class separability (0 none, 2 complete). FDR-significant bands form the sensitive regions.",
+  rededge: 'First-derivative spectra show the slope of reflectance; REP = wavelength of the steepest red-edge slope (chlorophyll indicator); REV = its height.',
+  pca: 'Each point = mean spectrum of one plot on one date; the axes are the main directions of spectral variation; η² = share of a PC explained by a factor.',
+  permanova: 'Multivariate ANOVA on the whole spectrum: R² = % of spectral variance attributable to each factor; p from 999 restricted permutations.',
+  vi: 'AUC = probability that the index ranks a random diseased leaf above a healthy one (0.5 = chance, 1 = perfect); d per date tests whether the effect is consistent.',
+  mwri: 'The heat map scores every possible two-band normalised difference by its date-consistent effect size; the brightest cell is the best band pair.',
+  cwt: 'Scalogram: each cell = disease effect size of one Mexican-hat wavelet coefficient at a wavelength (x) and scale (y); small scales capture narrow slope features.',
+  e1: 'The same full-spectrum models under six preprocessing options; bars = balanced accuracy (mean of 10 x 4-fold plot-grouped CV).',
+  matrix: 'Each cell = balanced accuracy (mean of healthy and diseased recall) on plots never seen in training, averaged over 25 repeats; darker = better.',
+  friedman: 'Bars = best classifier of each feature scenario. The Friedman test ranks classifiers across all scenarios x repeats (lower rank = better).',
+  features: 'Bars = % of the 100 outer folds in which a feature was selected (stability). The table gives the final robust set with effect size, AUC and importance.',
+  e7: 'OFC = optimal feature combination found by SFFS with a given classifier as judge (Tian et al., 2021); each set is then tested with LDA, kNN and SVM.',
+  e8: "Six published selectors (top of the researcher's 23-method ranking) vs this study's selections, all on the same 20 plot-grouped test folds.",
+  e8_rank: 'Lines = accuracy as the number of features grows; table = composite rank of accuracy (QDA, SVM, RF) and stability (Jaccard overlap of selections across folds).',
+  joincheck: 'Accuracy after removing every feature within the ASD detector joins (1000/1800 nm) before selection; a small drop means the signal is not an instrument artefact.',
+  lr: 'Coefficients of the full-spectrum logistic regression: positive values push towards "diseased"; the magnitude shows the influence of each band.',
+  subgroups: 'Accuracy of the single pooled model computed separately within each date, variety and growth stage.',
+  transfer: 'The model is trained without a whole date / variety / stage and tested on it (plots kept separate): this measures extrapolation to new conditions.',
+  extras: 'E4 = accuracy vs number of training plots; E5 = simulated satellite/UAV bands; table = effect of metadata inputs (E3) and of outlier removal (E6).',
+};
+function explain(s, key, o) {
+  const fs = o.fontSize || 12.5;
+  const runs = [{ text: 'What it shows: ', options: { bold: true, color: HX.DK } }, { text: WHAT[key] || '', options: { color: '444444', breakLine: true } },
+    { text: ' ', options: { fontSize: 5, breakLine: true } },
+    { text: 'Finding: ', options: { bold: true, color: HX.R } }, { text: NARR[key] || '', options: { color: HX.INK } }];
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: o.x - 0.08, y: o.y - 0.06, w: o.w + 0.16, h: o.h + 0.1, rectRadius: 0.05, fill: { color: 'F6F8F5' }, line: { color: 'F6F8F5' } });
+  s.addText(runs, { x: o.x, y: o.y, w: o.w, h: o.h, fontSize: fs, valign: 'top', isTextBox: true, margin: 0.02 });
+}
+
 // ================================================================== TITLE
 {
   pres.addSection({ title: 'Opening' }); section = 'Opening';
@@ -139,7 +185,8 @@ const pipeName = (r) => `${r.scenario} ${SCN[r.scenario] || ''} + ${r.clf}`;
   s.addText([
     { text: 'Development of a pooled prediction model from ASD contact-probe spectra across dates, varieties and growth stages', options: { breakLine: true } },
     { text: ' ', options: { breakLine: true, fontSize: 10 } },
-    { text: 'PhD research seminar  |  Methodology - Results - Discussion', options: { fontSize: 15 } },
+    { text: 'Animesh Panda  |  Division of Agricultural Physics, ICAR-IARI, New Delhi', options: { fontSize: 15, breakLine: true } },
+    { text: 'PhD research seminar  |  Methodology - Results - Discussion', options: { fontSize: 13 } },
   ], { placeholder: 'body' });
   s.addNotes('Opening: the talk covers the study design, a literature-derived methodology, the full analysis and the discussion of results.');
 }
@@ -201,9 +248,10 @@ newSection('2. Review of literature', 'Ten studies on spectral disease detection
     ['Zhu et al. 2017', 'Tobacco TMV', 'HSI 380-1023 nm', 'SPA, texture, PLS-DA/LS-SVM/ELM/BPNN', 'Acc. 98.3%'],
     ['Huang et al. 2020', 'Wheat FHB', 'HSI 400-1000 nm', 'SPA, colour/texture, PSO-SVM', 'Acc. 92%'],
     ['Nguyen et al. 2023', 'Wheat yellow rust', 'UAV 5-band', 'VIs, GLCM, PCA, SVM/RF/MLP/3D-CNN', 'OA 79%'],
+    ['Panda 2026 (own, prior)', 'Mustard white rust', 'ASD contact probe', '23 filter/wrapper/embedded selectors', 'SVM-RFE best; QDA BA 87%'],
   ];
-  table(s, ['Study', 'Crop / disease', 'Sensor', 'Key methods', 'Best result'], rows, { x: 0.5, y: 1.25, w: 12.3, colW: [2.3, 1.9, 1.7, 4.3, 2.1], fontSize: 12, rowH: 0.48 });
-  source(s, 'Papers provided by the researcher (see references)');
+  table(s, ['Study', 'Crop / disease', 'Sensor', 'Key methods', 'Best result'], rows, { x: 0.5, y: 1.25, w: 12.3, colW: [2.3, 1.9, 1.7, 4.3, 2.1], fontSize: 11.5, rowH: 0.45 });
+  source(s, 'Papers provided by the researcher; Panda 2026 = researcher workbook/presentation on feature selection');
 }
 {
   const s = content('What each study contributed to this methodology');
@@ -286,6 +334,51 @@ newSection('4. Materials and methods', 'Data, quality control, features, selecti
     { x: 0.5, y: 6.65, w: 12.3, h: 0.35, fontSize: 13, italic: true, color: C.accent4, isTextBox: true, margin: 0 });
 }
 {
+  const s = content('Methodological flowchart: step by step');
+  const X = [0.55, 3.7, 6.85, 10.0], W = 2.75, H = 1.2, Y = [1.3, 3.1, 4.9];
+  const r1 = [['Step 1. Raw data', '4 ASD workbooks, 2339 spectra, 48 plots x 4 dates'], ['Step 2. Quality control', 'splice fix, 400-2400 nm, 4-rule outlier vote -> 2290'],
+    ['Step 3. Preprocessing', 'SG smoothing, 10-nm bands; SNV / MSC / derivative / date-norm.'], ['Step 4. Characterisation', 'FDR tests, J-M, red edge, PCA, PERMANOVA, LMM']];
+  const r2 = [['Step 5. Features F1-F6', 'bands, 46 VIs, NDSI, derivatives, CR, CWT (~2100)'], ['Step 6. Feature selection', 'robust (S2-S8), OFC (E7), 6 published selectors (E8), SPA, GA-PLS'],
+    ['Step 7. Classification', '10 classifiers, inner-CV tuning, class weights'], ['Step 8. Validation', 'nested plot-grouped 4-fold CV x 25 repeats']];
+  const r3 = [['Step 9. Experiments E1-E8', 'preprocessing, transfer, metadata, learning curve, sensors, outliers, OFC, selectors'], ['Step 10. Statistics', 'Friedman-Nemenyi, corrected t, Wilcoxon-Holm'],
+    ['Step 11. Interpretation', 'selection frequency, permutation importance, SHAP, physiology'], ['Outcome', 'best pooled model, compact sensor set, MWRI index']];
+  r1.forEach((b, i) => box(s, X[i], Y[0], W, H, b[0], b[1], 'F7F1E1'));
+  r2.forEach((b, i) => box(s, X[3 - i], Y[1], W, H, b[0], b[1], 'E6EFE3'));
+  r3.forEach((b, i) => box(s, X[i], Y[2], W, H, b[0], b[1], i === 3 ? HX.DK : 'E3ECF5', i === 3));
+  for (let i = 0; i < 3; i++) { arrow(s, X[i] + W, Y[0] + H / 2, X[i + 1], Y[0] + H / 2); arrow(s, X[3 - i], Y[1] + H / 2, X[2 - i] + W, Y[1] + H / 2); arrow(s, X[i] + W, Y[2] + H / 2, X[i + 1], Y[2] + H / 2); }
+  arrow(s, X[3] + W / 2, Y[0] + H, X[3] + W / 2, Y[1]); arrow(s, X[0] + W / 2, Y[1] + H, X[0] + W / 2, Y[2]);
+  s.addText('Colour: tan = data handling; green = features and models; blue = evaluation; dark = outputs. Every learning step sits inside the training plots of each fold (Step 8).',
+    { x: 0.55, y: 6.3, w: 12.2, h: 0.35, fontSize: 11, italic: true, color: C.accent6, isTextBox: true, margin: 0 });
+}
+{
+  const s = content('Steps 1-2 flowchart: data assembly and quality control');
+  const chain = [['4 ASD Excel workbooks', '11 Feb, 24 Feb, 03 Mar, 13 Mar 2026'], ['Data assembly', `${D.n_raw} raw spectra + plot, variety, stage, label`], ['Splice correction', 'detector joins at 1000 / 1800 nm (Hueni & Bialek 2017)'],
+    ['Trim to 400-2400 nm', 'drop low-SNR 350-400 nm (SNR ' + Math.round(D.qc_noise[0].SNR) + ')'], ['Outlier screening', `>= 3 of 4 rules -> ${D.qc.n_removed} removed`], ['Clean dataset', `${D.n_clean} spectra (${D.n_h_clean} H / ${D.n_d_clean} D)`]];
+  chain.forEach((b, i) => { box(s, 0.6, 1.3 + i * 0.86, 4.2, 0.66, b[0], b[1], i === 5 ? HX.DK : 'F7F1E1', i === 5); if (i < 5) arrow(s, 2.7, 1.96 + i * 0.86, 2.7, 2.16 + i * 0.86); });
+  const rules = [['Hotelling T² > 99% limit', `PCA, 5 PCs (${D.qc.n_T2} flagged)`], ['Q residual > 99% limit', `${D.qc.n_Q} flagged`], ['Isolation Forest', `2% contamination (${D.qc.n_iso} flagged)`], ['SAM to plot-date median', `robust z > 3.5 (${D.qc.n_sam} flagged)`]];
+  rules.forEach((b, i) => { box(s, 6.0, 1.3 + i * 0.95, 3.3, 0.75, b[0], b[1], 'E3ECF5'); arrow(s, 9.3, 1.68 + i * 0.95, 9.9, 2.95); });
+  box(s, 9.9, 2.45, 2.9, 1.0, 'Consensus vote', 'remove if >= 3 of 4 rules flag a spectrum', HX.R, true);
+  s.addShape(pres.shapes.LINE, { x: 11.35, y: 3.45, w: 0, h: 1.52, line: { color: '7A7A7A', width: 1.5 } });
+  arrow(s, 11.35, 4.97, 4.8, 4.97);
+  s.addText('Label-free screening (no class information), so it can be applied before cross-validation; E6 repeats the main models without removal.',
+    { x: 6.0, y: 5.3, w: 6.8, h: 0.9, fontSize: 12, italic: true, color: C.accent6, isTextBox: true, margin: 0 });
+  source(s, 'Hueni & Bialek 2017; Liu et al. 2008; Selvaprakash et al. 2026; Mandal et al. 2023');
+}
+{
+  const s = content('Step 3 flowchart: spectral preprocessing');
+  box(s, 0.5, 1.35, 2.6, 0.9, 'Clean 1-nm spectra', '400-2400 nm', 'F7F1E1'); arrow(s, 3.1, 1.8, 3.5, 1.8);
+  box(s, 3.5, 1.35, 2.9, 0.9, 'Savitzky-Golay smoothing', '11-nm window, 2nd order', 'F7F1E1'); arrow(s, 6.4, 1.8, 6.8, 1.8);
+  box(s, 6.8, 1.35, 2.9, 0.9, '1-nm smoothed reflectance', 'input for VIs, derivatives, CR, CWT', 'E6EFE3'); arrow(s, 9.7, 1.8, 10.1, 1.8);
+  box(s, 10.1, 1.35, 2.7, 0.9, 'Step 5: features', 'F2, F4, F5, F6', HX.DK, true);
+  arrow(s, 4.95, 2.25, 4.95, 2.75);
+  box(s, 3.5, 2.75, 2.9, 0.8, '10-nm resampling', '201 bands', 'F7F1E1');
+  const opts = [['Reflectance', 'smoothed only'], ['SNV', 'per spectrum'], ['MSC*', 'reference = training mean'], ['First derivative', 'SG, 11 nm'], ['Date normalisation*', 'Lv et al. 2023'], ['Date norm. + SNV*', 'combined']];
+  opts.forEach((o, i) => { const x = 0.5 + i * 2.07; box(s, x, 4.05, 1.9, 0.85, o[0], o[1], 'E3ECF5'); arrow(s, 4.95, 3.55, x + 0.95, 4.05); arrow(s, x + 0.95, 4.9, 6.65, 5.35); });
+  box(s, 4.4, 5.35, 4.5, 0.85, 'E1: compare in plot-grouped nested CV', NARR.e1_short || 'first derivative and SNV best; SNV used for band features', HX.DK, true);
+  s.addText('* fitted on training plots only (uses the training mean or the healthy training plots of each date)', { x: 9.1, y: 5.45, w: 3.7, h: 0.7, fontSize: 10.5, italic: true, color: C.accent6, isTextBox: true, margin: 0 });
+  source(s, 'Savitzky & Golay 1964; Barnes et al. 1989; Geladi et al. 1985; Tsai & Philpot 1998; Lv et al. 2023');
+}
+{
   const s = content('Quality control and preprocessing');
   const rows = [
     ['Splice correction', 'Additive offset at 1000/1001 and 1800/1801 nm detector joins', 'Hueni & Bialek 2017'],
@@ -301,6 +394,18 @@ newSection('4. Materials and methods', 'Data, quality control, features, selecti
   source(s, 'Methods adapted from the reviewed papers; parameters fixed before modelling');
 }
 {
+  const s = content('Step 4 flowchart: statistical characterisation of the spectra');
+  box(s, 0.5, 1.35, 2.6, 0.9, 'Clean spectra', `${D.n_clean} spectra`, 'F7F1E1'); arrow(s, 3.1, 1.8, 3.6, 1.8);
+  box(s, 3.6, 1.35, 3.6, 0.9, 'Plot-date mean spectra (n = 192)', 'avoids pseudo-replication of repeated scans', 'F7F1E1');
+  const br = [['Band-wise tests', 'Welch t, Mann-Whitney, FDR, Cohen d, r'], ['Separability', 'Jeffries-Matusita per band / index'], ['Red-edge parameters', 'REP, REV, edge amplitudes'],
+    ['Unsupervised views', 'PCA, t-SNE, η² by factor'], ['Variance partitioning', 'PERMANOVA (999 permutations)'], ['Mixed models', 'feature ~ disease + date + variety + (1|plot)']];
+  br.forEach((b, i) => { const x = 0.5 + i * 2.07; box(s, x, 3.0, 1.9, 1.1, b[0], b[1], 'E6EFE3'); arrow(s, 5.4, 2.25, x + 0.95, 3.0); });
+  const outs = [['Sensitive regions', 'where white rust changes reflectance (R4)'], ['Date vs disease variance', 'why a pooled model needs care (R6-R7)'], ['Candidate features', 'stable effects for Steps 5-6 (R5, R8)']];
+  outs.forEach((o, i) => { const x = 0.9 + i * 4.1; box(s, x, 4.9, 3.6, 1.0, o[0], o[1], HX.DK, true); });
+  for (let i = 0; i < 6; i++) arrow(s, 0.5 + i * 2.07 + 0.95, 4.1, 0.9 + Math.min(2, Math.floor(i / 2)) * 4.1 + 1.8, 4.9);
+  source(s, 'Benjamini & Hochberg 1995; Richards & Jia 2006; Guyot & Baret 1988; Anderson 2001; Bates et al. 2015; Mandal et al. 2022');
+}
+{
   const s = content('Statistical characterisation of the spectra');
   card(s, 0.5, 1.3, 4.0, 2.55, 'Band-wise tests', 'Welch t and Mann-Whitney on plot-date means (n = 192) to avoid pseudo-replication; Benjamini-Hochberg FDR; Cohen d; point-biserial r.', HX.H);
   card(s, 4.65, 1.3, 4.0, 2.55, 'Separability', 'Jeffries-Matusita distance per band, per index and for the final feature set (0 = none, 2 = complete).', HX.B);
@@ -309,6 +414,16 @@ newSection('4. Materials and methods', 'Data, quality control, features, selecti
   card(s, 4.65, 4.0, 4.0, 2.55, 'PERMANOVA', 'Variance partitioning of SNV spectra: disease, date, variety, stage and interactions; restricted permutations (999).', HX.H);
   card(s, 8.8, 4.0, 4.0, 2.55, 'Mixed models', 'feature ~ disease + date + variety + (1 | plot); LRT for disease x date interaction.', HX.B);
   source(s, 'Benjamini & Hochberg 1995; Richards & Jia 2006; Mandal et al. 2022, 2023; Zhang et al. 2012; Anderson 2001; Bates et al. 2015; van der Maaten & Hinton 2008');
+}
+{
+  const s = content('Step 5 flowchart: feature engineering (six families)');
+  box(s, 4.6, 1.3, 4.1, 0.8, 'Smoothed reflectance, 400-2400 nm', '1-nm and 10-nm versions', 'F7F1E1');
+  const fam = [['F1 Bands', 'SNV, 10 nm: 201'], ['F2 Indices', '46 VIs + red-edge'], ['F3 NDSI', 'all band pairs, in-fold top 3'], ['F4 Derivatives', 'FD bands + indices: 221'], ['F5 Continuum removal', '6 features x 4: 24'], ['F6 Wavelets', 'Mexican hat, 8 scales: 1608']];
+  fam.forEach((f, i) => { const x = 0.5 + i * 2.07; box(s, x, 2.75, 1.9, 1.15, f[0], f[1], 'E6EFE3'); arrow(s, 6.65, 2.1, x + 0.95, 2.75); arrow(s, x + 0.95, 3.9, 6.65, 4.6); });
+  box(s, 4.1, 4.6, 5.1, 0.95, 'Combined feature pool (~2,100 features)', 'single families -> scenarios S2-S7; all -> S8, E7, E8', HX.DK, true);
+  arrow(s, 6.65, 5.55, 6.65, 5.95);
+  s.addText('-> Step 6: feature selection inside each training fold', { x: 4.1, y: 5.95, w: 5.1, h: 0.4, fontSize: 12, bold: true, color: C.text2, align: 'center', isTextBox: true, margin: 0 });
+  source(s, 'Mandal et al. 2023; Mahlein et al. 2013; Zhang et al. 2012; Lv et al. 2023; Tian et al. 2021; Cheng et al. 2011');
 }
 {
   const s = content('Feature families (F1-F6)');
@@ -324,6 +439,25 @@ newSection('4. Materials and methods', 'Data, quality control, features, selecti
   card(s, 8.8, 1.3, 4.0, 2.4, 'Index groups (F2)', 'Chlorophyll (NDVI, MCARI, MTCI...), carotenoid/anthocyanin (PRI, CRI, ARI, PSRI), red edge (REP, Vog), water (WI, NDWI, MSI, DWSI), dry matter (CAI, NDLI) and disease indices (HI, PMI, LRDSI, RBI).', HX.H);
   card(s, 8.8, 3.85, 4.0, 2.7, 'Not used', 'Image texture and colour features (GLCM, colour moments) need images; the contact probe gives point spectra. PROSPECT inversion left for future work.', HX.G);
   source(s, 'Feature definitions in workbook sheets 13 and 16');
+}
+{
+  const s = content('Step 6 flowchart: four feature-selection routes');
+  box(s, 4.1, 1.28, 5.1, 0.72, 'Training plots of one outer fold', 'combined pool F1-F6 (no test-plot information)', 'F7F1E1');
+  const routes = [
+    ['A. Robust selection', ['ReliefF within each date', 'top 10% on >= 3 of 4 dates', '|r| < 0.98, VIF < 10', 'SFFS-LDA (<= 10)'], 'S2-S8 (Tian 2021; Lv 2023)'],
+    ['B. OFC', ['DSF pool: top 5% on >= 3 dates', 'redundancy + VIF < 10', 'SFFS with LDA / kNN / SVM', 'OFC-LDA, OFC-kNN, OFC-SVM'], 'E7 (Tian et al. 2021)'],
+    ['C. Published selectors', ['SVM-RFE, LASSO, CARS', 'ReliefF, SFFS (QDA), Borda', 'redundancy-controlled top-k', 'k = 5, 10, 15'], 'E8 (Panda 2026)'],
+    ['D. Band selection', ['SNV 10-nm bands', 'SPA projections', 'GA-PLS (30 x 25)', 'inner-CV size'], 'S9, S10 (Zhu 2017; Mandal 2023)'],
+  ];
+  routes.forEach((r, i) => {
+    const x = 0.5 + i * 3.1;
+    box(s, x, 2.3, 2.9, 0.55, r[0], '', [HX.H, HX.B, HX.D, HX.R][i], true);
+    arrow(s, 6.65, 2.0, x + 1.45, 2.3);
+    r[1].forEach((t, j) => { box(s, x + 0.15, 3.0 + j * 0.62, 2.6, 0.5, t, '', 'F6F8F5'); if (j < 3) arrow(s, x + 1.45, 3.5 + j * 0.62, x + 1.45, 3.62 + j * 0.62); });
+    s.addText(r[2], { x, y: 5.5, w: 2.9, h: 0.35, fontSize: 10.5, italic: true, color: C.accent6, align: 'center', isTextBox: true, margin: 0 });
+    arrow(s, x + 1.45, 5.86, 6.65, 6.12);
+  });
+  box(s, 3.6, 6.12, 6.1, 0.55, 'Selected features -> classifiers (Step 7) -> tested on held-out plots (Step 8)', '', HX.DK, true);
 }
 {
   const s = content('Robust feature selection (inside every training fold)');
@@ -361,6 +495,25 @@ newSection('4. Materials and methods', 'Data, quality control, features, selecti
   source(s, 'Tian et al. 2021; Pudil et al. 1994; Robnik-Sikonja & Kononenko 2003');
 }
 {
+  const s = content('Best selectors from the filter / wrapper / embedded comparison (E8)');
+  const rows = [
+    ['SVM-RFE', 'Wrapper', 'Recursive elimination by |w| of a linear SVM (10% per step, then 1)', 'Guyon et al. 2002; Wei et al. 2021', '1'],
+    ['LASSO', 'Embedded', 'Order of entry along the L1-logistic regularisation path', 'Tibshirani 1996', '2'],
+    ['CARS', 'Wrapper', 'Monte-Carlo PLS-DA, exponential decay + adaptive reweighted sampling', 'Li et al. 2009; Zhu et al. 2017', '3'],
+    ['Consensus (Borda)', 'Ensemble', 'Rank aggregation of the redundancy-controlled top-20 lists', 'Saeys et al. 2008', '4'],
+    ['ReliefF', 'Filter', 'Nearest hit / miss differences, class-balanced', 'Kononenko 1994; Mahlein et al. 2013', '5'],
+    ['SFFS (QDA)', 'Wrapper', 'Floating search, inner-CV QDA balanced accuracy, 100 candidates', 'Pudil et al. 1994; Mustafa et al. 2023', 'most accurate'],
+  ];
+  table(s, ['Selector', 'Family', 'Principle', 'Reference', 'Rank*'], rows, { x: 0.5, y: 1.25, w: 12.3, colW: [1.9, 1.2, 5.0, 3.0, 1.2], fontSize: 12, rowH: 0.43 });
+  bullets(s, [
+    '*Rank in the researcher\'s composite ranking of 23 methods (accuracy, stability, separability)',
+    'Re-run here on the F1-F6 pool, inside the same plot-grouped outer folds as S8, OFC-SVM and the full spectrum (5 x 4 folds = 20 test sets)',
+    'Top-k (k = 5, 10, 15) with redundancy control |r| < 0.95; classified with QDA (equal priors; Das et al. 2020), LDA, SVM and RF',
+    'Detector-join check: every feature within the ASD 1000/1800 nm joins removed and the selection repeated',
+  ], { x: 0.5, y: 4.75, w: 12.3, h: 1.9, fontSize: 13.5 });
+  source(s, 'Panda 2026 (researcher workbook); Guyon & Elisseeff 2003; Kuncheva 2007');
+}
+{
   const s = content('Classifiers, tuning and class imbalance');
   const rows = [
     ['LDA', 'Shrinkage / none', 'Equal priors', 'Zhang 2012; Tian 2021'], ['PLS-DA', 'Components 1-16', 'Oversampling', 'Zhu 2017'],
@@ -395,6 +548,43 @@ newSection('4. Materials and methods', 'Data, quality control, features, selecti
   source(s, 'Roberts et al. 2017; Varma & Simon 2006; Demsar 2006; Nadeau & Bengio 2003; Chicco & Jurman 2020');
 }
 
+{
+  const s = content('Steps 7-8 flowchart: nested plot-grouped cross-validation');
+  box(s, 0.5, 1.3, 2.6, 0.9, '48 plots', '12 healthy, 36 diseased', 'F7F1E1'); arrow(s, 3.1, 1.75, 3.5, 1.75);
+  box(s, 3.5, 1.3, 3.9, 0.9, 'Outer split: 4 folds of whole plots', '1 healthy + 3 diseased plots per variety per fold', 'F7F1E1');
+  arrow(s, 5.45, 2.2, 2.4, 2.75); arrow(s, 5.45, 2.2, 9.75, 2.75);
+  box(s, 0.5, 2.75, 3.8, 0.8, 'Training plots (36)', 'all dates of these plots', 'E6EFE3');
+  box(s, 8.2, 2.75, 3.1, 0.8, 'Test plots (12)', 'never seen during training', 'E3ECF5');
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.4, y: 3.75, w: 7.3, h: 1.85, rectRadius: 0.06, fill: { color: 'FFFFFF' }, line: { color: HX.H, width: 1.25, dashType: 'dash' } });
+  s.addText('Inner loop (training plots only)', { x: 0.55, y: 3.78, w: 4, h: 0.3, fontSize: 11, bold: true, color: HX.H, isTextBox: true, margin: 0 });
+  arrow(s, 2.4, 3.55, 2.4, 4.15);
+  box(s, 0.6, 4.15, 3.4, 1.3, 'Inner 3-fold plot-grouped CV', 'fit MSC / date-norm., NDSI search, feature selection, hyper-parameter grid', 'E6EFE3');
+  arrow(s, 4.0, 4.8, 4.3, 4.8);
+  box(s, 4.3, 4.15, 3.25, 1.3, 'Refit on all 36 training plots', 'best features + best hyper-parameters', 'E6EFE3');
+  arrow(s, 7.55, 4.8, 8.2, 4.8); arrow(s, 9.75, 3.55, 9.75, 4.35);
+  box(s, 8.2, 4.35, 3.1, 0.9, 'Predict test spectra', 'spectrum level + plot-date majority vote', HX.R, true);
+  arrow(s, 9.75, 5.25, 9.75, 5.7);
+  box(s, 8.2, 5.7, 3.1, 0.85, 'Metrics', 'BA, sens., spec., F1, κ, MCC, AUC', HX.DK, true);
+  s.addText([{ text: 'Repeat: ', options: { bold: true, color: HX.D } }, { text: '4 folds x 25 random plot shuffles = 100 outer test sets; results = mean ± SD of the 25 repeats (each repeat predicts every spectrum once).' }],
+    { x: 0.5, y: 5.8, w: 7.4, h: 0.7, fontSize: 12, color: C.text1, isTextBox: true, margin: 0 });
+  s.addShape(pres.shapes.LINE, { x: 11.45, y: 1.75, w: 0, h: 4.35, line: { color: HX.D, width: 1.25, dashType: 'dash' } });
+  s.addShape(pres.shapes.LINE, { x: 7.4, y: 1.75, w: 4.05, h: 0, line: { color: HX.D, width: 1.25, dashType: 'dash', beginArrowType: 'triangle' } });
+  s.addShape(pres.shapes.LINE, { x: 11.3, y: 6.1, w: 0.15, h: 0, line: { color: HX.D, width: 1.25, dashType: 'dash' } });
+  source(s, 'Varma & Simon 2006; Roberts et al. 2017; Tian et al. 2021; Lv et al. 2023');
+}
+{
+  const s = content('Step 9 flowchart: experiments and the question each one answers');
+  box(s, 4.35, 3.35, 4.6, 0.95, 'Main experiment', '10 feature scenarios x 10 classifiers, 25 x 4-fold nested CV (R12-R16)', HX.DK, true);
+  const ex = [['E1 Preprocessing', 'Which spectral pretreatment is best?'], ['E2 Transfer', 'Does the model work on an unseen date, variety or stage?'], ['E3 Metadata', 'Does knowing date/variety/stage help?'],
+    ['E4 Learning curve', 'Are more plots needed?'], ['E5 Sensors', 'Can Sentinel-2 / UAV bands detect white rust?'], ['E6 Outliers', 'Do results depend on outlier removal?'],
+    ['E7 OFC', 'Do Tian-style optimal feature combinations help?'], ['E8 Selectors', "How do the researcher's best selectors compare?"]];
+  ex.forEach((e, i) => {
+    const col = i % 4, row = Math.floor(i / 4); const x = 0.5 + col * 3.1, y = row ? 4.95 : 1.3;
+    box(s, x, y, 2.9, 1.4, e[0], e[1], row ? 'E6EFE3' : 'E3ECF5');
+    if (row) arrow(s, 6.65, 4.3, x + 1.45, y); else arrow(s, 6.65, 3.35, x + 1.45, y + 1.4);
+  });
+  source(s, 'All experiments use the same plot-grouped design; results R11 and R15-R19');
+}
 // ================================================================== RESULTS
 newSection('5. Results', 'From spectral response to validated prediction models');
 {
@@ -415,7 +605,7 @@ newSection('5. Results', 'From spectral response to validated prediction models'
     { title: 'Mean reflectance (n = ' + D.n_h_clean + ' healthy, ' + D.n_d_clean + ' diseased)', valAxisTitle: 'Reflectance', x: 0.5, w: 6.2 });
   spectraChart(s, [['Diseased - Healthy', D.spec['Difference_D-H']]], [HX.R],
     { title: 'Difference spectrum (D - H)', valAxisTitle: 'Reflectance difference', x: 6.8, w: 6.0, h: 3.0, showLegend: false });
-  s.addText(NARR.spectral_response, { x: 6.9, y: 4.35, w: 5.9, h: 2.3, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'spectral_response', { x: 6.9, y: 4.35, w: 5.9, h: 2.3, fontSize: 12 });
   source(s, 'Workbook sheet 03_Spectra_Class; Fig01');
 }
 {
@@ -425,7 +615,7 @@ newSection('5. Results', 'From spectral response to validated prediction models'
   spectraChart(s, names.map((n) => [n, sd[n + '_Diff']]), DATEC, { title: 'Difference spectra (D - H) by date', valAxisTitle: 'Reflectance difference', w: 7.4, h: 5.2 });
   const sim = D.similarity.map((r) => [r.Date, f3(r.Cosine_similarity * 1), f2(r.Spectral_angle_deg), f3(r.Euclidean_distance)]);
   table(s, ['Date', 'Cosine', 'SAM (°)', 'Euclid.'], sim, { x: 8.2, y: 1.35, w: 4.6, colW: [1.2, 1.1, 1.1, 1.2], fontSize: 12, rowH: 0.4 });
-  s.addText(NARR.by_date, { x: 8.2, y: 3.6, w: 4.6, h: 3.0, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'by_date', { x: 8.2, y: 3.6, w: 4.6, h: 3.0, fontSize: 12 });
   source(s, 'Workbook sheets 04_Spectra_Date and 08; class-mean similarity after Selvaprakash et al. 2026');
 }
 {
@@ -437,7 +627,7 @@ newSection('5. Results', 'From spectral response to validated prediction models'
     Object.assign(AX(), { x: 0.5, y: 3.95, w: 6.2, h: 2.7, chartColors: [HX.H, HX.D], lineSize: 2, lineDataSymbol: 'none', catAxisLabelFrequency: 20, title: 'Jeffries-Matusita distance per band' }));
   const rows = D.regions.map((r) => [r.Region_nm, r.Direction, f2(r.Max_abs_Cohen_d), r.Peak_wavelength_nm]);
   table(s, ['Region (nm)', 'Direction', 'max |d|', 'Peak (nm)'], rows, { x: 7.0, y: 1.3, w: 5.8, colW: [1.4, 2.2, 1.0, 1.2], fontSize: 12, rowH: 0.42 });
-  s.addText(NARR.regions, { x: 7.0, y: 3.4, w: 5.8, h: 3.2, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'regions', { x: 7.0, y: 3.4, w: 5.8, h: 3.2, fontSize: 12 });
   source(s, 'Welch t-test with Benjamini-Hochberg FDR; workbook sheets 07-08; Mandal et al. 2022; Richards & Jia 2006');
 }
 {
@@ -449,7 +639,7 @@ newSection('5. Results', 'From spectral response to validated prediction models'
   const pick = ['REP_LI', 'REP_FD', 'REV', 'SDr', 'lambda_b', 'lambda_y', 'Dy'];
   const rows = D.rededge.filter((r) => r.Date === 'All' && pick.includes(r.Parameter)).map((r) => [r.Parameter, `${(+r.Healthy_mean).toPrecision(5)} ± ${(+r.Healthy_SD).toPrecision(2)}`, `${(+r.Diseased_mean).toPrecision(5)} ± ${(+r.Diseased_SD).toPrecision(2)}`, pfmt(r.Welch_p)]);
   table(s, ['Parameter', 'Healthy', 'Diseased', 'p'], rows, { x: 6.8, y: 1.3, w: 6.0, colW: [1.4, 1.9, 1.9, 0.8], fontSize: 12, rowH: 0.4 });
-  s.addText(NARR.rededge, { x: 6.8, y: 4.75, w: 6.0, h: 1.9, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'rededge', { x: 6.8, y: 4.75, w: 6.0, h: 1.9, fontSize: 12 });
   source(s, 'REP: Guyot & Baret 1988; REV/SDr: Mandal et al. 2022; edges: Zhang et al. 2012; workbook sheet 09');
 }
 {
@@ -468,7 +658,7 @@ newSection('5. Results', 'From spectral response to validated prediction models'
   const eta = D.pca_eta.slice(0, 4).map((r) => [r.PC, f2(r.label), f2(r.date), f2(r.stage), f2(r.variety), f2(r.plot)]);
   table(s, ['PC', 'Class', 'Date', 'Stage', 'Var.', 'Plot'], eta, { x: 9.0, y: 1.3, w: 3.8, colW: [0.6, 0.65, 0.65, 0.65, 0.6, 0.65], fontSize: 11, rowH: 0.36 });
   s.addText('η² = share of PC-score variance explained by each factor', { x: 9.0, y: 3.2, w: 3.8, h: 0.4, fontSize: 10, italic: true, color: C.accent6, isTextBox: true, margin: 0 });
-  s.addText(NARR.pca, { x: 9.0, y: 3.65, w: 3.8, h: 2.9, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'pca', { x: 9.0, y: 3.65, w: 3.8, h: 2.9, fontSize: 12 });
   s.addText('t-SNE embedding in workbook sheet 10 and Fig05', { x: 0.5, y: 5.55, w: 8.3, h: 0.35, fontSize: 11, italic: true, color: C.accent6, isTextBox: true, margin: 0 });
   source(s, 'SNV spectra; van der Maaten & Hinton 2008; Selvaprakash et al. 2026');
 }
@@ -479,7 +669,7 @@ newSection('5. Results', 'From spectral response to validated prediction models'
     Object.assign(AX(), { x: 0.5, y: 1.25, w: 6.4, h: 5.2, barDir: 'bar', chartColors: [HX.H], title: 'Variance explained (% of total SS)', showLegend: false, showValue: true, dataLabelPosition: 'outEnd', catAxisOrientation: 'maxMin', dataLabelFormatCode: '0.0' }));
   const rows = pm.map((r) => [r.Term, r.df, r.Pseudo_F === null ? '-' : f2(r.Pseudo_F), f2(r.R2_partial_pct), r.p_perm === null ? '-' : pfmt(r.p_perm)]);
   table(s, ['Term', 'df', 'Pseudo-F', 'R² %', 'p'], rows, { x: 7.2, y: 1.3, w: 5.6, colW: [1.8, 0.6, 1.1, 1.0, 1.1], fontSize: 12, rowH: 0.4 });
-  s.addText(NARR.permanova, { x: 7.2, y: 4.7, w: 5.6, h: 1.9, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'permanova', { x: 7.2, y: 4.7, w: 5.6, h: 1.9, fontSize: 12 });
   source(s, 'Anderson 2001; plot-date mean SNV spectra; disease/variety permuted across plots, date/stage within plots');
 }
 {
@@ -489,15 +679,16 @@ newSection('5. Results', 'From spectral response to validated prediction models'
     Object.assign(AX(), { x: 0.5, y: 1.25, w: 5.4, h: 5.35, barDir: 'bar', chartColors: [HX.H], title: 'Top-15 indices by AUC', showLegend: false, showValue: true, dataLabelPosition: 'outEnd', valAxisMinVal: 0.5, valAxisMaxVal: 0.75, catAxisLabelFontSize: 10, dataLabelFormatCode: '0.000' }));
   const t = D.vi.slice(0, 8).map((r) => [r.Index, r.Trait, f3(r.AUC), f2(r['d_11 Feb']), f2(r['d_24 Feb']), f2(r['d_03 Mar']), f2(r['d_13 Mar'])]);
   table(s, ['Index', 'Trait', 'AUC', 'd 11F', 'd 24F', 'd 03M', 'd 13M'], t, { x: 6.2, y: 1.3, w: 6.6, colW: [1.0, 2.2, 0.7, 0.68, 0.68, 0.68, 0.66], fontSize: 10.5, rowH: 0.38 });
-  s.addText(NARR.vi, { x: 6.2, y: 4.95, w: 6.6, h: 1.7, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'vi', { x: 6.2, y: 4.95, w: 6.6, h: 1.7, fontSize: 12 });
   source(s, 'Index sources in workbook sheet 13; ranking approach after Mandal et al. 2023');
 }
 {
   const s = content('R9. A new Mustard White Rust Index (MWRI) from band-pair search');
   s.addImage({ path: FIG('Fig08_NDSI_map.png'), x: 0.5, y: 1.2, w: 5.7, h: 4.78 });
-  const rows = D.ndsi_top.slice(0, 7).map((r) => [r.Formula, f2(r.Mean_abs_d_across_dates), f2(r.Min_abs_d_across_dates), f3(r.AUC)]);
-  table(s, ['Index', 'mean |d|', 'min |d|', 'AUC'], rows, { x: 6.5, y: 1.3, w: 6.3, colW: [3.3, 1.0, 1.0, 1.0], fontSize: 11.5, rowH: 0.38 });
-  s.addText(NARR.mwri, { x: 6.5, y: 4.55, w: 6.3, h: 2.1, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  const rows = D.ndsi_top.slice(0, 4).map((r) => ['SWIR', r.Formula, f2(r.Mean_abs_d_across_dates), f3(r.AUC)]);
+  (D.ndsi_joinfree || []).slice(0, 3).forEach((r) => rows.push(['NIR, join-free', r.Formula, f2(r.Mean_abs_d_across_dates), f3(r.AUC)]));
+  table(s, ['Family', 'Index', 'mean |d|', 'AUC'], rows, { x: 6.5, y: 1.3, w: 6.3, colW: [1.3, 3.0, 1.0, 1.0], fontSize: 11, rowH: 0.36 });
+  explain(s, 'mwri', { x: 6.5, y: 4.35, w: 6.3, h: 2.3, fontSize: 12 });
   source(s, 'Exhaustive NDSI search after Mandal et al. 2023 and Selvaprakash et al. 2026; score = mean |Cohen d| across dates, sign-consistent');
 }
 {
@@ -505,7 +696,7 @@ newSection('5. Results', 'From spectral response to validated prediction models'
   s.addImage({ path: FIG('Fig09_CWT_scalogram.png'), x: 0.5, y: 1.2, w: 8.2, h: 2.92 });
   const rows = D.cwt_top.slice(0, 8).map((r) => [String(r.wl) + ' nm', r.scale.replace('Scale_', 'scale '), f2(r.d)]);
   table(s, ['Wavelength', 'Scale', '|d|'], rows, { x: 9.0, y: 1.3, w: 3.8, colW: [1.4, 1.3, 1.1], fontSize: 12, rowH: 0.36 });
-  s.addText(NARR.cwt, { x: 0.5, y: 4.35, w: 8.2, h: 2.25, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'cwt', { x: 0.5, y: 4.35, w: 8.2, h: 2.25, fontSize: 12 });
   source(s, 'Mexican-hat CWT, Torrence & Compo 1998; Cheng et al. 2011; Tian et al. 2021; Lv et al. 2023; workbook sheet 15');
 }
 if (D.E1) {
@@ -515,7 +706,7 @@ if (D.E1) {
   const get = (v, c) => (D.E1.find((r) => r.variant === v && r.clf === c) || {}).BA;
   s.addChart(pres.charts.BAR, cl.map((c) => ({ name: c, labels: ['Reflectance', 'SNV', 'MSC', '1st deriv.', 'Date norm.', 'Date norm.+SNV'], values: vs.map((v) => +(+get(v, c)).toFixed(3)) })),
     Object.assign(AX(), { x: 0.5, y: 1.25, w: 7.6, h: 5.3, barDir: 'col', chartColors: [HX.B, HX.H, HX.D, HX.R], title: 'Balanced accuracy, full spectrum (10 x 4-fold plot-grouped CV)', valAxisMinVal: 0.5, valAxisMaxVal: 1.0, valAxisLabelFormatCode: '0.00' }));
-  s.addText(NARR.e1, { x: 8.4, y: 1.35, w: 4.4, h: 5.2, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'e1', { x: 8.4, y: 1.35, w: 4.4, h: 5.2, fontSize: 12 });
   source(s, 'Barnes et al. 1989; Geladi et al. 1985; Lv et al. 2023; workbook sheet 17');
 }
 if (D.summary) {
@@ -523,7 +714,7 @@ if (D.summary) {
   const sc = Object.keys(SCN);
   const rows = sc.map((k) => [{ text: k + ' ' + SCN[k], options: { align: 'left', fontSize: 10 } }].concat(CLFS.map((c) => heatCell((SUMK[k + '|' + c] || {}).BA_mean, 0.55, 0.95, f3))));
   table(s, ['Scenario'].concat(CLFS), rows, { x: 0.5, y: 1.2, w: 12.3, colW: [3.5].concat(CLFS.map(() => 0.88)), fontSize: 10.5, rowH: 0.43 });
-  s.addText(NARR.matrix, { x: 0.5, y: 6.0, w: 12.3, h: 0.65, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'matrix', { x: 0.5, y: 6.0, w: 12.3, h: 0.65, fontSize: 12 });
   source(s, 'Mean balanced accuracy over 25 repeats of nested plot-grouped 4-fold CV; workbook sheets 18-20');
 }
 if (D.summary) {
@@ -535,7 +726,7 @@ if (D.summary) {
   table(s, ['Classifier', 'Mean rank', 'Mean BA'], fr, { x: 8.2, y: 1.3, w: 4.6, colW: [1.8, 1.4, 1.4], fontSize: 11, rowH: 0.33 });
   const fc = D.friedman[0];
   s.addText(`Friedman χ² = ${f1(fc.chi2)}, p ${fc.p < 0.001 ? '< 0.001' : '= ' + f3(fc.p)}; Nemenyi CD = ${f2(fc.CD_Nemenyi_0_05)} ranks`, { x: 8.2, y: 5.0, w: 4.6, h: 0.5, fontSize: 12, bold: true, color: C.text2, isTextBox: true, margin: 0 });
-  s.addText(NARR.friedman, { x: 8.2, y: 5.5, w: 4.6, h: 1.15, fontSize: 12, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'friedman', { x: 8.2, y: 5.5, w: 4.6, h: 1.15, fontSize: 12.0 });
   source(s, 'Demsar 2006; workbook sheet 21');
 }
 if (D.summary) {
@@ -564,7 +755,7 @@ if (D.summary) {
     Object.assign(AX(), { x: 0.5, y: 1.25, w: 5.0, h: 5.35, barDir: 'bar', chartColors: [HX.B], title: 'S8: selection frequency over 100 folds (%)', showLegend: false, showValue: true, dataLabelPosition: 'outEnd', catAxisLabelFontSize: 10, dataLabelFormatCode: '0' }));
   const rows = D.final.map((r) => [r.Feature, f2(r.Cohen_d), f3(r.AUC), f3(r.Permutation_importance_BA), f3(r.Mean_abs_SHAP)]);
   table(s, ['Final feature', 'd', 'AUC', 'Perm. imp.', '|SHAP|'], rows, { x: 5.8, y: 1.3, w: 7.0, colW: [2.4, 1.0, 1.0, 1.3, 1.3], fontSize: 11, rowH: 0.36 });
-  s.addText(NARR.features, { x: 5.8, y: 4.75, w: 7.0, h: 1.9, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'features', { x: 5.8, y: 4.75, w: 7.0, h: 1.9, fontSize: 12 });
   source(s, 'Permutation importance: Breiman 2001; TreeSHAP: Lundberg & Lee 2017; workbook sheets 25-26');
 }
 if (D.E7) {
@@ -575,7 +766,7 @@ if (D.E7) {
     Object.assign(AX(), { x: 0.5, y: 1.25, w: 7.2, h: 5.35, barDir: 'col', chartColors: [HX.B, HX.H, HX.D], title: 'Balanced accuracy by feature set and classifier (25 x 4-fold CV)', valAxisMinVal: 0.6, valAxisMaxVal: 1.0, valAxisLabelFormatCode: '0.00' }));
   const rows = sets.map((fs) => [fs, f1(get(fs, 'LDA').median_n_features)].concat(['LDA', 'kNN', 'SVM'].map((c) => heatCell(get(fs, c).BA, 0.7, 0.95, f3))));
   table(s, ['Feature set', 'n', 'LDA', 'kNN', 'SVM'], rows, { x: 8.0, y: 1.3, w: 4.8, colW: [1.75, 0.55, 0.83, 0.83, 0.84], fontSize: 11, rowH: 0.4 });
-  s.addText(NARR.e7 || '', { x: 8.0, y: 3.95, w: 4.8, h: 2.7, fontSize: 12.5, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'e7', { x: 8.0, y: 3.95, w: 4.8, h: 2.7, fontSize: 12 });
   source(s, 'Tian et al. 2021; workbook sheet 27b_OFC_Tian2021');
 }
 if (D.E7) {
@@ -593,12 +784,51 @@ if (D.E7) {
     Object.assign(AX(), { x: 7.4, y: 1.25, w: 5.4, h: 5.35, chartColors: [HX.B, HX.H, HX.D, HX.G], lineSize: 2, lineDataSymbol: 'circle', lineDataSymbolSize: 7, title: 'Balanced accuracy within each date', valAxisMinVal: 0.5, valAxisMaxVal: 1.0, valAxisLabelFormatCode: '0.00' }));
   source(s, 'Final OFCs re-selected on all data for interpretation; per-date accuracy from the CV predictions; Tian et al. 2021');
 }
+const E8get = (m, k, c, v) => (D.E8 || []).find((r) => r.method === m && String(r.k) === String(k) && r.clf === c && r.variant === (v || 'all features')) || {};
+const E8M = [['SVM-RFE', '10'], ['LASSO', '10'], ['CARS', '10'], ['ReliefF', '10'], ['SFFS (QDA)', '10'], ['Consensus (Borda)', '10'],
+  ['Robust selection + SFFS-LDA (S8)', 'native'], ['OFC-SVM (Tian et al., 2021)', 'native']];
+const short = (m) => m.replace('Robust selection + SFFS-LDA (S8)', 'Robust S8').replace('OFC-SVM (Tian et al., 2021)', 'OFC-SVM').replace('Consensus (Borda)', 'Borda');
+if (D.E8) {
+  const s = content('R15d. E8: best selectors compared on identical plot-grouped folds');
+  s.addChart(pres.charts.BAR, ['QDA', 'SVM', 'RF'].map((c) => ({ name: c, labels: E8M.map(([m]) => short(m)), values: E8M.map(([m, k]) => { const v = E8get(m, k, c).BA; return v === undefined ? null : +(+v).toFixed(3); }) })),
+    Object.assign(AX(), { x: 0.5, y: 1.25, w: 7.6, h: 5.35, barDir: 'col', chartColors: [HX.B, HX.H, HX.D], title: 'Balanced accuracy, 10 features (S8/OFC: own size), 20 outer folds', valAxisMinVal: 0.6, valAxisMaxVal: 1.0, valAxisLabelFormatCode: '0.00', catAxisLabelFontSize: 9 }));
+  const fsv = E8get('Full spectrum (SNV)', '201', 'SVM');
+  const rows = E8M.map(([m, k]) => [short(m), heatCell(E8get(m, k, 'QDA').BA, 0.75, 0.95, f3), heatCell(E8get(m, k, 'SVM').BA, 0.75, 0.95, f3), heatCell(E8get(m, k, 'RF').BA, 0.75, 0.95, f3), f3(E8get(m, k, 'SVM').MCC)]);
+  rows.push(['Full spectrum', '-', heatCell(fsv.BA, 0.75, 0.95, f3), '-', f3(fsv.MCC)]);
+  table(s, ['Selector', 'QDA', 'SVM', 'RF', 'MCC'], rows, { x: 8.35, y: 1.25, w: 4.45, colW: [1.45, 0.75, 0.75, 0.75, 0.75], fontSize: 10, rowH: 0.31 });
+  explain(s, 'e8', { x: 8.35, y: 4.75, w: 4.45, h: 1.9, fontSize: 12.0 });
+  source(s, 'Panda 2026; Guyon et al. 2002; Tibshirani 1996; Li et al. 2009; Kononenko 1994; Pudil et al. 1994; Saeys et al. 2008; workbook sheet 27c');
+}
+if (D.E8) {
+  const s = content('R15e. How many features, how stable, and which selector ranks best');
+  const ms = E8M.slice(0, 6).map(([m]) => m);
+  s.addChart(pres.charts.LINE, ms.map((m) => ({ name: short(m), labels: ['5', '10', '15'], values: ['5', '10', '15'].map((k) => +(+E8get(m, k, 'QDA').BA).toFixed(3)) })),
+    Object.assign(AX(), { x: 0.5, y: 1.25, w: 5.6, h: 5.35, chartColors: [HX.H, HX.B, HX.D, HX.R, '6B8E23', HX.G], lineSize: 2, lineDataSymbol: 'circle', lineDataSymbolSize: 7,
+      title: 'QDA balanced accuracy vs number of features k', showCatAxisTitle: true, catAxisTitle: 'k (redundancy-controlled)', valAxisMinVal: 0.7, valAxisMaxVal: 1.0, valAxisLabelFormatCode: '0.00' }));
+  const rk = (D.E8_rank || []).map((r) => [String(r.Overall_rank), short(r.method), f3(r.BA_QDA), f3(r.BA_SVM), f3(r.BA_RF), f2(r.Jaccard), pct(r.Near_join_share || 0)]);
+  table(s, ['#', 'Selector', 'QDA', 'SVM', 'RF', 'Jaccard', 'Near join'], rk, { x: 6.4, y: 1.3, w: 6.4, colW: [0.4, 1.6, 0.8, 0.8, 0.8, 0.9, 1.1], fontSize: 10.5, rowH: 0.36 });
+  explain(s, 'e8_rank', { x: 6.4, y: 4.75, w: 6.4, h: 1.9, fontSize: 12.0 });
+  source(s, 'Composite = mean rank of QDA, SVM, RF accuracy and Jaccard stability (cf. Panda 2026, sheet 24); Kuncheva 2007; Nogueira et al. 2018');
+}
+if (D.E8) {
+  const s = content('R15f. Detector-join check (ASD 1000/1800 nm joins)');
+  const ms = [['SVM-RFE', '10'], ['SFFS (QDA)', '10'], ['Robust selection + SFFS-LDA (S8)', 'native']];
+  const val = (m, k, c, v) => { let r = E8get(m, k, c, v); if (!r.BA && v) r = (D.E8 || []).find((x) => x.method === m && x.clf === c && x.variant === v) || {}; return r.BA; };
+  s.addChart(pres.charts.BAR, [{ name: 'All features', labels: ms.map(([m]) => short(m)), values: ms.map(([m, k]) => +(+val(m, k, 'SVM', 'all features')).toFixed(3)) },
+    { name: 'Join bands excluded', labels: ms.map(([m]) => short(m)), values: ms.map(([m, k]) => +(+val(m, k, 'SVM', 'join bands excluded')).toFixed(3)) }],
+    Object.assign(AX(), { x: 0.5, y: 1.25, w: 6.4, h: 5.35, barDir: 'col', chartColors: [HX.H, HX.G], title: 'SVM balanced accuracy with and without near-join features', valAxisMinVal: 0.6, valAxisMaxVal: 1.0, valAxisLabelFormatCode: '0.00', showValue: true, dataLabelPosition: 'outEnd', dataLabelFormatCode: '0.000' }));
+  const fin = (D.E8_final || []).filter((r) => r.rank <= 10);
+  const share = [...new Set(fin.map((r) => r.method))].map((m) => { const L = fin.filter((r) => r.method === m); return [short(m), String(L.filter((r) => r.Near_join).length) + ' / ' + L.length]; });
+  table(s, ['Selector (all spectra)', 'Near-join features in top-10'], share, { x: 7.2, y: 1.3, w: 5.6, colW: [3.0, 2.6], fontSize: 11.5, rowH: 0.36 });
+  explain(s, 'joincheck', { x: 7.2, y: 4.1, w: 5.6, h: 2.55, fontSize: 12 });
+  source(s, 'Near join = within 20 nm (or the wavelet half-width) of 1000 or 1800 nm; Hueni & Bialek 2017; Panda 2026 (sheet 21b)');
+}
 if (D.summary) {
   const s = content('R16. Full-spectrum model: where the logistic regression looks');
   const wl = D.lrcoef.Wavelength_nm.map(String);
   s.addChart(pres.charts.LINE, [{ name: 'Standardised coefficient', labels: wl, values: D.lrcoef.LR_std_coefficient }],
     Object.assign(AX(), { x: 0.5, y: 1.25, w: 8.2, h: 5.3, chartColors: ['333333'], lineSize: 2, lineDataSymbol: 'none', catAxisLabelFrequency: 20, title: 'Logistic regression coefficients on SNV spectra (positive = diseased)', showLegend: false, showCatAxisTitle: true, catAxisTitle: 'Wavelength (nm)' }));
-  s.addText(NARR.lr, { x: 9.0, y: 1.35, w: 3.8, h: 5.2, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'lr', { x: 9.0, y: 1.35, w: 3.8, h: 5.2, fontSize: 12 });
   source(s, 'Workbook sheet 26 (coefficients fitted on all data, C = 0.1)');
 }
 if (D.subgroups) {
@@ -607,7 +837,7 @@ if (D.subgroups) {
   const levels = sg.filter((r) => r.Role === roles[0]).map((r) => r.Level);
   s.addChart(pres.charts.BAR, roles.map((ro) => ({ name: ro, labels: levels, values: sg.filter((r) => r.Role === ro).map((r) => +(+r.BA).toFixed(3)) })),
     Object.assign(AX(), { x: 0.5, y: 1.25, w: 8.4, h: 5.35, barDir: 'col', chartColors: [HX.H, HX.D], title: 'Balanced accuracy by sub-group (pooled model, 25 repeats)', valAxisMinVal: 0.5, valAxisMaxVal: 1.0, valAxisLabelFormatCode: '0.00' }));
-  s.addText(NARR.subgroups, { x: 9.2, y: 1.35, w: 3.6, h: 5.2, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'subgroups', { x: 9.2, y: 1.35, w: 3.6, h: 5.2, fontSize: 12 });
   source(s, 'Workbook sheet 27');
 }
 if (D.E2) {
@@ -617,7 +847,7 @@ if (D.E2) {
     ['Variety', 'V1', 'V1'], ['Variety', 'V2', 'V2'], ['Variety', 'V3', 'V3'], ['Stage', 'Vegetative', 'Veg.'], ['Stage', 'Flowering', 'Flow.'], ['Stage', 'Pod formation', 'Pod']];
   s.addChart(pres.charts.BAR, pipes.map((p) => ({ name: p, labels: order.map((o) => o[2]), values: order.map((o) => { const r = e.find((x) => x.kind === o[0] && x.level === o[1] && x.scenario + ' ' + x.clf === p); return r ? +(+r.BA).toFixed(3) : null; }) })),
     Object.assign(AX(), { x: 0.5, y: 1.25, w: 8.6, h: 5.35, barDir: 'col', chartColors: [HX.B, HX.H, HX.D], title: 'Held-out level: balanced accuracy (dates | varieties | stages)', valAxisMinVal: 0.4, valAxisMaxVal: 1.0, valAxisLabelFormatCode: '0.00' }));
-  s.addText(NARR.transfer, { x: 9.4, y: 1.35, w: 3.4, h: 5.2, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'transfer', { x: 9.4, y: 1.35, w: 3.4, h: 5.2, fontSize: 12 });
   source(s, 'Roberts et al. 2017; Terentev et al. 2023; Lv et al. 2023; workbook sheet 28');
 }
 if (D.E3 || D.E4 || D.E5) {
@@ -636,7 +866,7 @@ if (D.E3 || D.E4 || D.E5) {
   if (D.E3) D.E3.forEach((r) => rows.push(['E3 ' + r.scenario + ' ' + r.clf, r.inputs, f3(r.BA), f3(r.MCC)]));
   if (D.E6) D.E6.forEach((r) => rows.push(['E6 ' + r.scenario + ' ' + r.clf, 'No outlier removal', f3(r.BA), f3(r.MCC)]));
   table(s, ['Experiment', 'Inputs / data', 'BA', 'MCC'], rows, { x: 9.0, y: 1.3, w: 3.8, colW: [1.25, 1.45, 0.55, 0.55], fontSize: 9.5, rowH: 0.3 });
-  s.addText(NARR.extras, { x: 0.5, y: 4.85, w: 8.3, h: 1.8, fontSize: 13, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+  explain(s, 'extras', { x: 0.5, y: 4.85, w: 8.3, h: 1.8, fontSize: 12 });
   source(s, 'Workbook sheets 29-32; sensor bands: Sentinel-2 MSI and DJI-type UAV 5-band (Nguyen et al. 2023)');
 }
 
@@ -644,17 +874,23 @@ if (D.E3 || D.E4 || D.E5) {
 newSection('6. Discussion and conclusions', 'Interpreting the results against the literature');
 (NARR.discussion || []).forEach((d) => {
   const s = content(d.title);
-  bullets(s, d.points, { x: 0.5, y: 1.3, w: d.table ? 6.3 : 12.3, h: 5.3, fontSize: 15 });
+  bullets(s, d.points, { x: 0.5, y: 1.3, w: d.table ? 6.3 : 7.7, h: 5.3, fontSize: d.table ? 14.5 : 16 });
   if (d.table) table(s, d.table[0], d.table.slice(1), { x: 7.0, y: 1.3, w: 5.8, fontSize: 11.5, rowH: 0.42, colW: d.colW });
+  else if (d.take) {
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 8.6, y: 1.35, w: 4.2, h: 5.1, rectRadius: 0.08, fill: { color: C.text2 }, line: { color: C.text2 } });
+    s.addText('Take-home', { x: 8.85, y: 1.6, w: 3.7, h: 0.5, fontSize: 18, bold: true, color: 'F2C14E', fontFace: THEME.headFontFace, isTextBox: true, margin: 0 });
+    s.addText(d.take, { x: 8.85, y: 2.2, w: 3.7, h: 4.0, fontSize: 16, color: C.background1, valign: 'top', isTextBox: true, margin: 0 });
+  }
   if (d.source) source(s, d.source);
 });
 {
   const s = content('Conclusions');
+  const nC = (NARR.conclusions || []).length; const stp = Math.min(0.77, 5.45 / Math.max(1, nC));
   (NARR.conclusions || []).forEach((c, i) => {
-    const y = 1.25 + i * 0.77;
+    const y = 1.25 + i * stp;
     s.addShape(pres.shapes.OVAL, { x: 0.5, y: y + 0.1, w: 0.46, h: 0.46, fill: { color: C.accent1 }, line: { color: C.accent1 } });
     s.addText(String(i + 1), { x: 0.5, y: y + 0.1, w: 0.46, h: 0.46, fontSize: 14, bold: true, color: C.background1, align: 'center', valign: 'middle', isTextBox: true, margin: 0 });
-    s.addText(c, { x: 1.15, y, w: 11.65, h: 0.68, fontSize: 14.5, color: C.text1, valign: 'middle', isTextBox: true, margin: 0 });
+    s.addText(c, { x: 1.15, y, w: 11.65, h: stp - 0.06, fontSize: nC > 7 ? 13.5 : 14.5, color: C.text1, valign: 'middle', isTextBox: true, margin: 0 });
   });
 }
 {
@@ -666,14 +902,15 @@ newSection('6. Discussion and conclusions', 'Interpreting the results against th
 // ================================================================== REFERENCES
 pres.addSection({ title: 'References' }); section = 'References';
 const refs = D.refs;
-const groups = [['Papers reviewed (provided by the researcher)', refs.filter((r) => r.ID.startsWith('P'))],
-  ['Methods', refs.filter((r) => r.ID.startsWith('M'))], ['Vegetation index sources', refs.filter((r) => r.ID.startsWith('I'))]];
+const groups = [['Papers reviewed (provided by the researcher)', refs.filter((r) => r.ID.startsWith('P') || r.ID.startsWith('R'))],
+  ['Methods', refs.filter((r) => r.ID.startsWith('M'))], ['Feature-selection methods', refs.filter((r) => r.ID.startsWith('F'))],
+  ['Vegetation index sources', refs.filter((r) => r.ID.startsWith('I'))]];
 groups.forEach(([gname, list]) => {
   const per = 17;
   for (let i = 0; i < list.length; i += per) {
     const s = content('References: ' + gname.split(' (')[0].toLowerCase() + (i ? ' (cont.)' : ''));
     const chunk = list.slice(i, i + per);
-    s.addText(chunk.map((r, k) => ({ text: r.Reference.replace('[P] ', ''), options: { breakLine: k < chunk.length - 1, paraSpaceAfter: 4 } })),
+    s.addText(chunk.map((r, k) => ({ text: r.Reference.replace('[P] ', '').replace('[R] ', ''), options: { breakLine: k < chunk.length - 1, paraSpaceAfter: 4 } })),
       { x: 0.5, y: 1.2, w: 12.3, h: 5.75, fontSize: 10.5, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
   }
 });

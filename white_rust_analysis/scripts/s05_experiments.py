@@ -20,9 +20,21 @@ EXP = sys.argv[1].split(',') if len(sys.argv) > 1 else ['E1', 'E2', 'E3', 'E4', 
 BEST = [('S1', 'LR'), ('S7', 'SVM'), ('S8', 'SVM')]   # pipelines carried into transfer experiments
 
 
-def evaluate(tr, te, sc, c, seed, Mloc=M, B=B10, famloc=fam, extra=None):
+def inner_balanced(Mtr, k, seed):
+    """Inner plot-grouped folds with each class's plots dealt round-robin across folds (needed when few healthy plots remain)."""
+    rng = np.random.default_rng(seed)
+    pt_ = plot_table(Mtr); assign = {}
+    for yy, g in pt_.groupby('y'):
+        p = g.sort_values('variety')['plot'].to_numpy().copy(); rng.shuffle(p)
+        for i, pl in enumerate(p):
+            assign[pl] = i % k
+    f = Mtr['plot'].map(assign).to_numpy()
+    return [(np.where(f != j)[0], np.where(f == j)[0]) for j in range(k)]
+
+
+def evaluate(tr, te, sc, c, seed, Mloc=M, B=B10, famloc=fam, extra=None, balanced_inner=False):
     yl = Mloc['y'].to_numpy(); dl = Mloc['date'].to_numpy()
-    inner = inner_splits(Mloc.iloc[tr].reset_index(drop=True), 3, seed)
+    inner = (inner_balanced if balanced_inner else inner_splits)(Mloc.iloc[tr].reset_index(drop=True), 3, seed)
     Xtr, Xte, names, info = scenario_matrix(sc, tr, te, B, Mloc, famloc, inner, yl, dl, seed)
     if extra is not None:
         Xtr, Xte = np.c_[Xtr, extra[tr]], np.c_[Xte, extra[te]]
@@ -139,7 +151,7 @@ def e4_job(rep, fold, assign, sc, c, n_h):
         k = n_h if yy == 0 else 3 * n_h
         keep += list(rng.choice(g['plot'].to_numpy(), k, replace=False))
     tr = np.where(M['plot'].isin(keep).to_numpy())[0]; te = np.where(f == fold)[0]
-    s, pr, _ = evaluate(tr, te, sc, c, 4000 + rep)
+    s, pr, _ = evaluate(tr, te, sc, c, 4000 + rep, balanced_inner=True)
     return dict(rep=rep, scenario=sc, clf=c, n_train_plots=4 * n_h * 3, te=te, score=s, pred=pr)
 
 

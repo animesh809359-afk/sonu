@@ -1,0 +1,1361 @@
+method,variant,k,clf,rep,fold,BA
+SVM-RFE,all features,5,QDA,0,0,0.9477182200978719
+SVM-RFE,all features,5,RF,0,0,0.893991123250256
+SVM-RFE,all features,10,QDA,0,0,0.9643564356435643
+SVM-RFE,all features,10,RF,0,0,0.9106293387959485
+SVM-RFE,all features,10,SVM,0,0,0.9635598042562876
+SVM-RFE,all features,10,LDA,0,0,0.9247297143507454
+SVM-RFE,all features,15,QDA,0,0,0.9693069306930693
+SVM-RFE,all features,15,RF,0,0,0.9298509161260954
+LASSO,all features,5,QDA,0,0,0.89761010583817
+LASSO,all features,5,RF,0,0,0.8809036076021395
+LASSO,all features,10,QDA,0,0,0.931876635939456
+LASSO,all features,10,RF,0,0,0.9116194378058495
+LASSO,all features,10,SVM,0,0,0.9391715033572323
+LASSO,all features,10,LDA,0,0,0.9049277341527255
+LASSO,all features,15,QDA,0,0,0.9429611926709913
+LASSO,all features,15,RF,0,0,0.9098327074086718
+CARS,all features,5,QDA,0,0,0.930886536929555
+CARS,all features,5,RF,0,0,0.8406737225446683
+CARS,all features,10,QDA,0,0,0.9160122908842608
+CARS,all features,10,RF,0,0,0.8359166951177877
+CARS,all features,10,SVM,0,0,0.9292705132582224
+CARS,all features,10,LDA,0,0,0.9126550586093092
+CARS,all features,15,QDA,0,0,0.9431546602936156
+CARS,all features,15,RF,0,0,0.8914077614658018
+ReliefF,all features,5,QDA,0,0,0.8857289177193581
+ReliefF,all features,5,RF,0,0,0.8759531125526345
+ReliefF,all features,10,QDA,0,0,0.9239558438602481
+ReliefF,all features,10,RF,0,0,0.9258905200864914
+ReliefF,all features,10,SVM,0,0,0.9603960396039604
+ReliefF,all features,10,LDA,0,0,0.8984067372254467
+ReliefF,all features,15,QDA,0,0,0.9209855468305451
+ReliefF,all features,15,RF,0,0,0.8953681575054058
+SFFS (QDA),all features,5,QDA,0,0,0.9360304996016844
+SFFS (QDA),all features,5,RF,0,0,0.8396836235347673
+SFFS (QDA),all features,10,QDA,0,0,0.9148287242517354
+SFFS (QDA),all features,10,RF,0,0,0.8206555138272448
+SFFS (QDA),all features,10,SVM,0,0,0.9138158643450551
+SFFS (QDA),all features,10,LDA,0,0,0.8906566518720838
+SFFS (QDA),all features,15,QDA,0,0,0.9215659496984181
+SFFS (QDA),all features,15,RF,0,0,0.8226357118470468
+Consensus (Borda),all features,5,QDA,0,0,0.9098782292022305
+Consensus (Borda),all features,5,RF,0,0,0.8676226243313987
+Consensus (Borda),all features,10,QDA,0,0,0.9471150563332196
+Consensus (Borda),all features,10,RF,0,0,0.8971548879025834
+Consensus (Borda),all features,10,SVM,0,0,0.933037441675202
+Consensus (Borda),all features,10,LDA,0,0,0.8920336861272334
+Consensus (Borda),all features,15,QDA,0,0,0.9508819847501992
+Consensus (Borda),all features,15,RF,0,0,0.9011152839421873
+Robust selection + SFFS-LDA (S8),all features,native,QDA,0,0,0.899590303857972
+Robust selection + SFFS-LDA (S8),all features,native,RF,0,0,0.8579151018550131
+Robust selection + SFFS-LDA (S8),all features,native,SVM,0,0,0.9419710936610903
+Robust selection + SFFS-LDA (S8),all features,native,LDA,0,0,0.8900762490042107
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,0,0,0.8625697052463868
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,0,0,0.9078525093888699
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,0,0,0.9530556503926255
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,0,0,0.8756344599977239
+Full spectrum (SNV),all features,201,SVM,0,0,0.9203823830658928
+Full spectrum (SNV),all features,201,LDA,0,0,0.8964265392056447
+Full spectrum (SNV),all features,201,LR,0,0,0.97167406395812
+SVM-RFE,join bands excluded,10,QDA,0,0,0.9225560487083191
+SVM-RFE,join bands excluded,10,RF,0,0,0.8158984864003642
+SVM-RFE,join bands excluded,10,SVM,0,0,0.9435415955388642
+SFFS (QDA),join bands excluded,10,QDA,0,0,0.8950039831569364
+SFFS (QDA),join bands excluded,10,RF,0,0,0.7651644474792307
+SFFS (QDA),join bands excluded,10,SVM,0,0,0.9106520996927279
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,0,0,0.8237396153408444
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,0,0,0.7713212700580403
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,0,0,0.8391487424604529
+SVM-RFE,all features,5,QDA,0,1,0.8543888186035304
+SVM-RFE,all features,5,RF,0,1,0.8146876317850473
+SVM-RFE,all features,10,QDA,0,1,0.8628531839267426
+SVM-RFE,all features,10,RF,0,1,0.7740426130088158
+SVM-RFE,all features,10,SVM,0,1,0.880585175813804
+SVM-RFE,all features,10,LDA,0,1,0.8589573669096532
+SVM-RFE,all features,15,QDA,0,1,0.877924372954194
+SVM-RFE,all features,15,RF,0,1,0.7759503584553287
+LASSO,all features,5,QDA,0,1,0.799586320461072
+LASSO,all features,5,RF,0,1,0.8335743117055244
+LASSO,all features,10,QDA,0,1,0.8460349017009057
+LASSO,all features,10,RF,0,1,0.8436753218065345
+LASSO,all features,10,SVM,0,1,0.8829748780046991
+LASSO,all features,10,LDA,0,1,0.8471092636102577
+LASSO,all features,15,QDA,0,1,0.8598710765708777
+LASSO,all features,15,RF,0,1,0.8395385264172541
+CARS,all features,5,QDA,0,1,0.8755848745908388
+CARS,all features,5,RF,0,1,0.8537763319075446
+CARS,all features,10,QDA,0,1,0.9172540514488825
+CARS,all features,10,RF,0,1,0.8749723878948531
+CARS,all features,10,SVM,0,1,0.9147036970098601
+CARS,all features,10,LDA,0,1,0.8964596260818924
+CARS,all features,15,QDA,0,1,0.9030965720826556
+CARS,all features,15,RF,0,1,0.8455830672530473
+ReliefF,all features,5,QDA,0,1,0.8349900596421471
+ReliefF,all features,5,RF,0,1,0.8892101933851437
+ReliefF,all features,10,QDA,0,1,0.8473502419824488
+ReliefF,all features,10,RF,0,1,0.8770407855894933
+ReliefF,all features,10,SVM,0,1,0.9189208185232043
+ReliefF,all features,10,LDA,0,1,0.8272285479044923
+ReliefF,all features,15,QDA,0,1,0.8663172480269896
+ReliefF,all features,15,RF,0,1,0.8830853264252867
+SFFS (QDA),all features,5,QDA,0,1,0.8644095025804768
+SFFS (QDA),all features,5,RF,0,1,0.8538566580316084
+SFFS (QDA),all features,10,QDA,0,1,0.8660762696547984
+SFFS (QDA),all features,10,RF,0,1,0.8507138984276161
+SFFS (QDA),all features,10,SVM,0,1,0.8799927706488342
+SFFS (QDA),all features,10,LDA,0,1,0.8080205634877603
+SFFS (QDA),all features,15,QDA,0,1,0.8849629495752755
+SFFS (QDA),all features,15,RF,0,1,0.8122979295941524
+Consensus (Borda),all features,5,QDA,0,1,0.8264754904913951
+Consensus (Borda),all features,5,RF,0,1,0.8539369841556721
+Consensus (Borda),all features,10,QDA,0,1,0.854228166355403
+Consensus (Borda),all features,10,RF,0,1,0.8527822961222564
+Consensus (Borda),all features,10,SVM,0,1,0.910968532240898
+Consensus (Borda),all features,10,LDA,0,1,0.8259132076229492
+Consensus (Borda),all features,15,QDA,0,1,0.8828142257565716
+Consensus (Borda),all features,15,RF,0,1,0.8748920617707894
+Robust selection + SFFS-LDA (S8),all features,native,QDA,0,1,0.8222583689780509
+Robust selection + SFFS-LDA (S8),all features,native,RF,0,1,0.7579773881960761
+Robust selection + SFFS-LDA (S8),all features,native,SVM,0,1,0.8544992670241179
+Robust selection + SFFS-LDA (S8),all features,native,LDA,0,1,0.8093359037693033
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,0,1,0.8550615498925638
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,0,1,0.8558447296021849
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,0,1,0.8718798321184007
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,0,1,0.809175251521176
+Full spectrum (SNV),all features,201,SVM,0,1,0.8726328895314979
+Full spectrum (SNV),all features,201,LDA,0,1,0.8449605397915537
+Full spectrum (SNV),all features,201,LR,0,1,0.8844809928308934
+SVM-RFE,join bands excluded,10,QDA,0,1,0.8549812237685002
+SVM-RFE,join bands excluded,10,RF,0,1,0.7367813322087676
+SVM-RFE,join bands excluded,10,SVM,0,1,0.8212141293652228
+SFFS (QDA),join bands excluded,10,QDA,0,1,0.8119967066289133
+SFFS (QDA),join bands excluded,10,RF,0,1,0.7347932606381911
+SFFS (QDA),join bands excluded,10,SVM,0,1,0.8326304797477759
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,0,1,0.7724762535895737
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,0,1,0.7671646886358616
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,0,1,0.8461955539490331
+SVM-RFE,all features,5,QDA,0,2,0.8003393128321943
+SVM-RFE,all features,5,RF,0,2,0.8108746203492787
+SVM-RFE,all features,10,QDA,0,2,0.8527311123766135
+SVM-RFE,all features,10,RF,0,2,0.8450550493545939
+SVM-RFE,all features,10,SVM,0,2,0.9051229119210327
+SVM-RFE,all features,10,LDA,0,2,0.8315774487471526
+SVM-RFE,all features,15,QDA,0,2,0.8834828208048595
+SVM-RFE,all features,15,RF,0,2,0.8577496203492787
+LASSO,all features,5,QDA,0,2,0.7987020690964313
+LASSO,all features,5,RF,0,2,0.7537490508731967
+LASSO,all features,10,QDA,0,2,0.8185625474563402
+LASSO,all features,10,RF,0,2,0.7882498101746394
+LASSO,all features,10,SVM,0,2,0.858580106302202
+LASSO,all features,10,LDA,0,2,0.8073272589217919
+LASSO,all features,15,QDA,0,2,0.848827828397874
+LASSO,all features,15,RF,0,2,0.8165693811693242
+CARS,all features,5,QDA,0,2,0.9044822513287776
+CARS,all features,5,RF,0,2,0.7397494305239181
+CARS,all features,10,QDA,0,2,0.8942316818526955
+CARS,all features,10,RF,0,2,0.7849990508731967
+CARS,all features,10,SVM,0,2,0.874205106302202
+CARS,all features,10,LDA,0,2,0.8613563022019741
+CARS,all features,15,QDA,0,2,0.8773016324981018
+CARS,all features,15,RF,0,2,0.7929717160212604
+ReliefF,all features,5,QDA,0,2,0.8945638762338648
+ReliefF,all features,5,RF,0,2,0.8323604783599089
+ReliefF,all features,10,QDA,0,2,0.8734102126044039
+ReliefF,all features,10,RF,0,2,0.8815133826879271
+ReliefF,all features,10,SVM,0,2,0.9148870539104024
+ReliefF,all features,10,LDA,0,2,0.8244234054669703
+ReliefF,all features,15,QDA,0,2,0.8916334472285496
+ReliefF,all features,15,RF,0,2,0.8837912870159453
+SFFS (QDA),all features,5,QDA,0,2,0.9069262528473805
+SFFS (QDA),all features,5,RF,0,2,0.8035544798785118
+SFFS (QDA),all features,10,QDA,0,2,0.9101770121488231
+SFFS (QDA),all features,10,RF,0,2,0.8300825740318907
+SFFS (QDA),all features,10,SVM,0,2,0.9052890091116172
+SFFS (QDA),all features,10,LDA,0,2,0.8719390660592254
+SFFS (QDA),all features,15,QDA,0,2,0.9135938686408505
+SFFS (QDA),all features,15,RF,0,2,0.8030680523917996
+Consensus (Borda),all features,5,QDA,0,2,0.8685222095671982
+Consensus (Borda),all features,5,RF,0,2,0.7981800493545939
+Consensus (Borda),all features,10,QDA,0,2,0.8953706340167047
+Consensus (Borda),all features,10,RF,0,2,0.8074577638572513
+Consensus (Borda),all features,10,SVM,0,2,0.8818455770690964
+Consensus (Borda),all features,10,LDA,0,2,0.8540361617312073
+Consensus (Borda),all features,15,QDA,0,2,0.8802320615034169
+Consensus (Borda),all features,15,RF,0,2,0.8867217160212604
+Robust selection + SFFS-LDA (S8),all features,native,QDA,0,2,0.8070069286256645
+Robust selection + SFFS-LDA (S8),all features,native,RF,0,2,0.7583048595292331
+Robust selection + SFFS-LDA (S8),all features,native,SVM,0,2,0.8294537775246773
+Robust selection + SFFS-LDA (S8),all features,native,LDA,0,2,0.7768958807896735
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,0,2,0.8278402619589977
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,0,2,0.7587912870159453
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,0,2,0.8901504365983295
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,0,2,0.7965902619589977
+Full spectrum (SNV),all features,201,SVM,0,2,0.9148870539104024
+Full spectrum (SNV),all features,201,LDA,0,2,0.8489939255884587
+Full spectrum (SNV),all features,201,LR,0,2,0.9147209567198178
+SVM-RFE,join bands excluded,10,QDA,0,2,0.8564682991647684
+SVM-RFE,join bands excluded,10,RF,0,2,0.7739298595292331
+SVM-RFE,join bands excluded,10,SVM,0,2,0.8722475322703114
+SFFS (QDA),join bands excluded,10,QDA,0,2,0.8004935459377374
+SFFS (QDA),join bands excluded,10,RF,0,2,0.75895738420653
+SFFS (QDA),join bands excluded,10,SVM,0,2,0.8476770121488231
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,0,2,0.7279209377372817
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,0,2,0.7514711465451784
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,0,2,0.7274226461655278
+SVM-RFE,all features,5,QDA,0,3,0.824260752688172
+SVM-RFE,all features,5,RF,0,3,0.8348118279569893
+SVM-RFE,all features,10,QDA,0,3,0.8667674731182795
+SVM-RFE,all features,10,RF,0,3,0.8299395161290323
+SVM-RFE,all features,10,SVM,0,3,0.9246639784946237
+SVM-RFE,all features,10,LDA,0,3,0.8979502688172043
+SVM-RFE,all features,15,QDA,0,3,0.875369623655914
+SVM-RFE,all features,15,RF,0,3,0.7956317204301075
+LASSO,all features,5,QDA,0,3,0.8408938172043011
+LASSO,all features,5,RF,0,3,0.8496975806451612
+LASSO,all features,10,QDA,0,3,0.8479166666666667
+LASSO,all features,10,RF,0,3,0.8224126344086022
+LASSO,all features,10,SVM,0,3,0.8941532258064516
+LASSO,all features,10,LDA,0,3,0.8281586021505376
+LASSO,all features,15,QDA,0,3,0.8536290322580645
+LASSO,all features,15,RF,0,3,0.844489247311828
+CARS,all features,5,QDA,0,3,0.8542002688172043
+CARS,all features,5,RF,0,3,0.7566868279569893
+CARS,all features,10,QDA,0,3,0.889516129032258
+CARS,all features,10,RF,0,3,0.8342405913978495
+CARS,all features,10,SVM,0,3,0.9341733870967741
+CARS,all features,10,LDA,0,3,0.8981182795698924
+CARS,all features,15,QDA,0,3,0.8864583333333333
+CARS,all features,15,RF,0,3,0.8301075268817204
+ReliefF,all features,5,QDA,0,3,0.8407258064516129
+ReliefF,all features,5,RF,0,3,0.8561491935483871
+ReliefF,all features,10,QDA,0,3,0.8375
+ReliefF,all features,10,RF,0,3,0.8780577956989247
+ReliefF,all features,10,SVM,0,3,0.9321908602150537
+ReliefF,all features,10,LDA,0,3,0.8608198924731183
+ReliefF,all features,15,QDA,0,3,0.8755376344086021
+ReliefF,all features,15,RF,0,3,0.8468077956989247
+SFFS (QDA),all features,5,QDA,0,3,0.8692540322580645
+SFFS (QDA),all features,5,RF,0,3,0.8520161290322581
+SFFS (QDA),all features,10,QDA,0,3,0.8801747311827957
+SFFS (QDA),all features,10,RF,0,3,0.8613575268817204
+SFFS (QDA),all features,10,SVM,0,3,0.9205309139784946
+SFFS (QDA),all features,10,LDA,0,3,0.8843077956989247
+SFFS (QDA),all features,15,QDA,0,3,0.9139112903225807
+SFFS (QDA),all features,15,RF,0,3,0.8561491935483871
+Consensus (Borda),all features,5,QDA,0,3,0.841633064516129
+Consensus (Borda),all features,5,RF,0,3,0.8611895161290323
+Consensus (Borda),all features,10,QDA,0,3,0.8715725806451613
+Consensus (Borda),all features,10,RF,0,3,0.8507728494623656
+Consensus (Borda),all features,10,SVM,0,3,0.9490591397849463
+Consensus (Borda),all features,10,LDA,0,3,0.8507392473118279
+Consensus (Borda),all features,15,QDA,0,3,0.9092741935483871
+Consensus (Borda),all features,15,RF,0,3,0.8832661290322581
+Robust selection + SFFS-LDA (S8),all features,native,QDA,0,3,0.8504032258064516
+Robust selection + SFFS-LDA (S8),all features,native,RF,0,3,0.848622311827957
+Robust selection + SFFS-LDA (S8),all features,native,SVM,0,3,0.9205309139784946
+Robust selection + SFFS-LDA (S8),all features,native,LDA,0,3,0.8599798387096774
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,0,3,0.8418682795698924
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,0,3,0.8268817204301075
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,0,3,0.9063172043010752
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,0,3,0.8325268817204301
+Full spectrum (SNV),all features,201,SVM,0,3,0.8556115591397849
+Full spectrum (SNV),all features,201,LDA,0,3,0.8762768817204301
+Full spectrum (SNV),all features,201,LR,0,3,0.941364247311828
+SVM-RFE,join bands excluded,10,QDA,0,3,0.9195228494623656
+SVM-RFE,join bands excluded,10,RF,0,3,0.8123319892473118
+SVM-RFE,join bands excluded,10,SVM,0,3,0.9134072580645161
+SFFS (QDA),join bands excluded,10,QDA,0,3,0.8724798387096775
+SFFS (QDA),join bands excluded,10,RF,0,3,0.7394153225806451
+SFFS (QDA),join bands excluded,10,SVM,0,3,0.8789314516129032
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,0,3,0.8588373655913979
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,0,3,0.7747983870967742
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,0,3,0.8910954301075269
+SVM-RFE,all features,5,QDA,1,0,0.8129153037503343
+SVM-RFE,all features,5,RF,1,0,0.8037194758172355
+SVM-RFE,all features,10,QDA,1,0,0.891203275113662
+SVM-RFE,all features,10,RF,1,0,0.8229443107243515
+SVM-RFE,all features,10,SVM,1,0,0.915560904359275
+SVM-RFE,all features,10,LDA,1,0,0.865827315929149
+SVM-RFE,all features,15,QDA,1,0,0.9125059145425745
+SVM-RFE,all features,15,RF,1,0,0.8796416301507952
+LASSO,all features,5,QDA,1,0,0.8070933366249049
+LASSO,all features,5,RF,1,0,0.825999300541052
+LASSO,all features,10,QDA,1,0,0.8283548314098212
+LASSO,all features,10,RF,1,0,0.8714949906395935
+LASSO,all features,10,SVM,1,0,0.8841983994733486
+LASSO,all features,10,LDA,1,0,0.8100660371536135
+LASSO,all features,15,QDA,1,0,0.8668456458680491
+LASSO,all features,15,RF,1,0,0.8543891048982699
+CARS,all features,5,QDA,1,0,0.8668867905120451
+CARS,all features,5,RF,1,0,0.8271410644119401
+CARS,all features,10,QDA,1,0,0.8739328107963547
+CARS,all features,10,RF,1,0,0.8190355695447346
+CARS,all features,10,SVM,1,0,0.9035055236684565
+CARS,all features,10,LDA,1,0,0.8870476660700692
+CARS,all features,15,QDA,1,0,0.8851344401242569
+CARS,all features,15,RF,1,0,0.8362237445740501
+ReliefF,all features,5,QDA,1,0,0.8035446110802527
+ReliefF,all features,5,RF,1,0,0.8693760414738012
+ReliefF,all features,10,QDA,1,0,0.8422411487584603
+ReliefF,all features,10,RF,1,0,0.8724721759344978
+ReliefF,all features,10,SVM,1,0,0.8800427904297559
+ReliefF,all features,10,LDA,1,0,0.8251352630171367
+ReliefF,all features,15,QDA,1,0,0.8564566232590674
+ReliefF,all features,15,RF,1,0,0.8936513814314222
+SFFS (QDA),all features,5,QDA,1,0,0.8371906437079553
+SFFS (QDA),all features,5,RF,1,0,0.8288897117817688
+SFFS (QDA),all features,10,QDA,1,0,0.8607356662346479
+SFFS (QDA),all features,10,RF,1,0,0.8603345059556873
+SFFS (QDA),all features,10,SVM,1,0,0.8842806887613405
+SFFS (QDA),all features,10,LDA,1,0,0.8495751815507416
+SFFS (QDA),all features,15,QDA,1,0,0.8648912752782407
+SFFS (QDA),all features,15,RF,1,0,0.8381369705198626
+Consensus (Borda),all features,5,QDA,1,0,0.8564977679030632
+Consensus (Borda),all features,5,RF,1,0,0.8482791252648687
+Consensus (Borda),all features,10,QDA,1,0,0.8791067497788475
+Consensus (Borda),all features,10,RF,1,0,0.8391964451027587
+Consensus (Borda),all features,10,SVM,1,0,0.9158077722232509
+Consensus (Borda),all features,10,LDA,1,0,0.8707543870476661
+Consensus (Borda),all features,15,QDA,1,0,0.8941759756423707
+Consensus (Borda),all features,15,RF,1,0,0.8897014956078093
+Robust selection + SFFS-LDA (S8),all features,native,QDA,1,0,0.8035446110802527
+Robust selection + SFFS-LDA (S8),all features,native,RF,1,0,0.8321504248184493
+Robust selection + SFFS-LDA (S8),all features,native,SVM,1,0,0.8902672344627538
+Robust selection + SFFS-LDA (S8),all features,native,LDA,1,0,0.8290440041967537
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,1,0,0.8057869941780329
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,1,0,0.8694171861177971
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,1,0,0.8720607294945381
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,1,0,0.7832191569462446
+Full spectrum (SNV),all features,201,SVM,1,0,0.8651792877862124
+Full spectrum (SNV),all features,201,LDA,1,0,0.8647678413462527
+Full spectrum (SNV),all features,201,LR,1,0,0.9289226274969655
+SVM-RFE,join bands excluded,10,QDA,1,0,0.875928326030159
+SVM-RFE,join bands excluded,10,RF,1,0,0.8372420745129503
+SVM-RFE,join bands excluded,10,SVM,1,0,0.9055833281902528
+SFFS (QDA),join bands excluded,10,QDA,1,0,0.8321812833014463
+SFFS (QDA),join bands excluded,10,RF,1,0,0.8129255899113332
+SFFS (QDA),join bands excluded,10,SVM,1,0,0.8586990063568476
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,1,0,0.7571128803308029
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,1,0,0.7715032195683926
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,1,0,0.8010245016354995
+SVM-RFE,all features,5,QDA,1,1,0.8711061885643084
+SVM-RFE,all features,5,RF,1,1,0.8043172273755135
+SVM-RFE,all features,10,QDA,1,1,0.9323226729429138
+SVM-RFE,all features,10,RF,1,1,0.8505584014029259
+SVM-RFE,all features,10,SVM,1,1,0.8904194932853384
+SVM-RFE,all features,10,LDA,1,1,0.8829549125478795
+SVM-RFE,all features,15,QDA,1,1,0.9334071715353731
+SVM-RFE,all features,15,RF,1,1,0.8322603719599427
+LASSO,all features,5,QDA,1,1,0.8270801605980895
+LASSO,all features,5,RF,1,1,0.7849693109972773
+LASSO,all features,10,QDA,1,1,0.86893719137939
+LASSO,all features,10,RF,1,1,0.852704324149707
+LASSO,all features,10,SVM,1,1,0.8548848585536942
+LASSO,all features,10,LDA,1,1,0.832456504684111
+LASSO,all features,15,QDA,1,1,0.8850431491993169
+LASSO,all features,15,RF,1,1,0.8419400987585952
+CARS,all features,5,QDA,1,1,0.873275185749227
+CARS,all features,5,RF,1,1,0.7645368960265817
+CARS,all features,10,QDA,1,1,0.8990377959296691
+CARS,all features,10,RF,1,1,0.7795698924731183
+CARS,all features,10,SVM,1,1,0.912963219345609
+CARS,all features,10,LDA,1,1,0.9001222945221283
+CARS,all features,15,QDA,1,1,0.9194355992431584
+CARS,all features,15,RF,1,1,0.7795698924731183
+ReliefF,all features,5,QDA,1,1,0.9312727860076607
+ReliefF,all features,5,RF,1,1,0.8914001569061794
+ReliefF,all features,10,QDA,1,1,0.9173242881535835
+ReliefF,all features,10,RF,1,1,0.9182818773362869
+ReliefF,all features,10,SVM,1,1,0.9129747565646776
+ReliefF,all features,10,LDA,1,1,0.8840509483594075
+ReliefF,all features,15,QDA,1,1,0.9183857123079053
+ReliefF,all features,15,RF,1,1,0.9032258064516129
+SFFS (QDA),all features,5,QDA,1,1,0.9463288568923347
+SFFS (QDA),all features,5,RF,1,1,0.7892611564908394
+SFFS (QDA),all features,10,QDA,1,1,0.9570469334071716
+SFFS (QDA),all features,10,RF,1,1,0.8215076837878997
+SFFS (QDA),all features,10,SVM,1,1,0.920508560616549
+SFFS (QDA),all features,10,LDA,1,1,0.8636416078268494
+SFFS (QDA),all features,15,QDA,1,1,0.947367206608519
+SFFS (QDA),all features,15,RF,1,1,0.8064516129032258
+Consensus (Borda),all features,5,QDA,1,1,0.9130439798790899
+Consensus (Borda),all features,5,RF,1,1,0.7860422723706678
+Consensus (Borda),all features,10,QDA,1,1,0.9054755641700125
+Consensus (Borda),all features,10,RF,1,1,0.798940883289492
+Consensus (Borda),all features,10,SVM,1,1,0.8721445382804929
+Consensus (Borda),all features,10,LDA,1,1,0.8786515298352485
+Consensus (Borda),all features,15,QDA,1,1,0.9312381743504545
+Consensus (Borda),all features,15,RF,1,1,0.8763440860215054
+Robust selection + SFFS-LDA (S8),all features,native,QDA,1,1,0.8807974525820297
+Robust selection + SFFS-LDA (S8),all features,native,RF,1,1,0.7720476256403157
+Robust selection + SFFS-LDA (S8),all features,native,SVM,1,1,0.8882389588813513
+Robust selection + SFFS-LDA (S8),all features,native,LDA,1,1,0.8474895011306475
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,1,1,0.8356869260233513
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,1,1,0.8258110665005307
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,1,1,0.9086136877567031
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,1,1,0.8388942729244543
+Full spectrum (SNV),all features,201,SVM,1,1,0.8700447644099867
+Full spectrum (SNV),all features,201,LDA,1,1,0.8615302967372744
+Full spectrum (SNV),all features,201,LR,1,1,0.9118787207531497
+SVM-RFE,join bands excluded,10,QDA,1,1,0.8550117679634501
+SVM-RFE,join bands excluded,10,RF,1,1,0.7709746642669251
+SVM-RFE,join bands excluded,10,SVM,1,1,0.8667220453181965
+SFFS (QDA),join bands excluded,10,QDA,1,1,0.8485739997231068
+SFFS (QDA),join bands excluded,10,RF,1,1,0.6935714615349117
+SFFS (QDA),join bands excluded,10,SVM,1,1,0.8238035903825742
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,1,1,0.7906110111218791
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,1,1,0.7462504038026674
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,1,1,0.8269878628455397
+SVM-RFE,all features,5,QDA,1,2,0.853319783197832
+SVM-RFE,all features,5,RF,1,2,0.8660569105691057
+SVM-RFE,all features,10,QDA,1,2,0.8893631436314363
+SVM-RFE,all features,10,RF,1,2,0.868089430894309
+SVM-RFE,all features,10,SVM,1,2,0.9102981029810298
+SVM-RFE,all features,10,LDA,1,2,0.8711382113821138
+SVM-RFE,all features,15,QDA,1,2,0.9178184281842818
+SVM-RFE,all features,15,RF,1,2,0.9120596205962059
+LASSO,all features,5,QDA,1,2,0.8680216802168021
+LASSO,all features,5,RF,1,2,0.8938346883468835
+LASSO,all features,10,QDA,1,2,0.9020325203252033
+LASSO,all features,10,RF,1,2,0.9110433604336043
+LASSO,all features,10,SVM,1,2,0.8907181571815719
+LASSO,all features,10,LDA,1,2,0.8742547425474254
+LASSO,all features,15,QDA,1,2,0.8939024390243903
+LASSO,all features,15,RF,1,2,0.8878048780487805
+CARS,all features,5,QDA,1,2,0.8529132791327914
+CARS,all features,5,RF,1,2,0.7351626016260162
+CARS,all features,10,QDA,1,2,0.8700542005420054
+CARS,all features,10,RF,1,2,0.8953929539295393
+CARS,all features,10,SVM,1,2,0.92079945799458
+CARS,all features,10,LDA,1,2,0.8478319783197832
+CARS,all features,15,QDA,1,2,0.8913956639566396
+CARS,all features,15,RF,1,2,0.9110433604336043
+ReliefF,all features,5,QDA,1,2,0.842479674796748
+ReliefF,all features,5,RF,1,2,0.9003387533875338
+ReliefF,all features,10,QDA,1,2,0.8831300813008129
+ReliefF,all features,10,RF,1,2,0.9317073170731707
+ReliefF,all features,10,SVM,1,2,0.9502032520325203
+ReliefF,all features,10,LDA,1,2,0.8674119241192413
+ReliefF,all features,15,QDA,1,2,0.8973577235772358
+ReliefF,all features,15,RF,1,2,0.9448509485094851
+SFFS (QDA),all features,5,QDA,1,2,0.8741192411924119
+SFFS (QDA),all features,5,RF,1,2,0.8660569105691057
+SFFS (QDA),all features,10,QDA,1,2,0.9258807588075881
+SFFS (QDA),all features,10,RF,1,2,0.9165989159891599
+SFFS (QDA),all features,10,SVM,1,2,0.946680216802168
+SFFS (QDA),all features,10,LDA,1,2,0.8857723577235772
+SFFS (QDA),all features,15,QDA,1,2,0.9264227642276424
+SFFS (QDA),all features,15,RF,1,2,0.907520325203252
+Consensus (Borda),all features,5,QDA,1,2,0.8369918699186991
+Consensus (Borda),all features,5,RF,1,2,0.859959349593496
+Consensus (Borda),all features,10,QDA,1,2,0.8907859078590786
+Consensus (Borda),all features,10,RF,1,2,0.9226287262872629
+Consensus (Borda),all features,10,SVM,1,2,0.948780487804878
+Consensus (Borda),all features,10,LDA,1,2,0.8513550135501355
+Consensus (Borda),all features,15,QDA,1,2,0.9136856368563686
+Consensus (Borda),all features,15,RF,1,2,0.9403116531165312
+Robust selection + SFFS-LDA (S8),all features,native,QDA,1,2,0.8710027100271003
+Robust selection + SFFS-LDA (S8),all features,native,RF,1,2,0.8605013550135501
+Robust selection + SFFS-LDA (S8),all features,native,SVM,1,2,0.9077913279132791
+Robust selection + SFFS-LDA (S8),all features,native,LDA,1,2,0.8558265582655826
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,1,2,0.8653794037940379
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,1,2,0.9079945799457995
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,1,2,0.9217479674796748
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,1,2,0.8233062330623306
+Full spectrum (SNV),all features,201,SVM,1,2,0.9098238482384824
+Full spectrum (SNV),all features,201,LDA,1,2,0.8691056910569106
+Full spectrum (SNV),all features,201,LR,1,2,0.9204607046070461
+SVM-RFE,join bands excluded,10,QDA,1,2,0.8838753387533875
+SVM-RFE,join bands excluded,10,RF,1,2,0.7579945799457994
+SVM-RFE,join bands excluded,10,SVM,1,2,0.9113143631436315
+SFFS (QDA),join bands excluded,10,QDA,1,2,0.8517615176151762
+SFFS (QDA),join bands excluded,10,RF,1,2,0.7513550135501355
+SFFS (QDA),join bands excluded,10,SVM,1,2,0.8929539295392954
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,1,2,0.7928861788617887
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,1,2,0.6952574525745258
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,1,2,0.778319783197832
+SVM-RFE,all features,5,QDA,1,3,0.8929648128149748
+SVM-RFE,all features,5,RF,1,3,0.8110376169906408
+SVM-RFE,all features,10,QDA,1,3,0.8897925665946724
+SVM-RFE,all features,10,RF,1,3,0.7841072714182866
+SVM-RFE,all features,10,SVM,1,3,0.9228874190064795
+SVM-RFE,all features,10,LDA,1,3,0.8971607271418287
+SVM-RFE,all features,15,QDA,1,3,0.9309530237580994
+SVM-RFE,all features,15,RF,1,3,0.8290136789056874
+LASSO,all features,5,QDA,1,3,0.8539641828653708
+LASSO,all features,5,RF,1,3,0.814468592512599
+LASSO,all features,10,QDA,1,3,0.8582838372930166
+LASSO,all features,10,RF,1,3,0.8758886789056874
+LASSO,all features,10,SVM,1,3,0.8959570734341253
+LASSO,all features,10,LDA,1,3,0.8529517638588913
+LASSO,all features,15,QDA,1,3,0.8813444924406048
+LASSO,all features,15,RF,1,3,0.845718592512599
+CARS,all features,5,QDA,1,3,0.9034489740820735
+CARS,all features,5,RF,1,3,0.7893156047516199
+CARS,all features,10,QDA,1,3,0.8822331713462923
+CARS,all features,10,RF,1,3,0.785187185025198
+CARS,all features,10,SVM,1,3,0.9165991720662348
+CARS,all features,10,LDA,1,3,0.9058000359971202
+CARS,all features,15,QDA,1,3,0.9255534557235421
+CARS,all features,15,RF,1,3,0.8372705183585314
+ReliefF,all features,5,QDA,1,3,0.8638071454283658
+ReliefF,all features,5,RF,1,3,0.8403190244780417
+ReliefF,all features,10,QDA,1,3,0.878925935925126
+ReliefF,all features,10,RF,1,3,0.8487670986321094
+ReliefF,all features,10,SVM,1,3,0.900400467962563
+ReliefF,all features,10,LDA,1,3,0.8284962203023758
+ReliefF,all features,15,QDA,1,3,0.9134831713462923
+ReliefF,all features,15,RF,1,3,0.8687117530597552
+SFFS (QDA),all features,5,QDA,1,3,0.8902987760979122
+SFFS (QDA),all features,5,RF,1,3,0.816437185025198
+SFFS (QDA),all features,10,QDA,1,3,0.9113233441324694
+SFFS (QDA),all features,10,RF,1,3,0.8290136789056874
+SFFS (QDA),all features,10,SVM,1,3,0.9174878509719222
+SFFS (QDA),all features,10,LDA,1,3,0.8802645788336934
+SFFS (QDA),all features,15,QDA,1,3,0.8956983441324694
+SFFS (QDA),all features,15,RF,1,3,0.828125
+Consensus (Borda),all features,5,QDA,1,3,0.8618385529157667
+Consensus (Borda),all features,5,RF,1,3,0.7975724442044636
+Consensus (Borda),all features,10,QDA,1,3,0.9002092332613392
+Consensus (Borda),all features,10,RF,1,3,0.8467985061195105
+Consensus (Borda),all features,10,SVM,1,3,0.9302555795536357
+Consensus (Borda),all features,10,LDA,1,3,0.896272048236141
+Consensus (Borda),all features,15,QDA,1,3,0.9012891468682505
+Consensus (Borda),all features,15,RF,1,3,0.8415901727861771
+Robust selection + SFFS-LDA (S8),all features,native,QDA,1,3,0.8937297516198703
+Robust selection + SFFS-LDA (S8),all features,native,RF,1,3,0.785187185025198
+Robust selection + SFFS-LDA (S8),all features,native,SVM,1,3,0.896272048236141
+Robust selection + SFFS-LDA (S8),all features,native,LDA,1,3,0.8714340352771779
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,1,3,0.8503419726421886
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,1,3,0.7986523578113751
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,1,3,0.8984318754499641
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,1,3,0.7833310835133189
+Full spectrum (SNV),all features,201,SVM,1,3,0.8689592332613392
+Full spectrum (SNV),all features,201,LDA,1,3,0.8666081713462923
+Full spectrum (SNV),all features,201,LR,1,3,0.9282869870410367
+SVM-RFE,join bands excluded,10,QDA,1,3,0.9071949244060475
+SVM-RFE,join bands excluded,10,RF,1,3,0.7322151727861771
+SVM-RFE,join bands excluded,10,SVM,1,3,0.9000854931605471
+SFFS (QDA),join bands excluded,10,QDA,1,3,0.8363705903527718
+SFFS (QDA),join bands excluded,10,RF,1,3,0.7103019258459323
+SFFS (QDA),join bands excluded,10,SVM,1,3,0.8325008999280058
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,1,3,0.8103289236861051
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,1,3,0.7571769258459323
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,1,3,0.8814119870410367
+SVM-RFE,all features,5,QDA,2,0,0.7936319718928415
+SVM-RFE,all features,5,RF,2,0,0.7987483530961792
+SVM-RFE,all features,10,QDA,2,0,0.8704435660957399
+SVM-RFE,all features,10,RF,2,0,0.8389986824769433
+SVM-RFE,all features,10,SVM,2,0,0.9109574000878349
+SVM-RFE,all features,10,LDA,2,0,0.8556214317083882
+SVM-RFE,all features,15,QDA,2,0,0.8714317083882301
+SVM-RFE,all features,15,RF,2,0,0.8494949494949495
+LASSO,all features,5,QDA,2,0,0.77733860342556
+LASSO,all features,5,RF,2,0,0.7463987703118138
+LASSO,all features,10,QDA,2,0,0.8189503732981993
+LASSO,all features,10,RF,2,0,0.7614624505928853
+LASSO,all features,10,SVM,2,0,0.8660079051383399
+LASSO,all features,10,LDA,2,0,0.8005489679402723
+LASSO,all features,15,QDA,2,0,0.8518006148440931
+LASSO,all features,15,RF,2,0,0.7501097935880545
+CARS,all features,5,QDA,2,0,0.8337725076855511
+CARS,all features,5,RF,2,0,0.8043039086517347
+CARS,all features,10,QDA,2,0,0.8190821256038647
+CARS,all features,10,RF,2,0,0.8268994290733421
+CARS,all features,10,SVM,2,0,0.8877470355731225
+CARS,all features,10,LDA,2,0,0.8337725076855511
+CARS,all features,15,QDA,2,0,0.8374835309617918
+CARS,all features,15,RF,2,0,0.8141853315766359
+ReliefF,all features,5,QDA,2,0,0.7957180500658761
+ReliefF,all features,5,RF,2,0,0.808498023715415
+ReliefF,all features,10,QDA,2,0,0.8209046991655687
+ReliefF,all features,10,RF,2,0,0.8189942907334211
+ReliefF,all features,10,SVM,2,0,0.8454106280193237
+ReliefF,all features,10,LDA,2,0,0.78177426438296
+ReliefF,all features,15,QDA,2,0,0.8265920070267896
+ReliefF,all features,15,RF,2,0,0.8441809398331137
+SFFS (QDA),all features,5,QDA,2,0,0.8269653052261747
+SFFS (QDA),all features,5,RF,2,0,0.7957839262187087
+SFFS (QDA),all features,10,QDA,2,0,0.8393280632411066
+SFFS (QDA),all features,10,RF,2,0,0.7406016688625384
+SFFS (QDA),all features,10,SVM,2,0,0.8510759771629337
+SFFS (QDA),all features,10,LDA,2,0,0.8212999560825648
+SFFS (QDA),all features,15,QDA,2,0,0.8308080808080808
+SFFS (QDA),all features,15,RF,2,0,0.7415898111550285
+Consensus (Borda),all features,5,QDA,2,0,0.786231884057971
+Consensus (Borda),all features,5,RF,2,0,0.7529424681598595
+Consensus (Borda),all features,10,QDA,2,0,0.8432806324110672
+Consensus (Borda),all features,10,RF,2,0,0.8092446201141854
+Consensus (Borda),all features,10,SVM,2,0,0.8845410628019323
+Consensus (Borda),all features,10,LDA,2,0,0.8301932367149758
+Consensus (Borda),all features,15,QDA,2,0,0.887241985068072
+Consensus (Borda),all features,15,RF,2,0,0.865788317962231
+Robust selection + SFFS-LDA (S8),all features,native,QDA,2,0,0.8021519543258673
+Robust selection + SFFS-LDA (S8),all features,native,RF,2,0,0.8507246376811595
+Robust selection + SFFS-LDA (S8),all features,native,SVM,2,0,0.899604743083004
+Robust selection + SFFS-LDA (S8),all features,native,LDA,2,0,0.8227711901624946
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,2,0,0.839064558629776
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,2,0,0.7991216512955643
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,2,0,0.8826745718050066
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,2,0,0.7922705314009661
+Full spectrum (SNV),all features,201,SVM,2,0,0.837856829161177
+Full spectrum (SNV),all features,201,LDA,2,0,0.8272288098375055
+Full spectrum (SNV),all features,201,LR,2,0,0.9188625384277558
+SVM-RFE,join bands excluded,10,QDA,2,0,0.871058410188845
+SVM-RFE,join bands excluded,10,RF,2,0,0.8014712340799297
+SVM-RFE,join bands excluded,10,SVM,2,0,0.8772507685551163
+SFFS (QDA),join bands excluded,10,QDA,2,0,0.772880983750549
+SFFS (QDA),join bands excluded,10,RF,2,0,0.760715854194115
+SFFS (QDA),join bands excluded,10,SVM,2,0,0.8171058410188845
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,2,0,0.7463328941589811
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,2,0,0.7146684233640755
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,2,0,0.8225296442687747
+SVM-RFE,all features,5,QDA,2,1,0.8305210583153348
+SVM-RFE,all features,5,RF,2,1,0.8291374190064795
+SVM-RFE,all features,10,QDA,2,1,0.8940447264218863
+SVM-RFE,all features,10,RF,2,1,0.8264713822894169
+SVM-RFE,all features,10,SVM,2,1,0.9054175665946724
+SVM-RFE,all features,10,LDA,2,1,0.8933472822174227
+SVM-RFE,all features,15,QDA,2,1,0.8832455903527718
+SVM-RFE,all features,15,RF,2,1,0.8839542836573073
+LASSO,all features,5,QDA,2,1,0.8427825773938085
+LASSO,all features,5,RF,2,1,0.8648983081353492
+LASSO,all features,10,QDA,2,1,0.878925935925126
+LASSO,all features,10,RF,2,1,0.918061555075594
+LASSO,all features,10,SVM,2,1,0.9110083693304536
+LASSO,all features,10,LDA,2,1,0.8643808495320374
+LASSO,all features,15,QDA,2,1,0.890613750899928
+LASSO,all features,15,RF,2,1,0.9056762958963283
+CARS,all features,5,QDA,2,1,0.8347169726421886
+CARS,all features,5,RF,2,1,0.7928703203743701
+CARS,all features,10,QDA,2,1,0.8969019978401728
+CARS,all features,10,RF,2,1,0.8909399748020158
+CARS,all features,10,SVM,2,1,0.9305705543556515
+CARS,all features,10,LDA,2,1,0.8891513678905687
+CARS,all features,15,QDA,2,1,0.8825481461483082
+CARS,all features,15,RF,2,1,0.8826831353491721
+ReliefF,all features,5,QDA,2,1,0.83229841612671
+ReliefF,all features,5,RF,2,1,0.9137419006479481
+ReliefF,all features,10,QDA,2,1,0.8528167746580273
+ReliefF,all features,10,RF,2,1,0.9193327033837293
+ReliefF,all features,10,SVM,2,1,0.9327303815694745
+ReliefF,all features,10,LDA,2,1,0.849644528437725
+ReliefF,all features,15,QDA,2,1,0.8607586393088553
+ReliefF,all features,15,RF,2,1,0.9403572714182866
+SFFS (QDA),all features,5,QDA,2,1,0.8415114290856731
+SFFS (QDA),all features,5,RF,2,1,0.8864290856731462
+SFFS (QDA),all features,10,QDA,2,1,0.8864853311735061
+SFFS (QDA),all features,10,RF,2,1,0.9139331353491721
+SFFS (QDA),all features,10,SVM,2,1,0.9156429985601151
+SFFS (QDA),all features,10,LDA,2,1,0.8538966882649388
+SFFS (QDA),all features,15,QDA,2,1,0.9238998380129589
+SFFS (QDA),all features,15,RF,2,1,0.8943709503239741
+Consensus (Borda),all features,5,QDA,2,1,0.8774635529157667
+Consensus (Borda),all features,5,RF,2,1,0.911964542836573
+Consensus (Borda),all features,10,QDA,2,1,0.9044613930885529
+Consensus (Borda),all features,10,RF,2,1,0.9150130489560835
+Consensus (Borda),all features,10,SVM,2,1,0.9345077393808495
+Consensus (Borda),all features,10,LDA,2,1,0.8763836393088553
+Consensus (Borda),all features,15,QDA,2,1,0.9024928005759539
+Consensus (Borda),all features,15,RF,2,1,0.9037077033837293
+Robust selection + SFFS-LDA (S8),all features,native,QDA,2,1,0.8415114290856731
+Robust selection + SFFS-LDA (S8),all features,native,RF,2,1,0.8566414686825055
+Robust selection + SFFS-LDA (S8),all features,native,SVM,2,1,0.8832455903527718
+Robust selection + SFFS-LDA (S8),all features,native,LDA,2,1,0.8463372930165587
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,2,1,0.8301385889128869
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,2,1,0.9067562095032398
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,2,1,0.90630624550036
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,2,1,0.8121625269978402
+Full spectrum (SNV),all features,201,SVM,2,1,0.8932235421166307
+Full spectrum (SNV),all features,201,LDA,2,1,0.8848317134629229
+Full spectrum (SNV),all features,201,LR,2,1,0.9515951223902088
+SVM-RFE,join bands excluded,10,QDA,2,1,0.8841342692584593
+SVM-RFE,join bands excluded,10,RF,2,1,0.8058292836573073
+SVM-RFE,join bands excluded,10,SVM,2,1,0.8967782577393808
+SFFS (QDA),join bands excluded,10,QDA,2,1,0.8679355651547876
+SFFS (QDA),join bands excluded,10,RF,2,1,0.7140478761699064
+SFFS (QDA),join bands excluded,10,SVM,2,1,0.884707973362131
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,2,1,0.7814862311015118
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,2,1,0.7483463822894169
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,2,1,0.8060092692584593
+SVM-RFE,all features,5,QDA,2,2,0.8422495331044039
+SVM-RFE,all features,5,RF,2,2,0.761712552965038
+SVM-RFE,all features,10,QDA,2,2,0.8893708456332711
+SVM-RFE,all features,10,RF,2,2,0.7778581039018415
+SVM-RFE,all features,10,SVM,2,2,0.8962487700062253
+SVM-RFE,all features,10,LDA,2,2,0.8704038395887302
+SVM-RFE,all features,15,QDA,2,2,0.9234090407052634
+SVM-RFE,all features,15,RF,2,2,0.7818342470429945
+LASSO,all features,5,QDA,2,2,0.8842098921621785
+LASSO,all features,5,RF,2,2,0.8375504548466776
+LASSO,all features,10,QDA,2,2,0.8968913789987348
+LASSO,all features,10,RF,2,2,0.8233126493563869
+LASSO,all features,10,SVM,2,2,0.942697351246059
+LASSO,all features,10,LDA,2,2,0.8948229813040947
+LASSO,all features,15,QDA,2,2,0.8867903688977248
+LASSO,all features,15,RF,2,2,0.8394582002931903
+CARS,all features,5,QDA,2,2,0.8878647308070767
+CARS,all features,5,RF,2,2,0.7164989858826837
+CARS,all features,10,QDA,2,2,0.8996325079824086
+CARS,all features,10,RF,2,2,0.732403558447296
+CARS,all features,10,SVM,2,2,0.9188404923991405
+CARS,all features,10,LDA,2,2,0.9007871960158242
+CARS,all features,15,QDA,2,2,0.936813462658393
+CARS,all features,15,RF,2,2,0.8626423278510753
+ReliefF,all features,5,QDA,2,2,0.9075546719681908
+ReliefF,all features,5,RF,2,2,0.8426009598971826
+ReliefF,all features,10,QDA,2,2,0.9085487077534791
+ReliefF,all features,10,RF,2,2,0.8556840773540575
+ReliefF,all features,10,SVM,2,2,0.9428580034941865
+ReliefF,all features,10,LDA,2,2,0.8669899793160231
+ReliefF,all features,15,QDA,2,2,0.9311705524429182
+ReliefF,all features,15,RF,2,2,0.8575918228005703
+SFFS (QDA),all features,5,QDA,2,2,0.9149446753820512
+SFFS (QDA),all features,5,RF,2,2,0.829437516316244
+SFFS (QDA),all features,10,QDA,2,2,0.9488222182059161
+SFFS (QDA),all features,10,RF,2,2,0.8495592103942005
+SFFS (QDA),all features,10,SVM,2,2,0.9566941783641585
+SFFS (QDA),all features,10,LDA,2,2,0.9150250015061149
+SFFS (QDA),all features,15,QDA,2,2,0.9417033154607708
+SFFS (QDA),all features,15,RF,2,2,0.8626423278510753
+Consensus (Borda),all features,5,QDA,2,2,0.9033375504548466
+Consensus (Borda),all features,5,RF,2,2,0.8700022089684117
+Consensus (Borda),all features,10,QDA,2,2,0.9298552121613752
+Consensus (Borda),all features,10,RF,2,2,0.8829246741771593
+Consensus (Borda),all features,10,SVM,2,2,0.9456794586019238
+Consensus (Borda),all features,10,LDA,2,2,0.9008675221398879
+Consensus (Borda),all features,15,QDA,2,2,0.9276261622186075
+Consensus (Borda),all features,15,RF,2,2,0.8556037512299938
+Robust selection + SFFS-LDA (S8),all features,native,QDA,2,2,0.8683053195975661
+Robust selection + SFFS-LDA (S8),all features,native,RF,2,2,0.8183424704299456
+Robust selection + SFFS-LDA (S8),all features,native,SVM,2,2,0.8691387031347271
+Robust selection + SFFS-LDA (S8),all features,native,LDA,2,2,0.8472699158583851
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,2,2,0.8722814627387192
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,2,2,0.8233929754804505
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,2,2,0.9147036970098601
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,2,2,0.8241661144245638
+Full spectrum (SNV),all features,201,SVM,2,2,0.8881358314757917
+Full spectrum (SNV),all features,201,LDA,2,2,0.8766893587967146
+Full spectrum (SNV),all features,201,LR,2,2,0.9173644998694701
+SVM-RFE,join bands excluded,10,QDA,2,2,0.8750225917223928
+SVM-RFE,join bands excluded,10,RF,2,2,0.7424242424242424
+SVM-RFE,join bands excluded,10,SVM,2,2,0.8992308773620901
+SFFS (QDA),join bands excluded,10,QDA,2,2,0.9156174066710846
+SFFS (QDA),join bands excluded,10,RF,2,2,0.7000321304496254
+SFFS (QDA),join bands excluded,10,SVM,2,2,0.9266321264333193
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,2,2,0.7369620659879109
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,2,2,0.7131955740305641
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,2,2,0.8261843082916641
+SVM-RFE,all features,5,QDA,2,3,0.8878910068426198
+SVM-RFE,all features,5,RF,2,3,0.8349951124144672
+SVM-RFE,all features,10,QDA,2,3,0.8718475073313783
+SVM-RFE,all features,10,RF,2,3,0.8030425219941348
+SVM-RFE,all features,10,SVM,2,3,0.9441837732160312
+SVM-RFE,all features,10,LDA,2,3,0.8664711632453568
+SVM-RFE,all features,15,QDA,2,3,0.9325146627565982
+SVM-RFE,all features,15,RF,2,3,0.8268206256109482
+LASSO,all features,5,QDA,2,3,0.8519183773216031
+LASSO,all features,5,RF,2,3,0.8188660801564027
+LASSO,all features,10,QDA,2,3,0.9203201368523949
+LASSO,all features,10,RF,2,3,0.8299242424242423
+LASSO,all features,10,SVM,2,3,0.9158602150537634
+LASSO,all features,10,LDA,2,3,0.8527492668621701
+LASSO,all features,15,QDA,2,3,0.907074780058651
+LASSO,all features,15,RF,2,3,0.8418132942326491
+CARS,all features,5,QDA,2,3,0.8993401759530792
+CARS,all features,5,RF,2,3,0.8055351906158358
+CARS,all features,10,QDA,2,3,0.9427419354838709
+CARS,all features,10,RF,2,3,0.8165933528836755
+CARS,all features,10,SVM,2,3,0.9282746823069403
+CARS,all features,10,LDA,2,3,0.8743401759530791
+CARS,all features,15,QDA,2,3,0.9461510263929618
+CARS,all features,15,RF,2,3,0.8621823069403715
+ReliefF,all features,5,QDA,2,3,0.9156891495601174
+ReliefF,all features,5,RF,2,3,0.8253787878787879
+ReliefF,all features,10,QDA,2,3,0.9028836754643206
+ReliefF,all features,10,RF,2,3,0.913978494623656
+ReliefF,all features,10,SVM,2,3,0.9378910068426198
+ReliefF,all features,10,LDA,2,3,0.8739491691104595
+ReliefF,all features,15,QDA,2,3,0.917656402737048
+ReliefF,all features,15,RF,2,3,0.9032258064516129
+SFFS (QDA),all features,5,QDA,2,3,0.936669110459433
+SFFS (QDA),all features,5,RF,2,3,0.8259042033235582
+SFFS (QDA),all features,10,QDA,2,3,0.9234237536656891
+SFFS (QDA),all features,10,RF,2,3,0.8457478005865102
+SFFS (QDA),all features,10,SVM,2,3,0.8843475073313782
+SFFS (QDA),all features,10,LDA,2,3,0.8419965786901271
+SFFS (QDA),all features,15,QDA,2,3,0.9444037145650048
+SFFS (QDA),all features,15,RF,2,3,0.8384042033235581
+Consensus (Borda),all features,5,QDA,2,3,0.8588220918866081
+Consensus (Borda),all features,5,RF,2,3,0.8103861192570869
+Consensus (Borda),all features,10,QDA,2,3,0.9235092864125123
+Consensus (Borda),all features,10,RF,2,3,0.820307917888563
+Consensus (Borda),all features,10,SVM,2,3,0.9237292277614858
+Consensus (Borda),all features,10,LDA,2,3,0.8845674486803519
+Consensus (Borda),all features,15,QDA,2,3,0.9489491691104595
+Consensus (Borda),all features,15,RF,2,3,0.8986803519061584
+Robust selection + SFFS-LDA (S8),all features,native,QDA,2,3,0.9171309872922777
+Robust selection + SFFS-LDA (S8),all features,native,RF,2,3,0.8590786901270773
+Robust selection + SFFS-LDA (S8),all features,native,SVM,2,3,0.9725073313782991
+Robust selection + SFFS-LDA (S8),all features,native,LDA,2,3,0.906072825024438
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,2,3,0.8531891495601174
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,2,3,0.8760386119257086
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,2,3,0.9339565004887586
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,2,3,0.829411045943304
+Full spectrum (SNV),all features,201,SVM,2,3,0.8689638318670576
+Full spectrum (SNV),all features,201,LDA,2,3,0.8503910068426197
+Full spectrum (SNV),all features,201,LR,2,3,0.9189638318670577
+SVM-RFE,join bands excluded,10,QDA,2,3,0.8899437927663734
+SVM-RFE,join bands excluded,10,RF,2,3,0.7869134897360703
+SVM-RFE,join bands excluded,10,SVM,2,3,0.8996456500488759
+SFFS (QDA),join bands excluded,10,QDA,2,3,0.8631964809384164
+SFFS (QDA),join bands excluded,10,RF,2,3,0.7130009775171066
+SFFS (QDA),join bands excluded,10,SVM,2,3,0.8751710654936461
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,2,3,0.8154692082111437
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,2,3,0.8415078201368524
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,2,3,0.8579912023460411
+SVM-RFE,all features,5,QDA,3,0,0.9128428270042195
+SVM-RFE,all features,5,RF,3,0,0.8593090717299579
+SVM-RFE,all features,10,QDA,3,0,0.9432357594936709
+SVM-RFE,all features,10,RF,3,0,0.8634625527426161
+SVM-RFE,all features,10,SVM,3,0,0.9633438818565401
+SVM-RFE,all features,10,LDA,3,0,0.9516745780590717
+SVM-RFE,all features,15,QDA,3,0,0.9821334388185654
+SVM-RFE,all features,15,RF,3,0,0.8999868143459916
+LASSO,all features,5,QDA,3,0,0.8488924050632911
+LASSO,all features,5,RF,3,0,0.7612737341772152
+LASSO,all features,10,QDA,3,0,0.9077004219409283
+LASSO,all features,10,RF,3,0,0.8468486286919832
+LASSO,all features,10,SVM,3,0,0.9476529535864979
+LASSO,all features,10,LDA,3,0,0.8961629746835442
+LASSO,all features,15,QDA,3,0,0.90354694092827
+LASSO,all features,15,RF,3,0,0.8687368143459916
+CARS,all features,5,QDA,3,0,0.8812631856540085
+CARS,all features,5,RF,3,0,0.7946993670886076
+CARS,all features,10,QDA,3,0,0.932753164556962
+CARS,all features,10,RF,3,0,0.8332674050632911
+CARS,all features,10,SVM,3,0,0.9686181434599157
+CARS,all features,10,LDA,3,0,0.9119198312236287
+CARS,all features,15,QDA,3,0,0.9558939873417722
+CARS,all features,15,RF,3,0,0.8217958860759493
+ReliefF,all features,5,QDA,3,0,0.9115242616033755
+ReliefF,all features,5,RF,3,0,0.8070279535864979
+ReliefF,all features,10,QDA,3,0,0.8808676160337553
+ReliefF,all features,10,RF,3,0,0.8622758438818565
+ReliefF,all features,10,SVM,3,0,0.9393459915611815
+ReliefF,all features,10,LDA,3,0,0.9192378691983123
+ReliefF,all features,15,QDA,3,0,0.8935917721518987
+ReliefF,all features,15,RF,3,0,0.8758570675105486
+SFFS (QDA),all features,5,QDA,3,0,0.8945806962025317
+SFFS (QDA),all features,5,RF,3,0,0.8331355485232068
+SFFS (QDA),all features,10,QDA,3,0,0.9253691983122363
+SFFS (QDA),all features,10,RF,3,0,0.8612209915611815
+SFFS (QDA),all features,10,SVM,3,0,0.9295886075949367
+SFFS (QDA),all features,10,LDA,3,0,0.8954377637130801
+SFFS (QDA),all features,15,QDA,3,0,0.9558939873417722
+SFFS (QDA),all features,15,RF,3,0,0.8999208860759493
+Consensus (Borda),all features,5,QDA,3,0,0.8894382911392404
+Consensus (Borda),all features,5,RF,3,0,0.8434862869198312
+Consensus (Borda),all features,10,QDA,3,0,0.9452795358649788
+Consensus (Borda),all features,10,RF,3,0,0.8999208860759493
+Consensus (Borda),all features,10,SVM,3,0,0.9676292194092827
+Consensus (Borda),all features,10,LDA,3,0,0.9401371308016877
+Consensus (Borda),all features,15,QDA,3,0,0.946334388185654
+Consensus (Borda),all features,15,RF,3,0,0.9196993670886076
+Robust selection + SFFS-LDA (S8),all features,native,QDA,3,0,0.8802083333333334
+Robust selection + SFFS-LDA (S8),all features,native,RF,3,0,0.805050105485232
+Robust selection + SFFS-LDA (S8),all features,native,SVM,3,0,0.920490506329114
+Robust selection + SFFS-LDA (S8),all features,native,LDA,3,0,0.8928006329113924
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,3,0,0.8788897679324894
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,3,0,0.7936445147679325
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,3,0,0.9392141350210971
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,3,0,0.8761207805907173
+Full spectrum (SNV),all features,201,SVM,3,0,0.9082278481012658
+Full spectrum (SNV),all features,201,LDA,3,0,0.8980748945147679
+Full spectrum (SNV),all features,201,LR,3,0,0.9706619198312236
+SVM-RFE,join bands excluded,10,QDA,3,0,0.8949103375527426
+SVM-RFE,join bands excluded,10,RF,3,0,0.7999736286919832
+SVM-RFE,join bands excluded,10,SVM,3,0,0.9413238396624473
+SFFS (QDA),join bands excluded,10,QDA,3,0,0.9150184599156118
+SFFS (QDA),join bands excluded,10,RF,3,0,0.7301555907172996
+SFFS (QDA),join bands excluded,10,SVM,3,0,0.9423786919831223
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,3,0,0.8227188818565401
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,3,0,0.7769646624472574
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,3,0,0.8317510548523206
+SVM-RFE,all features,5,QDA,3,1,0.8081900714699632
+SVM-RFE,all features,5,RF,3,1,0.7016290000643874
+SVM-RFE,all features,10,QDA,3,1,0.8440538278282146
+SVM-RFE,all features,10,RF,3,1,0.7452514326186337
+SVM-RFE,all features,10,SVM,3,1,0.8692292833687464
+SVM-RFE,all features,10,LDA,3,1,0.8550318717403902
+SVM-RFE,all features,15,QDA,3,1,0.8819135921704977
+SVM-RFE,all features,15,RF,3,1,0.7751271650247891
+LASSO,all features,5,QDA,3,1,0.7972120275577876
+LASSO,all features,5,RF,3,1,0.8348786298371
+LASSO,all features,10,QDA,3,1,0.8049707037537828
+LASSO,all features,10,RF,3,1,0.8506213379692229
+LASSO,all features,10,SVM,3,1,0.8716116154787199
+LASSO,all features,10,LDA,3,1,0.809574399587921
+LASSO,all features,15,QDA,3,1,0.8450518318202305
+LASSO,all features,15,RF,3,1,0.8673620500933616
+CARS,all features,5,QDA,3,1,0.8002060395338355
+CARS,all features,5,RF,3,1,0.7815015131028267
+CARS,all features,10,QDA,3,1,0.8845212800206039
+CARS,all features,10,RF,3,1,0.8546133539372867
+CARS,all features,10,SVM,3,1,0.9086987315691197
+CARS,all features,10,LDA,3,1,0.8209387676260382
+CARS,all features,15,QDA,3,1,0.9138497199150086
+CARS,all features,15,RF,3,1,0.8683600540853776
+ReliefF,all features,5,QDA,3,1,0.8297920288455347
+ReliefF,all features,5,RF,3,1,0.8513939862211062
+ReliefF,all features,10,QDA,3,1,0.8677161805421416
+ReliefF,all features,10,RF,3,1,0.920739166827635
+ReliefF,all features,10,SVM,3,1,0.9180670916232052
+ReliefF,all features,10,LDA,3,1,0.8422187882299916
+ReliefF,all features,15,QDA,3,1,0.8635631961882686
+ReliefF,all features,15,RF,3,1,0.8952417745154851
+SFFS (QDA),all features,5,QDA,3,1,0.7977593200695383
+SFFS (QDA),all features,5,RF,3,1,0.8444079582769943
+SFFS (QDA),all features,10,QDA,3,1,0.8279247955701501
+SFFS (QDA),all features,10,RF,3,1,0.8818813984933359
+SFFS (QDA),all features,10,SVM,3,1,0.8339128195222458
+SFFS (QDA),all features,10,LDA,3,1,0.8420578198441826
+SFFS (QDA),all features,15,QDA,3,1,0.8614062198184276
+SFFS (QDA),all features,15,RF,3,1,0.9127551348915073
+Consensus (Borda),all features,5,QDA,3,1,0.7983709999356127
+Consensus (Borda),all features,5,RF,3,1,0.8366492820809993
+Consensus (Borda),all features,10,QDA,3,1,0.8340737879080549
+Consensus (Borda),all features,10,RF,3,1,0.8812697186272616
+Consensus (Borda),all features,10,SVM,3,1,0.9003283755070504
+Consensus (Borda),all features,10,LDA,3,1,0.7872319876376279
+Consensus (Borda),all features,15,QDA,3,1,0.8825252720365719
+Consensus (Borda),all features,15,RF,3,1,0.8818813984933359
+Robust selection + SFFS-LDA (S8),all features,native,QDA,3,1,0.8595711802202047
+Robust selection + SFFS-LDA (S8),all features,native,RF,3,1,0.8062262571630932
+Robust selection + SFFS-LDA (S8),all features,native,SVM,3,1,0.9090850556950615
+Robust selection + SFFS-LDA (S8),all features,native,LDA,3,1,0.8370677998841027
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,3,1,0.8657201725581096
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,3,1,0.8129869293670723
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,3,1,0.8969480394050608
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,3,1,0.8113450518318203
+Full spectrum (SNV),all features,201,SVM,3,1,0.8858090271070762
+Full spectrum (SNV),all features,201,LDA,3,1,0.8664928208099929
+Full spectrum (SNV),all features,201,LR,3,1,0.8923443435709226
+SVM-RFE,join bands excluded,10,QDA,3,1,0.8647865559204172
+SVM-RFE,join bands excluded,10,RF,3,1,0.7434807803747344
+SVM-RFE,join bands excluded,10,SVM,3,1,0.8779859635567575
+SFFS (QDA),join bands excluded,10,QDA,3,1,0.8315304874122722
+SFFS (QDA),join bands excluded,10,RF,3,1,0.6805743352005666
+SFFS (QDA),join bands excluded,10,SVM,3,1,0.8417358830725645
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,3,1,0.7622818878372288
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,3,1,0.7484708003348142
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,3,1,0.8126327989182924
+SVM-RFE,all features,5,QDA,3,2,0.8391035615491009
+SVM-RFE,all features,5,RF,3,2,0.7302904564315353
+SVM-RFE,all features,10,QDA,3,2,0.8878155255878285
+SVM-RFE,all features,10,RF,3,2,0.792725622406639
+SVM-RFE,all features,10,SVM,3,2,0.8814834024896265
+SVM-RFE,all features,10,LDA,3,2,0.8607797372060857
+SVM-RFE,all features,15,QDA,3,2,0.934560857538036
+SVM-RFE,all features,15,RF,3,2,0.8729469225449515
+LASSO,all features,5,QDA,3,2,0.8275631051175657
+LASSO,all features,5,RF,3,2,0.8094744121715076
+LASSO,all features,10,QDA,3,2,0.8607797372060857
+LASSO,all features,10,RF,3,2,0.8323392116182573
+LASSO,all features,10,SVM,3,2,0.8856327800829875
+LASSO,all features,10,LDA,3,2,0.8285572268326418
+LASSO,all features,15,QDA,3,2,0.8826288035961273
+LASSO,all features,15,RF,3,2,0.8375259336099585
+CARS,all features,5,QDA,3,2,0.8461488589211619
+CARS,all features,5,RF,3,2,0.7219484785615491
+CARS,all features,10,QDA,3,2,0.9158238243430152
+CARS,all features,10,RF,3,2,0.8469268672199171
+CARS,all features,10,SVM,3,2,0.9314056016597511
+CARS,all features,10,LDA,3,2,0.8909275587828492
+CARS,all features,15,QDA,3,2,0.9210753803596128
+CARS,all features,15,RF,3,2,0.9167098893499308
+ReliefF,all features,5,QDA,3,2,0.8817427385892116
+ReliefF,all features,5,RF,3,2,0.8802947786998617
+ReliefF,all features,10,QDA,3,2,0.8992911479944675
+ReliefF,all features,10,RF,3,2,0.9573392116182573
+ReliefF,all features,10,SVM,3,2,0.9272778354080221
+ReliefF,all features,10,LDA,3,2,0.8307399723374826
+ReliefF,all features,15,QDA,3,2,0.9148729253112033
+ReliefF,all features,15,RF,3,2,0.9437889004149378
+SFFS (QDA),all features,5,QDA,3,2,0.8899766597510373
+SFFS (QDA),all features,5,RF,3,2,0.8958765560165975
+SFFS (QDA),all features,10,QDA,3,2,0.8919432918395573
+SFFS (QDA),all features,10,RF,3,2,0.9239929114799447
+SFFS (QDA),all features,10,SVM,3,2,0.9200164246196404
+SFFS (QDA),all features,10,LDA,3,2,0.8649507261410788
+SFFS (QDA),all features,15,QDA,3,2,0.9085840248962656
+SFFS (QDA),all features,15,RF,3,2,0.925030255878285
+Consensus (Borda),all features,5,QDA,3,2,0.8680627593360997
+Consensus (Borda),all features,5,RF,3,2,0.8583808782849239
+Consensus (Borda),all features,10,QDA,3,2,0.9210321576763485
+Consensus (Borda),all features,10,RF,3,2,0.8938018672199171
+Consensus (Borda),all features,10,SVM,3,2,0.923085235131397
+Consensus (Borda),all features,10,LDA,3,2,0.8565871369294606
+Consensus (Borda),all features,15,QDA,3,2,0.9022735131396957
+Consensus (Borda),all features,15,RF,3,2,0.9281639004149378
+Robust selection + SFFS-LDA (S8),all features,native,QDA,3,2,0.8557226832641771
+Robust selection + SFFS-LDA (S8),all features,native,RF,3,2,0.8989885892116183
+Robust selection + SFFS-LDA (S8),all features,native,SVM,3,2,0.9221343360995851
+Robust selection + SFFS-LDA (S8),all features,native,LDA,3,2,0.8536479944674966
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,3,2,0.8754538381742738
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,3,2,0.8156768672199171
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,3,2,0.9116528354080221
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,3,2,0.7798884854771784
+Full spectrum (SNV),all features,201,SVM,3,2,0.8970435684647302
+Full spectrum (SNV),all features,201,LDA,3,2,0.844225449515906
+Full spectrum (SNV),all features,201,LR,3,2,0.9001772130013831
+SVM-RFE,join bands excluded,10,QDA,3,2,0.874265214384509
+SVM-RFE,join bands excluded,10,RF,3,2,0.7896352005532503
+SVM-RFE,join bands excluded,10,SVM,3,2,0.8731414246196404
+SFFS (QDA),join bands excluded,10,QDA,3,2,0.8867997925311204
+SFFS (QDA),join bands excluded,10,RF,3,2,0.7657114453665284
+SFFS (QDA),join bands excluded,10,SVM,3,2,0.8762966804979253
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,3,2,0.8109872060857538
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,3,2,0.8105333679114799
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,3,2,0.8492825034578146
+SVM-RFE,all features,5,QDA,3,3,0.8711568001890582
+SVM-RFE,all features,5,RF,3,3,0.8201465201465201
+SVM-RFE,all features,10,QDA,3,3,0.8996100673520029
+SVM-RFE,all features,10,RF,3,3,0.8106108944818622
+SVM-RFE,all features,10,SVM,3,3,0.9173106463429044
+SVM-RFE,all features,10,LDA,3,3,0.8833628736854543
+SVM-RFE,all features,15,QDA,3,3,0.9075386978612785
+SVM-RFE,all features,15,RF,3,3,0.808531253692544
+LASSO,all features,5,QDA,3,3,0.8327779747134586
+LASSO,all features,5,RF,3,3,0.8040174878884556
+LASSO,all features,10,QDA,3,3,0.8374099019260309
+LASSO,all features,10,RF,3,3,0.8009571074087203
+LASSO,all features,10,SVM,3,3,0.8614675646933712
+LASSO,all features,10,LDA,3,3,0.8066406711568002
+LASSO,all features,15,QDA,3,3,0.8611130804679192
+LASSO,all features,15,RF,3,3,0.8096301547914451
+CARS,all features,5,QDA,3,3,0.8529481271416754
+CARS,all features,5,RF,3,3,0.7931466383079286
+CARS,all features,10,QDA,3,3,0.8651542006380716
+CARS,all features,10,RF,3,3,0.8245421245421245
+CARS,all features,10,SVM,3,3,0.891527827011698
+CARS,all features,10,LDA,3,3,0.8334042301784237
+CARS,all features,15,QDA,3,3,0.9032612548741581
+CARS,all features,15,RF,3,3,0.8515420063807161
+ReliefF,all features,5,QDA,3,3,0.8467446531962661
+ReliefF,all features,5,RF,3,3,0.8438496986884083
+ReliefF,all features,10,QDA,3,3,0.8617747843554295
+ReliefF,all features,10,RF,3,3,0.8515420063807161
+ReliefF,all features,10,SVM,3,3,0.9190003544842255
+ReliefF,all features,10,LDA,3,3,0.7994564575209737
+ReliefF,all features,15,QDA,3,3,0.878494623655914
+ReliefF,all features,15,RF,3,3,0.8526409074796172
+SFFS (QDA),all features,5,QDA,3,3,0.8886210563629918
+SFFS (QDA),all features,5,RF,3,3,0.7930284768994447
+SFFS (QDA),all features,10,QDA,3,3,0.9105990783410138
+SFFS (QDA),all features,10,RF,3,3,0.840671156800189
+SFFS (QDA),all features,10,SVM,3,3,0.923904052936311
+SFFS (QDA),all features,10,LDA,3,3,0.8462365591397849
+SFFS (QDA),all features,15,QDA,3,3,0.923785891527827
+SFFS (QDA),all features,15,RF,3,3,0.8558194493678365
+Consensus (Borda),all features,5,QDA,3,3,0.8031076450431289
+Consensus (Borda),all features,5,RF,3,3,0.7793335696561503
+Consensus (Borda),all features,10,QDA,3,3,0.911461656622947
+Consensus (Borda),all features,10,RF,3,3,0.8385915160108709
+Consensus (Borda),all features,10,SVM,3,3,0.9401512466028595
+Consensus (Borda),all features,10,LDA,3,3,0.8721375398794753
+Consensus (Borda),all features,15,QDA,3,3,0.9062034739454095
+Consensus (Borda),all features,15,RF,3,3,0.8515420063807161
+Robust selection + SFFS-LDA (S8),all features,native,QDA,3,3,0.8479617157036512
+Robust selection + SFFS-LDA (S8),all features,native,RF,3,3,0.8030367481980385
+Robust selection + SFFS-LDA (S8),all features,native,SVM,3,3,0.90361573909961
+Robust selection + SFFS-LDA (S8),all features,native,LDA,3,3,0.8185277088502895
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,3,3,0.8084012761432116
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,3,3,0.8041356492969396
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,3,3,0.8873685454330615
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,3,3,0.7797943991492379
+Full spectrum (SNV),all features,201,SVM,3,3,0.8670802315963606
+Full spectrum (SNV),all features,201,LDA,3,3,0.8336405529953917
+Full spectrum (SNV),all features,201,LR,3,3,0.9340304856433889
+SVM-RFE,join bands excluded,10,QDA,3,3,0.8985111662531018
+SVM-RFE,join bands excluded,10,RF,3,3,0.7954626019142148
+SVM-RFE,join bands excluded,10,SVM,3,3,0.8998463901689708
+SFFS (QDA),join bands excluded,10,QDA,3,3,0.8276734018669503
+SFFS (QDA),join bands excluded,10,RF,3,3,0.7266690298948364
+SFFS (QDA),join bands excluded,10,SVM,3,3,0.8535389341840955
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,3,3,0.7983930048446177
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,3,3,0.7659104336523692
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,3,3,0.8320690062625546
+SVM-RFE,all features,5,QDA,4,0,0.8388478048365846
+SVM-RFE,all features,5,RF,4,0,0.8129011007692635
+SVM-RFE,all features,10,QDA,4,0,0.9189723320158103
+SVM-RFE,all features,10,RF,4,0,0.9152853924943687
+SVM-RFE,all features,10,SVM,4,0,0.947745335543372
+SVM-RFE,all features,10,LDA,4,0,0.8840685962004335
+SVM-RFE,all features,15,QDA,4,0,0.9160079051383399
+SVM-RFE,all features,15,RF,4,0,0.9191210846189808
+LASSO,all features,5,QDA,4,0,0.8230375281567428
+LASSO,all features,5,RF,4,0,0.8509711419949849
+LASSO,all features,10,QDA,4,0,0.8603531811806706
+LASSO,all features,10,RF,4,0,0.8661120319605593
+LASSO,all features,10,SVM,4,0,0.88331420799864
+LASSO,all features,10,LDA,4,0,0.851141144970037
+LASSO,all features,15,QDA,4,0,0.8541055718475072
+LASSO,all features,15,RF,4,0,0.8819223086404012
+CARS,all features,5,QDA,4,0,0.7996727442730247
+CARS,all features,5,RF,4,0,0.8144417527306729
+CARS,all features,10,QDA,4,0,0.8387309277912364
+CARS,all features,10,RF,4,0,0.8788410047175825
+CARS,all features,10,SVM,4,0,0.8699158485273493
+CARS,all features,10,LDA,4,0,0.7875812826724468
+CARS,all features,15,QDA,4,0,0.8590462833099579
+CARS,all features,15,RF,4,0,0.8974988312295465
+ReliefF,all features,5,QDA,4,0,0.7749373114029496
+ReliefF,all features,5,RF,4,0,0.8881699179735645
+ReliefF,all features,10,QDA,4,0,0.8110629436015131
+ReliefF,all features,10,RF,4,0,0.9176973097029197
+ReliefF,all features,10,SVM,4,0,0.9289706319860598
+ReliefF,all features,10,LDA,4,0,0.833907093374134
+ReliefF,all features,15,QDA,4,0,0.835330868290195
+ReliefF,all features,15,RF,4,0,0.9196735942879
+SFFS (QDA),all features,5,QDA,4,0,0.8323664414127248
+SFFS (QDA),all features,5,RF,4,0,0.8489948574100046
+SFFS (QDA),all features,10,QDA,4,0,0.8805516596540439
+SFFS (QDA),all features,10,RF,4,0,0.8857580007650134
+SFFS (QDA),all features,10,SVM,4,0,0.9077840112201964
+SFFS (QDA),all features,10,LDA,4,0,0.8546580815164265
+SFFS (QDA),all features,15,QDA,4,0,0.8925262442092736
+SFFS (QDA),all features,15,RF,4,0,0.8795103914318501
+Consensus (Borda),all features,5,QDA,4,0,0.7706659866547665
+Consensus (Borda),all features,5,RF,4,0,0.8754409452165413
+Consensus (Borda),all features,10,QDA,4,0,0.8055697224701432
+Consensus (Borda),all features,10,RF,4,0,0.8887224276424838
+Consensus (Borda),all features,10,SVM,4,0,0.8758447022822899
+Consensus (Borda),all features,10,LDA,4,0,0.75915891028093
+Consensus (Borda),all features,15,QDA,4,0,0.8945025287942538
+Consensus (Borda),all features,15,RF,4,0,0.8956394236899146
+Robust selection + SFFS-LDA (S8),all features,native,QDA,4,0,0.8234731607803136
+Robust selection + SFFS-LDA (S8),all features,native,RF,4,0,0.8359471290747589
+Robust selection + SFFS-LDA (S8),all features,native,SVM,4,0,0.8816566789918824
+Robust selection + SFFS-LDA (S8),all features,native,LDA,4,0,0.8137086149007607
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,4,0,0.792405117089549
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,4,0,0.8696289685069489
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,4,0,0.8896786943771515
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,4,0,0.7827574482553445
+Full spectrum (SNV),all features,201,SVM,4,0,0.8934293850142377
+Full spectrum (SNV),all features,201,LDA,4,0,0.8899974499553742
+Full spectrum (SNV),all features,201,LR,4,0,0.9412639721195121
+SVM-RFE,join bands excluded,10,QDA,4,0,0.904819584342726
+SVM-RFE,join bands excluded,10,RF,4,0,0.831792681371924
+SVM-RFE,join bands excluded,10,SVM,4,0,0.9139466190658336
+SFFS (QDA),join bands excluded,10,QDA,4,0,0.8530005525096689
+SFFS (QDA),join bands excluded,10,RF,4,0,0.8076416337285902
+SFFS (QDA),join bands excluded,10,SVM,4,0,0.8681733180330655
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,4,0,0.7659590292830125
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,4,0,0.7677971864507629
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,4,0,0.789121934633856
+SVM-RFE,all features,5,QDA,4,1,0.8236559139784946
+SVM-RFE,all features,5,RF,4,1,0.8233333333333333
+SVM-RFE,all features,10,QDA,4,1,0.8662365591397849
+SVM-RFE,all features,10,RF,4,1,0.8439068100358423
+SVM-RFE,all features,10,SVM,4,1,0.9336559139784946
+SVM-RFE,all features,10,LDA,4,1,0.8556989247311828
+SVM-RFE,all features,15,QDA,4,1,0.9047670250896057
+SVM-RFE,all features,15,RF,4,1,0.8546594982078853
+LASSO,all features,5,QDA,4,1,0.8132616487455198
+LASSO,all features,5,RF,4,1,0.8198207885304659
+LASSO,all features,10,QDA,4,1,0.8410394265232974
+LASSO,all features,10,RF,4,1,0.850394265232975
+LASSO,all features,10,SVM,4,1,0.8782795698924731
+LASSO,all features,10,LDA,4,1,0.8558781362007168
+LASSO,all features,15,QDA,4,1,0.8805017921146954
+LASSO,all features,15,RF,4,1,0.8407526881720431
+CARS,all features,5,QDA,4,1,0.8390322580645161
+CARS,all features,5,RF,4,1,0.8437275985663082
+CARS,all features,10,QDA,4,1,0.9072043010752688
+CARS,all features,10,RF,4,1,0.8869175627240143
+CARS,all features,10,SVM,4,1,0.938494623655914
+CARS,all features,10,LDA,4,1,0.8544086021505376
+CARS,all features,15,QDA,4,1,0.9229390681003584
+CARS,all features,15,RF,4,1,0.90415770609319
+ReliefF,all features,5,QDA,4,1,0.8877777777777778
+ReliefF,all features,5,RF,4,1,0.9134408602150538
+ReliefF,all features,10,QDA,4,1,0.8868458781362007
+ReliefF,all features,10,RF,4,1,0.9673835125448029
+ReliefF,all features,10,SVM,4,1,0.9479569892473119
+ReliefF,all features,10,LDA,4,1,0.8362724014336917
+ReliefF,all features,15,QDA,4,1,0.8968458781362008
+ReliefF,all features,15,RF,4,1,0.9534767025089605
+SFFS (QDA),all features,5,QDA,4,1,0.8648028673835125
+SFFS (QDA),all features,5,RF,4,1,0.8530107526881721
+SFFS (QDA),all features,10,QDA,4,1,0.9084946236559139
+SFFS (QDA),all features,10,RF,4,1,0.8327956989247312
+SFFS (QDA),all features,10,SVM,4,1,0.917168458781362
+SFFS (QDA),all features,10,LDA,4,1,0.8471684587813619
+SFFS (QDA),all features,15,QDA,4,1,0.9097849462365591
+SFFS (QDA),all features,15,RF,4,1,0.8329749103942652
+Consensus (Borda),all features,5,QDA,4,1,0.8781362007168458
+Consensus (Borda),all features,5,RF,4,1,0.8821146953405017
+Consensus (Borda),all features,10,QDA,4,1,0.9225806451612903
+Consensus (Borda),all features,10,RF,4,1,0.9125089605734766
+Consensus (Borda),all features,10,SVM,4,1,0.9338709677419355
+Consensus (Borda),all features,10,LDA,4,1,0.8762724014336918
+Consensus (Borda),all features,15,QDA,4,1,0.9296057347670251
+Consensus (Borda),all features,15,RF,4,1,0.9115770609318996
+Robust selection + SFFS-LDA (S8),all features,native,QDA,4,1,0.858494623655914
+Robust selection + SFFS-LDA (S8),all features,native,RF,4,1,0.8998924731182796
+Robust selection + SFFS-LDA (S8),all features,native,SVM,4,1,0.939247311827957
+Robust selection + SFFS-LDA (S8),all features,native,LDA,4,1,0.868673835125448
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,4,1,0.8438709677419355
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,4,1,0.8976702508960573
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,4,1,0.9453405017921147
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,4,1,0.8001433691756272
+Full spectrum (SNV),all features,201,SVM,4,1,0.8845878136200717
+Full spectrum (SNV),all features,201,LDA,4,1,0.847562724014337
+Full spectrum (SNV),all features,201,LR,4,1,0.9345878136200716
+SVM-RFE,join bands excluded,10,QDA,4,1,0.8734767025089605
+SVM-RFE,join bands excluded,10,RF,4,1,0.756594982078853
+SVM-RFE,join bands excluded,10,SVM,4,1,0.888853046594982
+SFFS (QDA),join bands excluded,10,QDA,4,1,0.8521863799283154
+SFFS (QDA),join bands excluded,10,RF,4,1,0.7221146953405018
+SFFS (QDA),join bands excluded,10,SVM,4,1,0.8751254480286739
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,4,1,0.7975627240143369
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,4,1,0.8125806451612902
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,4,1,0.8527240143369175
+SVM-RFE,all features,5,QDA,4,2,0.885009030704395
+SVM-RFE,all features,5,RF,4,2,0.787109505652552
+SVM-RFE,all features,10,QDA,4,2,0.9167168372466385
+SVM-RFE,all features,10,RF,4,2,0.8385510736504114
+SVM-RFE,all features,10,SVM,4,2,0.9174861194728745
+SVM-RFE,all features,10,LDA,4,2,0.8818650076928223
+SVM-RFE,all features,15,QDA,4,2,0.9288581175998395
+SVM-RFE,all features,15,RF,4,2,0.842966084687939
+LASSO,all features,5,QDA,4,2,0.8603919994648472
+LASSO,all features,5,RF,4,2,0.8710616094722055
+LASSO,all features,10,QDA,4,2,0.8797912903873168
+LASSO,all features,10,RF,4,2,0.849120342497826
+LASSO,all features,10,SVM,4,2,0.9141748611947287
+LASSO,all features,10,LDA,4,2,0.8266439226704128
+LASSO,all features,15,QDA,4,2,0.8876847949695632
+LASSO,all features,15,RF,4,2,0.8502240952572078
+CARS,all features,5,QDA,4,2,0.862766740250184
+CARS,all features,5,RF,4,2,0.854505318081477
+CARS,all features,10,QDA,4,2,0.868920998060071
+CARS,all features,10,RF,4,2,0.8683858452070372
+CARS,all features,10,SVM,4,2,0.9261823533346711
+CARS,all features,10,LDA,4,2,0.8686199745802394
+CARS,all features,15,QDA,4,2,0.8933707940330458
+CARS,all features,15,RF,4,2,0.8469128369790622
+ReliefF,all features,5,QDA,4,2,0.8604254465181618
+ReliefF,all features,5,RF,4,2,0.8587530938524316
+ReliefF,all features,10,QDA,4,2,0.8727339621379356
+ReliefF,all features,10,RF,4,2,0.876580373269115
+ReliefF,all features,10,SVM,4,2,0.9372198809284902
+ReliefF,all features,10,LDA,4,2,0.7973108569135059
+ReliefF,all features,15,QDA,4,2,0.9153120610074252
+ReliefF,all features,15,RF,4,2,0.8945748879523714
+SFFS (QDA),all features,5,QDA,4,2,0.9280888353736036
+SFFS (QDA),all features,5,RF,4,2,0.8701250919793966
+SFFS (QDA),all features,10,QDA,4,2,0.9272861060940532
+SFFS (QDA),all features,10,RF,4,2,0.899157134256472
+SFFS (QDA),all features,10,SVM,4,2,0.9129373202220885
+SFFS (QDA),all features,10,LDA,4,2,0.8992240283631012
+SFFS (QDA),all features,15,QDA,4,2,0.9217673422971436
+SFFS (QDA),all features,15,RF,4,2,0.8732691149909693
+Consensus (Borda),all features,5,QDA,4,2,0.8793230316409124
+Consensus (Borda),all features,5,RF,4,2,0.8822663723325975
+Consensus (Borda),all features,10,QDA,4,2,0.8861127834637768
+Consensus (Borda),all features,10,RF,4,2,0.8835373603585523
+Consensus (Borda),all features,10,SVM,4,2,0.9227038597899525
+Consensus (Borda),all features,10,LDA,4,2,0.8757107498829353
+Consensus (Borda),all features,15,QDA,4,2,0.8920998060070908
+Consensus (Borda),all features,15,RF,4,2,0.8514950832831627
+Robust selection + SFFS-LDA (S8),all features,native,QDA,4,2,0.8763462438959128
+Robust selection + SFFS-LDA (S8),all features,native,RF,4,2,0.836811826878052
+Robust selection + SFFS-LDA (S8),all features,native,SVM,4,2,0.932938658104221
+Robust selection + SFFS-LDA (S8),all features,native,LDA,4,2,0.8586861997458024
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,4,2,0.8386514148103552
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,4,2,0.8211920529801324
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,4,2,0.9168506254598969
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,4,2,0.823332664392267
+Full spectrum (SNV),all features,201,SVM,4,2,0.8403572145294
+Full spectrum (SNV),all features,201,LDA,4,2,0.8362766740250184
+Full spectrum (SNV),all features,201,LR,4,2,0.9372198809284902
+SVM-RFE,join bands excluded,10,QDA,4,2,0.8344036390394006
+SVM-RFE,join bands excluded,10,RF,4,2,0.753327981804803
+SVM-RFE,join bands excluded,10,SVM,4,2,0.8870493009565856
+SFFS (QDA),join bands excluded,10,QDA,4,2,0.8179811358619306
+SFFS (QDA),join bands excluded,10,RF,4,2,0.7006154257809887
+SFFS (QDA),join bands excluded,10,SVM,4,2,0.8436684728075456
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,4,2,0.7381764666532878
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,4,2,0.6884741454277878
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,4,2,0.8080139139741789
+SVM-RFE,all features,5,QDA,4,3,0.7784796596763506
+SVM-RFE,all features,5,RF,4,3,0.6808076273541546
+SVM-RFE,all features,10,QDA,4,3,0.823660189401227
+SVM-RFE,all features,10,RF,4,3,0.6788195557835781
+SVM-RFE,all features,10,SVM,4,3,0.8604395134568931
+SVM-RFE,all features,10,LDA,4,3,0.809294769020287
+SVM-RFE,all features,15,QDA,4,3,0.8716411210158405
+SVM-RFE,all features,15,RF,4,3,0.6593022510100686
+LASSO,all features,5,QDA,4,3,0.8589431155005451
+LASSO,all features,5,RF,4,3,0.7071014771585541
+LASSO,all features,10,QDA,4,3,0.8063554158917463
+LASSO,all features,10,RF,4,3,0.6792257209431583
+LASSO,all features,10,SVM,4,3,0.8194595865666218
+LASSO,all features,10,LDA,4,3,0.8362192436777186
+LASSO,all features,15,QDA,4,3,0.8810363624703392
+LASSO,all features,15,RF,4,3,0.6680668676115351
+CARS,all features,5,QDA,4,3,0.7641997477500588
+CARS,all features,5,RF,4,3,0.602781162487441
+CARS,all features,10,QDA,4,3,0.8680283888069433
+CARS,all features,10,RF,4,3,0.6680668676115351
+CARS,all features,10,SVM,4,3,0.8610273840826012
+CARS,all features,10,LDA,4,3,0.8638705401996623
+CARS,all features,15,QDA,4,3,0.9444729472626605
+CARS,all features,15,RF,4,3,0.7399474123003912
+ReliefF,all features,5,QDA,4,3,0.8844246349857843
+ReliefF,all features,5,RF,4,3,0.7833643301481434
+ReliefF,all features,10,QDA,4,3,0.8953590286239552
+ReliefF,all features,10,RF,4,3,0.8132281579341157
+ReliefF,all features,10,SVM,4,3,0.9249556424891512
+ReliefF,all features,10,LDA,4,3,0.8677077321020116
+ReliefF,all features,15,QDA,4,3,0.8969409350349515
+ReliefF,all features,15,RF,4,3,0.7447358857607046
+SFFS (QDA),all features,5,QDA,4,3,0.8993351717651082
+SFFS (QDA),all features,5,RF,4,3,0.7168601295453088
+SFFS (QDA),all features,10,QDA,4,3,0.8787810769789863
+SFFS (QDA),all features,10,RF,4,3,0.703713204643109
+SFFS (QDA),all features,10,SVM,4,3,0.8741743089848009
+SFFS (QDA),all features,10,LDA,4,3,0.8615190576968298
+SFFS (QDA),all features,15,QDA,4,3,0.8945039440774707
+SFFS (QDA),all features,15,RF,4,3,0.7722054768165202
+Consensus (Borda),all features,5,QDA,4,3,0.8999657966181407
+Consensus (Borda),all features,5,RF,4,3,0.7148720579747323
+Consensus (Borda),all features,10,QDA,4,3,0.8975288056606596
+Consensus (Borda),all features,10,RF,4,3,0.7023130036982407
+Consensus (Borda),all features,10,SVM,4,3,0.8692041300583595
+Consensus (Borda),all features,10,LDA,4,3,0.8889458945253212
+Consensus (Borda),all features,15,QDA,4,3,0.8714166613223882
+Consensus (Borda),all features,15,RF,4,3,0.7096774193548387
+Robust selection + SFFS-LDA (S8),all features,native,QDA,4,3,0.8738536522798692
+Robust selection + SFFS-LDA (S8),all features,native,RF,4,3,0.7594647170739006
+Robust selection + SFFS-LDA (S8),all features,native,SVM,4,3,0.8980739220590437
+Robust selection + SFFS-LDA (S8),all features,native,LDA,4,3,0.8505846640586587
+"OFC-SVM (Tian et al., 2021)",all features,native,QDA,4,3,0.887225036875521
+"OFC-SVM (Tian et al., 2021)",all features,native,RF,4,3,0.7646593556937942
+"OFC-SVM (Tian et al., 2021)",all features,native,SVM,4,3,0.8982983817524958
+"OFC-SVM (Tian et al., 2021)",all features,native,LDA,4,3,0.7956454819470276
+Full spectrum (SNV),all features,201,SVM,4,3,0.842140704162124
+Full spectrum (SNV),all features,201,LDA,4,3,0.8340494666410141
+Full spectrum (SNV),all features,201,LR,4,3,0.8164347249834327
+SVM-RFE,join bands excluded,10,QDA,4,3,0.7729643643515253
+SVM-RFE,join bands excluded,10,RF,4,3,0.6778255199982899
+SVM-RFE,join bands excluded,10,SVM,4,3,0.7999422817931123
+SFFS (QDA),join bands excluded,10,QDA,4,3,0.8405587977511276
+SFFS (QDA),join bands excluded,10,RF,4,3,0.6700549391821116
+SFFS (QDA),join bands excluded,10,SVM,4,3,0.8264178370636397
+Robust selection + SFFS-LDA (S8),join bands excluded,native,QDA,4,3,0.7745890249898458
+Robust selection + SFFS-LDA (S8),join bands excluded,native,RF,4,3,0.7310010902327968
+Robust selection + SFFS-LDA (S8),join bands excluded,native,SVM,4,3,0.8160713140511768

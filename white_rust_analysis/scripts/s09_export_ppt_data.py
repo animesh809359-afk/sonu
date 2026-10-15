@@ -79,6 +79,17 @@ if have('E7_ofc_reps.csv'):
     D['E7'] = rec(s7.reset_index(), 4)
     D['E7_final'] = rec(T('E7_ofc_final_sets.csv'), 4)
     D['E7_date'] = rec(T('E7_ofc_by_date.csv'), 4)
+if have('ndsi_top_pairs_joinfree.csv'):
+    D['ndsi_joinfree'] = rec(T('ndsi_top_pairs_joinfree.csv'), 4)
+if have('E8_fs_reps.csv'):
+    E8 = T('E8_fs_reps.csv'); E8['k'] = E8['k'].astype(str)
+    g = E8.groupby(['method', 'variant', 'k', 'clf'], sort=False)
+    s8 = g[['BA', 'MCC', 'Kappa', 'MacroF1', 'ROC_AUC', 'near_join_share']].mean(); s8['BA_SD'] = g['BA'].std()
+    D['E8'] = rec(s8.reset_index(), 4)
+    for fn, key in [('E8_fs_composite_ranking.csv', 'E8_rank'), ('E8_fs_stability.csv', 'E8_stab'), ('E8_fs_tests.csv', 'E8_tests'),
+                    ('E8_fs_final_sets.csv', 'E8_final'), ('E8_fs_friedman.csv', 'E8_friedman')]:
+        if have(fn):
+            D[key] = rec(T(fn), 4)
 D['refs'] = rec(pd.read_csv(os.path.join(ROOT, 'scripts', 'references.csv')))
 json.dump(D, open(os.path.join(ROOT, 'cache', 'ppt_data.json'), 'w'))
 print('exported', len(D), 'keys')

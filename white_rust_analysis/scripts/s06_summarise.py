@@ -205,7 +205,7 @@ FIN.to_csv(os.path.join(TAB, 'final_features.csv'), index=False)
 def jm_multi(a, b):
     m1, m2 = a.mean(0), b.mean(0); c1, c2 = np.cov(a.T), np.cov(b.T); c = (c1 + c2) / 2
     dm = (m1 - m2)[:, None]
-    Bh = 0.125 * float(dm.T @ np.linalg.pinv(c) @ dm) + 0.5 * np.log(np.linalg.det(c) / np.sqrt(np.linalg.det(c1) * np.linalg.det(c2)))
+    Bh = 0.125 * (dm.T @ np.linalg.pinv(c) @ dm).item() + 0.5 * (np.linalg.slogdet(c)[1] - 0.5 * (np.linalg.slogdet(c1)[1] + np.linalg.slogdet(c2)[1]))
     return 2 * (1 - np.exp(-Bh))
 Zs = (Z - Z.mean(0)) / Z.std(0)
 jmr = [dict(Subset='All dates', JM=jm_multi(Zs[y == 1], Zs[y == 0]))]

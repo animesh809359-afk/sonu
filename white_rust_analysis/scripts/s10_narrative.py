@@ -2,6 +2,7 @@
 number quoted on a slide comes from the analysis."""
 import os, sys, json
 import numpy as np, pandas as pd
+short_ = lambda m: m.replace('Robust selection + SFFS-LDA (S8)', 'robust S8').replace(' (Tian et al., 2021)', '')
 sys.path.insert(0, os.path.dirname(__file__))
 from common import *
 from s04_cv import SCENARIOS
@@ -44,10 +45,11 @@ N['vi'] = (f"The best published index reaches AUC {VR.AUC.iloc[0]:.3f} ({VR.Inde
            f"date-consistent indices are mainly water, anthocyanin and disease indices ({', '.join(cons.Index.head(5))}).")
 NT = T('ndsi_top_pairs.csv'); t0 = NT.iloc[0]
 nir = NT[NT.Band_i_nm < 1000].iloc[0] if (NT.Band_i_nm < 1000).any() else None
+JF = T('ndsi_top_pairs_joinfree.csv').iloc[0] if have('ndsi_top_pairs_joinfree.csv') else None
 N['mwri'] = (f"MWRI = (R{int(t0.Band_i_nm)} - R{int(t0.Band_j_nm)}) / (R{int(t0.Band_i_nm)} + R{int(t0.Band_j_nm)}): mean |d| {t0.Mean_abs_d_across_dates:.2f} "
              f"(min {t0.Min_abs_d_across_dates:.2f} on any date), AUC {t0.AUC:.3f} vs {VR.AUC.iloc[0]:.3f} for the best published index. The pair lies on the shoulder of the 1940-nm water band "
-             "inside one detector (artefact checked: same AUC without splice correction)."
-             + (f" A second family, ND(R{int(nir.Band_i_nm)}, R{int(nir.Band_j_nm)}), captures the NIR slope (AUC {nir.AUC:.3f})." if nir is not None else ''))
+             "inside the SWIR-2 detector, 10-30 nm from the 1800-nm join (same AUC without splice correction, but treat with caution)."
+             + (f" Join-free alternative MWRI-NIR = ND(R{int(JF.Band_i_nm)}, R{int(JF.Band_j_nm)}): NIR slope of mesophyll scattering, AUC {JF.AUC:.3f}, still above every published index." if JF is not None else ''))
 cw = pd.read_csv(os.path.join(TAB, 'cwt_abs_d_scalogram.csv'), index_col=0)
 st = cw.stack().sort_values(ascending=False)
 N['cwt'] = (f"The most sensitive wavelet coefficients are at {st.index[0][0]} nm (fine scales, |d| up to {st.iloc[0]:.2f}), 680 nm (chlorophyll well), 1920-1930 nm (water) and 1010 nm at scale 6 (NIR shape). "
@@ -56,9 +58,13 @@ N['cwt'] = (f"The most sensitive wavelet coefficients are at {st.index[0][0]} nm
 if have('E1_preprocessing_reps.csv'):
     E1 = T('E1_preprocessing_reps.csv').groupby(['variant', 'clf'])['BA'].mean().unstack()
     best_v = E1.mean(1).idxmax(); worst_v = E1.mean(1).idxmin()
-    N['e1'] = (f"Preprocessing matters more than the classifier: mean BA ranges from {E1.mean(1).min():.3f} ({worst_v}) to {E1.mean(1).max():.3f} ({best_v}). "
-               f"SNV ({E1.loc['SNV'].mean():.3f}) removes brightness differences between dates and leaves; date normalisation alone gives {E1.loc['Date normalisation'].mean():.3f}"
-               f" and with SNV {E1.loc['Date normalisation + SNV'].mean():.3f}. Raw reflectance is worst for linear models, because date effects dominate it (PERMANOVA). SNV was therefore used for the band families.")
+    fd, sn = E1.loc['First derivative (SG)'], E1.loc['SNV']
+    N['e1'] = (f"First-derivative spectra give the highest accuracy (LR {fd['LR']:.3f}, SVM {fd['SVM']:.3f}, LDA {fd['LDA']:.3f}), clearly above SNV (LR {sn['LR']:.3f}, SVM {sn['SVM']:.3f}) "
+               f"and raw reflectance (mean {E1.loc['Reflectance (SG)'].mean():.3f}). Derivatives remove the date-dependent brightness offset and keep slope information. "
+               f"Date normalisation (Lv et al., 2023) helps only when combined with SNV ({E1.loc['Date normalisation + SNV'].mean():.3f}).")
+    N['e1_short'] = f"best: first derivative (LR {fd['LR']:.3f}, SVM {fd['SVM']:.3f}); SNV LR {sn['LR']:.3f}"
+    N['e1_best'] = dict(lr=float(fd['LR']), svm=float(fd['SVM']), snv_lr=float(sn['LR']))
+
 if have('cv_main_summary.csv'):
     SUM = T('cv_main_summary.csv'); BP = T('cv_best_per_scenario.csv').set_index('scenario'); B = T('best_pipelines.csv')
     best, comp = B.iloc[0], B.iloc[1]
@@ -79,15 +85,18 @@ if have('cv_main_summary.csv'):
                "Adjacent bands with opposite signs = the model reads local slopes, the same information captured by derivatives, CWT and MWRI.")
     SG = T('subgroup_performance.csv')
     sb = SG[SG.Role == 'Best overall'].set_index('Level')['BA']
-    N['subgroups'] = (f"With one pooled model, BA is lowest on {sb.idxmin()} ({sb.min():.3f}) and highest on {sb.idxmax()} ({sb.max():.3f}). "
-                      "Varieties perform similarly, so a single model serves all three varieties. The earliest (vegetative) date is the hardest, as expected for low disease expression.")
+    N['subgroups'] = (f"With one pooled model, BA is lowest on {sb.idxmin()} ({sb.min():.3f}) and highest on {sb.idxmax()} ({sb.max():.3f}); all dates, varieties and stages stay above "
+                      f"{sb.min():.2f}. Varieties perform similarly, so a single model serves all three varieties.")
     if have('E2_transfer_reps.csv'):
         E2 = T('E2_transfer_reps.csv').groupby(['kind', 'level', 'scenario', 'clf'])['BA'].mean().reset_index()
         bp = E2[(E2.scenario == best.scenario) & (E2.clf == best.clf)] if ((E2.scenario == best.scenario) & (E2.clf == best.clf)).any() else E2
         by = {k: g for k, g in bp.groupby('kind')}
-        N['transfer'] = ("Held-out transfer (best available pipeline): "
-                         + '; '.join(f"{k.lower()} BA {g.BA.min():.2f}-{g.BA.max():.2f}" for k, g in by.items())
-                         + ". Transfer to an unseen variety is close to the pooled CV result; transfer to an unseen date or stage is harder, especially for the earliest date. Models should be updated with each season's data.")
+        lvl = bp.copy(); lvl['lab'] = lvl['level'].map(lambda v: DATE_LABEL.get(v, v))
+        worst = lvl.loc[lvl.BA.idxmin()]
+        vv = lvl[lvl.kind == 'Variety'].BA; dd_ = lvl[lvl.kind == 'Date'].BA; ss_ = lvl[lvl.kind == 'Stage'].BA
+        N['transfer'] = (f"Unseen variety: BA {vv.min():.2f}-{vv.max():.2f} (as good as pooled CV). Unseen stage: {ss_.min():.2f}-{ss_.max():.2f}. "
+                         f"Unseen date: {dd_.min():.2f}-{dd_.max():.2f}; the model fails on {worst['lab']} ({worst.BA:.2f}) because the late-season disease signature is absent from the other dates. "
+                         "All dates must therefore be represented in training (pooled model), as done in the main CV.")
     extras = []
     if have('E3_metadata_reps.csv'):
         E3 = T('E3_metadata_reps.csv').groupby(['scenario', 'clf', 'inputs'])['BA'].mean().unstack()
@@ -115,6 +124,33 @@ if have('cv_main_summary.csv'):
                    f"Best in E7: {best7[0]} + {best7[1]} ({E7['BA'].max():.3f}). OFCs chosen by a non-linear wrapper work best with non-linear classifiers, as Tian et al. (2021) found.")
         N['e7_best'] = dict(set=best7[0], clf=best7[1], BA=float(E7['BA'].max()), svm_diag=float(diag['SVM'].BA), n_svm=float(diag['SVM'].median_n_features))
 
+    if have('E8_fs_reps.csv'):
+        E8 = T('E8_fs_reps.csv'); E8['k'] = E8['k'].astype(str)
+        g8 = E8[E8.variant == 'all features'].groupby(['method', 'k', 'clf'])['BA'].mean()
+        def b8(m, k, c):
+            try: return g8.loc[(m, k, c)]
+            except KeyError: return np.nan
+        sel = ['SVM-RFE', 'LASSO', 'CARS', 'ReliefF', 'SFFS (QDA)', 'Consensus (Borda)']
+        svm10 = {m: b8(m, '10', 'SVM') for m in sel}
+        qda10 = {m: b8(m, '10', 'QDA') for m in sel}
+        bs, bq = max(svm10, key=svm10.get), max(qda10, key=qda10.get)
+        s8v, ofc = b8('Robust selection + SFFS-LDA (S8)', 'native', 'SVM'), b8('OFC-SVM (Tian et al., 2021)', 'native', 'SVM')
+        fsv = b8('Full spectrum (SNV)', '201', 'SVM')
+        N['e8'] = (f"With 10 features and an SVM: " + ', '.join(f"{short_(m)} {svm10[m]:.3f}" for m in sorted(svm10, key=svm10.get, reverse=True)) +
+                   f". Robust S8 {s8v:.3f}, OFC-SVM {ofc:.3f}, full SNV spectrum {fsv:.3f}. Ten well-chosen features match or beat the 201-band spectrum.")
+        if have('E8_fs_composite_ranking.csv'):
+            CR = T('E8_fs_composite_ranking.csv')
+            STB = T('E8_fs_stability.csv').query("variant == 'all features'").set_index('method')
+            N['e8_rank'] = (f"Composite rank 1: {CR.method.iloc[0]}, then {CR.method.iloc[1]} and {CR.method.iloc[2]}; accuracy levels off at 10-15 features. "
+                            f"{CR.method.iloc[0]} is the most stable (Jaccard {STB.loc[CR.method.iloc[0], 'Jaccard']:.2f}) but {100 * STB.loc[CR.method.iloc[0], 'near_join_share']:.0f}% of its features lie at the 1800-nm detector join; "
+                            f"SVM-RFE (rank 1 in Panda 2026) uses the fewest near-join features ({100 * STB.loc['SVM-RFE', 'near_join_share']:.0f}%).")
+        jc = E8[E8.k.isin(['10', 'native']) & E8.method.isin(['SVM-RFE', 'SFFS (QDA)', 'Robust selection + SFFS-LDA (S8)']) & (E8.clf == 'SVM')].groupby(['method', 'variant'])['BA'].mean().unstack()
+        dd = (jc['join bands excluded'] - jc['all features'])
+        N['joincheck'] = ("Removing near-join features changes SVM balanced accuracy by " + ', '.join(f"{short_(m)} {v:+.3f}" for m, v in dd.items()) +
+                          ". Selectors that pick many 1800-1840 nm features lose most; SVM-RFE keeps high accuracy from NIR, red-edge and SWIR-2 features, so the disease signal is not a detector artefact, "
+                          "but sensor design should prefer the join-free features (cf. Panda 2026, detector-join check).")
+        N['e8_best'] = dict(svm=bs, svm_ba=float(svm10[bs]), s8=float(s8v), full=float(fsv), drop=dict(dd.items()))
+
     # ---------------- discussion
     vi_best = VR.AUC.iloc[0]
     N['discussion'] = [
@@ -122,13 +158,15 @@ if have('cv_main_summary.csv'):
              points=['Higher VIS reflectance, red-edge blue shift and lower REV = chlorophyll breakdown, the common fungal response (Zhang et al., 2012; Mandal et al., 2022; Lv et al., 2023)',
                      'Higher SWIR reflectance (1400-1560, 1840-2400 nm) = leaf water loss around pustules; strongest single-band effects',
                      'NIR reflectance barely changes although the NIR slope does: white sori raise scattering and offset mesophyll collapse (Zhang et al., 2012; Tian et al., 2021)',
-                     'Differences are smallest at the vegetative date and grow through flowering and pod formation'],
+                     f"Class differences are smallest on 11 Feb (spectral angle {sim['Spectral_angle_deg'].iloc[0]:.2f} deg) and largest on {sim.loc[sim['Spectral_angle_deg'].idxmax(), 'Date']} ({sim['Spectral_angle_deg'].max():.2f} deg)"],
+             take='White rust acts through pigment loss, water loss and mesophyll damage; the white sori mask the NIR drop, so slopes and SWIR water features detect it better than NIR reflectance.',
              source='Zhang et al. 2012; Tian et al. 2021; Mandal et al. 2022; Lv et al. 2023'),
         dict(title='Discussion 2: why a pooled model works despite strong date effects',
              points=[f"Date explains about {PM.loc['Date', 'R2_partial_pct']:.0f}% of spectral variance vs {PM.loc['Disease', 'R2_partial_pct']:.1f}% for disease, yet disease is significant (PERMANOVA)",
-                     'SNV removes most date and leaf brightness effects; the remaining disease signal is in shape (slopes, band ratios), not amplitude',
+                     'SNV and especially first derivatives remove date and leaf brightness effects; the remaining disease signal is in shape (slopes, band ratios), not amplitude',
                      'Features chosen for stability across dates (Tian et al., 2021; Lv et al., 2023) generalise better than date-specific ones',
                      'Metadata inputs do not improve the spectral model, so it is usable without knowing date, variety or stage'],
+             take='Date dominates the raw spectra, but slope-based preprocessing and date-stable features let one pooled model work across dates, varieties and stages - as long as every date is represented in training.',
              source='Anderson 2001; Barnes et al. 1989; Tian et al. 2021; Lv et al. 2023'),
         dict(title='Discussion 3: which features carry the information',
              points=[f"Published indices are weak for white rust (AUC <= {vi_best:.2f}); many reverse sign between dates",
@@ -136,8 +174,17 @@ if have('cv_main_summary.csv'):
                      'Wavelet and derivative features outperform raw bands, as in Lv et al. (2023) and Tian et al. (2021)',
                      'Full-spectrum SNV models remain competitive: with 2,000+ correlated bands, regularised linear models use all slope information']
                     + ([f"Tian-style OFCs (SFFS-LDA/kNN/SVM) reach BA {N['e7_best']['svm_diag']:.2f} with OFC-SVM + SVM using ~{N['e7_best']['n_svm']:.0f} features: compact sets keep most of the full-spectrum accuracy (Tian et al., 2021)"] if 'e7_best' in N else []),
+             take='Shape features (derivatives, wavelets, narrow band ratios) carry the white-rust signal; classic greenness indices do not.',
              source='Mandal et al. 2023; Selvaprakash et al. 2026; Lv et al. 2023; Tian et al. 2021'),
-        dict(title='Discussion 4: comparison with published accuracies',
+        *([dict(title='Discussion 4: which feature-selection strategy should be used?',
+             points=[f"With 10 features, ReliefF, Borda consensus, CARS and SVM-RFE all reach BA 0.91-0.92 with an SVM, matching or beating the 201-band spectrum ({N['e8_best']['full']:.3f})",
+                     "The order differs from the researcher's 23-method ranking (SVM-RFE first; Panda 2026) mainly because ReliefF and Borda pick many features next to the 1800-nm detector join",
+                     f"Date-stability filtering (Tian et al., 2021; Lv et al., 2023) gives fewer, more interpretable features (S8 BA {N['e8_best']['s8']:.3f}) at a small cost in accuracy",
+                     'Redundancy control (|r| < 0.95) and selection strictly inside training plots are essential (Wei et al., 2021; Ambroise & McLachlan, 2002)',
+                     'Without join features SVM-RFE keeps BA 0.89, so for sensor design SVM-RFE on join-free features is the safest choice'],
+             take='Ten features chosen by a wrapper or ReliefF are as good as the whole spectrum. Prefer SVM-RFE on join-free features when the result must transfer to another instrument or sensor.',
+             source='Panda 2026; Guyon et al. 2002; Kononenko 1994; Li et al. 2009; Wei et al. 2021; Tian et al. 2021; Lv et al. 2023')] if 'e8_best' in N else []),
+        dict(title='Discussion 5: comparison with published accuracies',
              points=['Our numbers come from plot-grouped, nested CV pooled over 4 dates, 3 varieties and 3 stages; most published values come from single experiments with random splits',
                      'Strict validation removes optimistic bias from repeated measurements and in-sample selection (Varma & Simon, 2006; Roberts et al., 2017)',
                      'Balanced accuracy and MCC are reported because the data are 1 : 5 imbalanced (Chicco & Jurman, 2020)'],
@@ -147,21 +194,26 @@ if have('cv_main_summary.csv'):
                     ['Zhang et al. 2012', 'Powdery mildew, 3 cl.', 'OA 0.89, κ 0.84'],
                     ['Zhu et al. 2017', 'TMV, 4 classes', 'Acc. 0.98'],
                     ['Nguyen et al. 2023', 'Yellow rust, UAV', 'OA 0.79'],
-                    ['This study (best)', 'White rust, pooled', f"BA {bsum.BA_mean:.2f}, MCC {bsum.MCC_mean:.2f}"],
-                    ['This study (compact)', f"{len(FI)}-10 features", f"BA {csum.BA_mean:.2f}"]],
+                    *([['This study: FD + LR', 'Full spectrum, pooled', f"BA {N['e1_best']['lr']:.2f}"]] if 'e1_best' in N else []),
+                    ['This study: SNV + LR', 'Full spectrum, pooled', f"BA {bsum.BA_mean:.2f}, MCC {bsum.MCC_mean:.2f}"],
+                    *([['This study: 10 selected', 'E8 best selector + SVM', f"BA {N['e8_best']['svm_ba']:.2f}"]] if 'e8_best' in N else []),
+                    ['This study: robust S8', f"~{len(FI)} date-stable features", f"BA {csum.BA_mean:.2f}"]],
              colW=[1.9, 2.1, 1.8], source='Values as reported in each paper; this study from workbook sheet 21'),
     ]
     N['conclusions'] = [
         f"White rust raises visible and SWIR reflectance, blue-shifts the red edge and changes the NIR slope; the effect is significant after removing date, variety and stage effects.",
-        f"Date/phenology dominates the spectra ({PM.loc['Date', 'R2_partial_pct']:.0f}% of variance), so SNV correction and date-stable features are essential for a pooled model.",
+        f"Date/phenology dominates the spectra ({PM.loc['Date', 'R2_partial_pct']:.0f}% of variance), so slope-based preprocessing (first derivative, SNV) and date-stable features are essential for a pooled model.",
         f"A new Mustard White Rust Index, ND(R{int(t0.Band_i_nm)}, R{int(t0.Band_j_nm)}), outperforms all 46 published indices (AUC {t0.AUC:.2f} vs {vi_best:.2f}).",
-        f"Best pooled model: {best.scenario} + {best.clf}, BA {bsum.BA_mean:.3f} ± {bsum.BA_SD:.3f}, MCC {bsum.MCC_mean:.2f}, AUC {bsum.ROC_AUC_mean:.3f} under strict plot-grouped nested CV.",
+        f"In the main 10 x 10 comparison the best pipeline is {best.scenario} (SNV full spectrum) + {best.clf}: BA {bsum.BA_mean:.3f} ± {bsum.BA_SD:.3f}, MCC {bsum.MCC_mean:.2f}, AUC {bsum.ROC_AUC_mean:.3f} under strict plot-grouped nested CV.",
+        *([f"First-derivative full-spectrum logistic regression is the most accurate model overall (BA {N['e1_best']['lr']:.3f} vs {N['e1_best']['snv_lr']:.3f} with SNV)."] if 'e1_best' in N else []),
         f"A compact model ({comp.scenario} + {comp.clf}, BA {csum.BA_mean:.3f}) uses about {T('selection_frequency.csv').query('scenario == @comp.scenario').Median_n_features.iloc[0]:.0f} features, suited to a low-cost sensor.",
         *( [f"Wrapper-based optimal feature combinations (Tian et al., 2021) give compact models: OFC-SVM + SVM reaches BA {N['e7_best']['svm_diag']:.3f} with ~{N['e7_best']['n_svm']:.0f} features."] if 'e7_best' in N else []),
-        "One model serves all three varieties; transfer to new dates is the main remaining challenge.",
+        *([f"Among 6 published selectors, {N['e8_best']['svm']} gives the best 10-feature model (BA {N['e8_best']['svm_ba']:.3f} with SVM); SVM-RFE stays at BA 0.89 even without detector-join features."] if 'e8_best' in N else []),
+        "One model serves all three varieties (unseen-variety BA about 0.93), but an unseen date cannot be predicted: every season stage must be in the training data.",
     ]
     N['limitations'] = ['Labels are plot-level (healthy vs diseased plots); individual leaves in diseased plots may be symptom-free, which caps achievable accuracy.',
                         'Only 12 healthy plots: the healthy class drives the uncertainty of every metric.',
+                        'The strongest single index (1810-1830 nm) lies next to the ASD 1800-nm detector join; join-free features are recommended for sensors.',
                         'One season and one site; leaf layer and severity scores were not available.',
                         'Healthy plots are numbered 1-12; if they form one field block, field-position effects cannot be fully excluded.']
     N['future'] = ['Score severity (PDI) per leaf to build severity regression and multi-class models (Mandal et al., 2023; Lv et al., 2023).',

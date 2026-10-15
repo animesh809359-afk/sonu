@@ -256,6 +256,9 @@ ws = sheet('14_NDSI_MWRI', 'Step 4b - Exhaustive normalised-difference index (ND
            'Score = mean |Cohen d| across the four dates (0 if the sign changes between dates). Heat map shows every 20 nm (upper triangle).',
            'Mandal et al. (2023); Selvaprakash et al. (2026); Mahlein et al. (2013)')
 NT = T('ndsi_top_pairs.csv'); r0, c0, r1, c1 = write_df(ws, NT, 5, 1, widths={'Formula': 30})
+if have('ndsi_top_pairs_joinfree.csv'):
+    ws.cell(5, 9, 'Join-free alternative (both bands >= 30 nm from the 1000/1800 nm detector joins): MWRI-NIR').font = Font(name=FONT, bold=True)
+    write_df(ws, T('ndsi_top_pairs_joinfree.csv'), 6, 9, widths={'Formula': 30})
 NM = pd.read_csv(os.path.join(TAB, 'ndsi_matrix_20nm.csv'), index_col=0)
 NM = NM.where(np.triu(np.ones(NM.shape), 1).astype(bool))
 NM.index.name = 'Band_i \\ Band_j'
@@ -501,6 +504,60 @@ if have('E7_ofc_reps.csv'):
     write_df(ws, FF, r_ff + 1, 1)
     ws.freeze_panes = None
 
+if have('E8_fs_reps.csv'):
+    ws = sheet('27c_FS_Methods_E8', "Step 6c - E8: best filter / wrapper / embedded selectors (researcher's 23-method comparison) vs this study's selections",
+               "SVM-RFE, LASSO, CARS, ReliefF, SFFS (QDA) and Borda consensus (the top methods of the researcher's composite ranking) re-run on the F1-F6 pool inside 5 x 4 plot-grouped folds; "
+               "top-k with redundancy control (|r| < 0.95). Same folds for the robust selection (S8), OFC-SVM (E7) and the full spectrum. Matrix cells = AVERAGEIFS over the repeat table (right).",
+               'Panda (2026, researcher workbook); Guyon et al. (2002); Tibshirani (1996); Li et al. (2009); Kononenko (1994); Pudil et al. (1994); Saeys et al. (2008); Tian et al. (2021)')
+    E8 = T('E8_fs_reps.csv'); E8['k'] = E8['k'].astype(str)
+    cols8 = ['method', 'variant', 'k', 'clf', 'rep', 'near_join_share', 'BA', 'MCC', 'Kappa', 'MacroF1', 'ROC_AUC', 'Sensitivity', 'Specificity']
+    rr0, cc0, rr1, cc1 = write_df(ws, E8[cols8], 5, 16)
+    L8 = lambda k: get_column_letter(16 + cols8.index(k)); R8 = lambda k: f'${L8(k)}${rr0 + 1}:${L8(k)}${rr1}'
+    meths = ['SVM-RFE', 'LASSO', 'CARS', 'ReliefF', 'SFFS (QDA)', 'Consensus (Borda)', 'Robust selection + SFFS-LDA (S8)', 'OFC-SVM (Tian et al., 2021)']
+    hdr = ['Method (k = 10 or native)', 'BA QDA', 'BA LDA', 'BA SVM', 'BA RF', 'MCC SVM']
+    for j, h in enumerate(hdr, start=1):
+        c = ws.cell(5, j, h); c.font = HDR_FONT; c.fill = HDR_FILL; c.alignment = Alignment(wrap_text=True, horizontal='center')
+    for i, m_ in enumerate(meths, start=6):
+        ws.cell(i, 1, m_).font = BODY
+        kk = '"native"' if ('S8' in m_ or 'OFC' in m_) else '"10"'
+        for j, (met, c_) in enumerate([('BA', 'QDA'), ('BA', 'LDA'), ('BA', 'SVM'), ('BA', 'RF'), ('MCC', 'SVM')], start=2):
+            ws.cell(i, j, f'=IFERROR(AVERAGEIFS({R8(met)},{R8("method")},$A{i},{R8("clf")},"{c_}",{R8("k")},{kk},{R8("variant")},"all features"),"-")').number_format = '0.000'
+    i_fs = 6 + len(meths)
+    ws.cell(i_fs, 1, 'Full spectrum (SNV)').font = BODY
+    ws.cell(i_fs, 4, f'=AVERAGEIFS({R8("BA")},{R8("method")},$A{i_fs},{R8("clf")},"SVM")').number_format = '0.000'
+    ws.cell(i_fs, 3, f'=AVERAGEIFS({R8("BA")},{R8("method")},$A{i_fs},{R8("clf")},"LDA")').number_format = '0.000'
+    ws.cell(i_fs, 6, f'=AVERAGEIFS({R8("MCC")},{R8("method")},$A{i_fs},{R8("clf")},"SVM")').number_format = '0.000'
+    ws.column_dimensions['A'].width = 34
+    heat(ws, f'B6:E{i_fs}')
+    bar(ws, f'A{i_fs + 3}', 'E8: balanced accuracy by selector (QDA, SVM, RF)', 1, [2, 4, 5], 5, i_fs - 1, [COL_3, COL_H, COL_D], 'Balanced accuracy', ymin=0.6, ymax=1.0, w=22, h=10)
+    r = i_fs + 25
+    # BA vs k (QDA)
+    ws.cell(r, 1, 'Balanced accuracy (QDA) vs number of selected features k').font = Font(name=FONT, bold=True)
+    for j, h in enumerate(['Method', 'k = 5', 'k = 10', 'k = 15'], start=1):
+        c = ws.cell(r + 1, j, h); c.font = HDR_FONT; c.fill = HDR_FILL
+    for i, m_ in enumerate(meths[:6], start=r + 2):
+        ws.cell(i, 1, m_)
+        for j, kk in enumerate(['5', '10', '15'], start=2):
+            ws.cell(i, j, f'=AVERAGEIFS({R8("BA")},{R8("method")},$A{i},{R8("clf")},"QDA",{R8("k")},"{kk}",{R8("variant")},"all features")').number_format = '0.000'
+    bar(ws, f'G{r}', 'QDA balanced accuracy vs k (5, 10, 15)', 1, [2, 3, 4], r + 1, r + 7, [COL_3, COL_H, COL_D], 'Balanced accuracy', ymin=0.6, ymax=1.0, w=20, h=9)
+    r += 22
+    for fn, ttl in [('E8_fs_composite_ranking.csv', 'Composite ranking (accuracy QDA/RF/SVM + stability), cf. researcher workbook sheet 24'),
+                    ('E8_fs_stability.csv', 'Stability of the selected sets over the 20 outer training folds (Jaccard; Kuncheva 2007)'),
+                    ('E8_fs_tests.csv', 'Paired Wilcoxon tests vs the robust selection S8 (SVM, 20 folds), Holm-corrected'),
+                    ('E8_fs_friedman.csv', 'Friedman test over methods'),
+                    ('E8_fs_final_sets.csv', 'Top-10 sets chosen on all spectra (Near_join = within the ASD 1000/1800 nm detector joins)'),
+                    ('E8_fs_feature_frequency.csv', 'Most frequently selected features per method (% of 20 folds)')]:
+        if have(fn):
+            ws.cell(r, 1, ttl).font = Font(name=FONT, bold=True)
+            _, _, r_end, _ = write_df(ws, T(fn), r + 1, 1, widths={'method': 34, 'Feature': 20, 'Comparison': 60})
+            r = r_end + 3
+    # detector-join check summary
+    jc = E8[(E8['k'].isin(['10', 'native'])) & (E8['method'].isin(['SVM-RFE', 'SFFS (QDA)', 'Robust selection + SFFS-LDA (S8)']))]
+    jc = jc.groupby(['method', 'variant', 'clf'])['BA'].mean().unstack('variant').reset_index()
+    ws.cell(r, 1, 'Detector-join check: BA with all features vs features within the 1000/1800 nm joins excluded').font = Font(name=FONT, bold=True)
+    write_df(ws, jc, r + 1, 1)
+    ws.freeze_panes = None
+
 for fn, nm, title, note, ref in [
     ('E2_transfer_reps.csv', '28_Transfer_E2', 'Step 10 - E2: transfer to an unseen date / variety / growth stage',
      'Leave-one-date-out and leave-one-stage-out keep plots separated (train: other levels & other plots; test: held-out level & held-out plots). Leave-one-variety-out: train 2 varieties, test the 3rd.', 'Roberts et al. (2017); Terentev et al. (2023); Lv et al. (2023)'),
@@ -553,9 +610,10 @@ lines = [
     'Unit of independence = plot. All validation is plot-grouped; every learning step (MSC, date normalisation, feature selection, NDSI search, tuning) is fitted inside training folds only.',
     'Main validation: nested 4-fold plot-grouped CV stratified by class and variety (each test fold = 1 healthy + 3 diseased plots per variety), repeated 25 times (100 outer folds); inner 3-fold plot-grouped CV for selection and tuning.',
     "Colour code: blue font = editable input counts (sheet 22); black = formulas or Python-computed values. Sheets 17, 18, 20, 22 contain live formulas; other numbers were computed by the Python scripts in white_rust_analysis/scripts (named in each sheet).",
+    "Feature selection: robust selection (Tian et al., 2021; Lv et al., 2023), OFCs from SFFS-LDA/kNN/SVM (E7, Tian et al., 2021) and the best selectors of the researcher's 23-method filter/wrapper/embedded comparison (E8: SVM-RFE, LASSO, CARS, ReliefF, SFFS-QDA, Borda) are compared on identical plot-grouped folds, with a detector-join check.",
     'Assumption: the Healthy/Diseased label is the plot label provided in the source workbooks (plots 1-12 healthy, 13-48 diseased); leaf-level severity scores were empty, so severity models were not fitted.',
 ]
-for i, l in enumerate(lines, start=3):
+for i, l in enumerate(lines, start=3):  # 7 lines -> rows 3-9
     ws.cell(i, 1, l).font = BODY
 ws.cell(10, 1, 'Sheet').font = HDR_FONT; ws.cell(10, 1).fill = HDR_FILL
 ws.cell(10, 2, 'Content').font = HDR_FONT; ws.cell(10, 2).fill = HDR_FILL
@@ -564,6 +622,6 @@ for i, (n_, t_, no_) in enumerate(INDEX, start=11):
     c = ws.cell(i, 1, n_); c.hyperlink = f"#'{n_}'!A1"; c.font = Font(name=FONT, color='0563C1', underline='single')
     ws.cell(i, 2, t_).font = BODY; ws.cell(i, 3, no_).font = NOTE_FONT
 ws.column_dimensions['A'].width = 22; ws.column_dimensions['B'].width = 95; ws.column_dimensions['C'].width = 120
-wb.move_sheet('00_README', offset=-len(wb.sheetnames))
+wb._sheets.sort(key=lambda w: w.title)
 wb.save(OUT)
 print('saved', OUT)

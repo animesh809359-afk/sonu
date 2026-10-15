@@ -236,3 +236,29 @@ if os.path.exists(os.path.join(TAB, 'E5_sensor_reps.csv')):
     ax.set_xticks(x, sens, fontsize=8); ax.set_ylim(0.4, 1); ax.set(ylabel='Balanced accuracy', title='E5: simulated multispectral sensors'); ax.legend()
     save(fig, 'Fig20_sensors.png')
 print('figures written to', FIG)
+
+if os.path.exists(os.path.join(TAB, 'E7_ofc_reps.csv')):
+    E7 = T('E7_ofc_reps.csv').groupby(['feature_set', 'clf'])['BA'].agg(['mean', 'std']).reset_index()
+    sets = ['OFC-LDA', 'OFC-kNN', 'OFC-SVM', 'All DSFs', 'Full spectrum (SNV)']; x = np.arange(len(sets))
+    fig, ax = plt.subplots(figsize=(8, 3.4))
+    for k, c in enumerate(['LDA', 'kNN', 'SVM']):
+        sub = E7[E7.clf == c].set_index('feature_set').loc[sets]
+        ax.bar(x + (k - 1) * 0.27, sub['mean'], 0.25, yerr=sub['std'], color=[C3, H, D][k], label=c, capsize=2)
+    ax.set_xticks(x, sets, fontsize=8); ax.set_ylim(0.6, 1); ax.set(ylabel='Balanced accuracy', title='E7: optimal feature combinations (Tian et al., 2021)'); ax.legend(ncol=3)
+    save(fig, 'Fig21_OFC_E7.png')
+if os.path.exists(os.path.join(TAB, 'E8_fs_reps.csv')):
+    E8 = T('E8_fs_reps.csv'); E8['k'] = E8['k'].astype(str)
+    ms = ['SVM-RFE', 'LASSO', 'CARS', 'ReliefF', 'SFFS (QDA)', 'Consensus (Borda)', 'Robust selection + SFFS-LDA (S8)', 'OFC-SVM (Tian et al., 2021)']
+    lab = ['SVM-RFE', 'LASSO', 'CARS', 'ReliefF', 'SFFS-QDA', 'Borda', 'Robust S8', 'OFC-SVM']
+    A8 = E8[(E8.variant == 'all features') & E8.k.isin(['10', 'native'])].groupby(['method', 'clf'])['BA'].mean()
+    fig, ax = plt.subplots(figsize=(9, 3.4)); x = np.arange(len(ms))
+    for k, c in enumerate(['QDA', 'SVM', 'RF']):
+        ax.bar(x + (k - 1) * 0.27, [A8.get((m, c), np.nan) for m in ms], 0.25, color=[C3, H, D][k], label=c)
+    ax.set_xticks(x, lab, fontsize=8); ax.set_ylim(0.6, 1); ax.set(ylabel='Balanced accuracy', title='E8: published selectors vs this study (10 features or native size)'); ax.legend(ncol=3)
+    save(fig, 'Fig22_selectors_E8.png')
+    J = E8[E8.k.isin(['10', 'native']) & (E8.clf == 'SVM') & E8.method.isin(['SVM-RFE', 'SFFS (QDA)', 'Robust selection + SFFS-LDA (S8)'])].groupby(['method', 'variant'])['BA'].mean().unstack()
+    fig, ax = plt.subplots(figsize=(5.5, 3.2)); x = np.arange(len(J))
+    ax.bar(x - 0.2, J['all features'], 0.38, color=H, label='All features'); ax.bar(x + 0.2, J['join bands excluded'], 0.38, color='#7A7A7A', label='Join bands excluded')
+    ax.set_xticks(x, [i.replace('Robust selection + SFFS-LDA (S8)', 'Robust S8') for i in J.index]); ax.set_ylim(0.6, 1); ax.set(ylabel='Balanced accuracy (SVM)', title='E8: detector-join check'); ax.legend()
+    save(fig, 'Fig23_detector_join_check.png')
+print('extra figures done')

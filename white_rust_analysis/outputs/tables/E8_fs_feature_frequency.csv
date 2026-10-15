@@ -1,0 +1,166 @@
+method,variant,Feature,Frequency_pct,Near_join
+SVM-RFE,all features,"ND(1810,1830)",90.0,True
+SVM-RFE,all features,WF950_s1,65.0,False
+SVM-RFE,all features,CR1800-2100_pos,60.0,True
+SVM-RFE,all features,WF2160_s2,55.0,False
+SVM-RFE,all features,WF1570_s2,50.0,False
+SVM-RFE,all features,CR920-1060_width,50.0,True
+SVM-RFE,all features,WF2180_s3,45.0,False
+SVM-RFE,all features,WF560_s1,45.0,False
+SVM-RFE,all features,WF1700_s3,40.0,False
+SVM-RFE,all features,WF1590_s3,35.0,False
+SVM-RFE,all features,WF2340_s2,30.0,False
+SVM-RFE,all features,WF610_s3,25.0,False
+SVM-RFE,all features,WF2290_s3,25.0,False
+SVM-RFE,all features,WF2340_s1,25.0,False
+SVM-RFE,all features,WF1630_s3,25.0,False
+LASSO,all features,WF810_s1,100.0,False
+LASSO,all features,"ND(1810,1830)",95.0,True
+LASSO,all features,WF1800_s1,95.0,True
+LASSO,all features,FD850,85.0,False
+LASSO,all features,WF1570_s2,65.0,False
+LASSO,all features,WF1110_s1,60.0,False
+LASSO,all features,WF1810_s1,55.0,True
+LASSO,all features,WF870_s1,55.0,False
+LASSO,all features,WF1710_s2,50.0,False
+LASSO,all features,WF860_s3,35.0,False
+LASSO,all features,WF800_s2,35.0,False
+LASSO,all features,WF1020_s6,30.0,True
+LASSO,all features,WF680_s1,25.0,False
+LASSO,all features,WF840_s1,20.0,False
+LASSO,all features,WF560_s1,20.0,False
+CARS,all features,"ND(1810,1830)",65.0,True
+CARS,all features,WF800_s2,60.0,False
+CARS,all features,WF950_s1,60.0,False
+CARS,all features,WF2160_s2,50.0,False
+CARS,all features,CR1800-2100_pos,45.0,True
+CARS,all features,WF1800_s1,40.0,True
+CARS,all features,WF560_s1,40.0,False
+CARS,all features,WF1110_s1,40.0,False
+CARS,all features,"ND(1800,1840)",35.0,True
+CARS,all features,WF1340_s1,30.0,False
+CARS,all features,WF1340_s2,25.0,False
+CARS,all features,WF2080_s2,25.0,False
+CARS,all features,WF840_s1,25.0,False
+CARS,all features,WF1180_s2,20.0,False
+CARS,all features,WF1820_s2,20.0,True
+ReliefF,all features,WF1820_s1,100.0,True
+ReliefF,all features,WF1810_s4,100.0,True
+ReliefF,all features,"ND(1810,1830)",95.0,True
+ReliefF,all features,WF1800_s1,95.0,True
+ReliefF,all features,WF1360_s1,95.0,False
+ReliefF,all features,FD1830,90.0,False
+ReliefF,all features,"ND(1800,1840)",75.0,True
+ReliefF,all features,CR920-1060_width,60.0,True
+ReliefF,all features,WF1010_s6,60.0,True
+ReliefF,all features,WF1810_s2,55.0,True
+ReliefF,all features,WF1810_s1,45.0,True
+ReliefF,all features,WF1800_s2,35.0,True
+ReliefF,all features,WF1340_s2,20.0,False
+ReliefF,all features,"ND(1820,1840)",15.0,True
+ReliefF,all features,WF1020_s6,10.0,True
+SFFS (QDA),all features,WF1110_s1,80.0,False
+SFFS (QDA),all features,"ND(1810,1830)",75.0,True
+SFFS (QDA),all features,WF1810_s1,70.0,True
+SFFS (QDA),all features,ARI2,50.0,False
+SFFS (QDA),all features,WF1800_s1,45.0,True
+SFFS (QDA),all features,WF860_s3,35.0,False
+SFFS (QDA),all features,"ND(1800,1840)",30.0,True
+SFFS (QDA),all features,HI,30.0,False
+SFFS (QDA),all features,WF1570_s2,30.0,False
+SFFS (QDA),all features,WF1820_s1,25.0,True
+SFFS (QDA),all features,WF1610_s2,25.0,False
+SFFS (QDA),all features,WF1000_s3,25.0,True
+SFFS (QDA),all features,WF2080_s1,20.0,False
+SFFS (QDA),all features,CR1800-2100_pos,20.0,True
+SFFS (QDA),all features,"ND(1820,1840)",15.0,True
+Consensus (Borda),all features,"ND(1810,1830)",95.0,True
+Consensus (Borda),all features,WF1800_s1,95.0,True
+Consensus (Borda),all features,WF1110_s1,80.0,False
+Consensus (Borda),all features,WF1810_s1,70.0,True
+Consensus (Borda),all features,WF1570_s2,60.0,False
+Consensus (Borda),all features,WF950_s1,60.0,False
+Consensus (Borda),all features,WF1820_s1,55.0,True
+Consensus (Borda),all features,"ND(1800,1840)",50.0,True
+Consensus (Borda),all features,WF2160_s2,45.0,False
+Consensus (Borda),all features,WF560_s1,45.0,False
+Consensus (Borda),all features,WF800_s2,45.0,False
+Consensus (Borda),all features,CR1800-2100_pos,45.0,True
+Consensus (Borda),all features,CR920-1060_width,35.0,True
+Consensus (Borda),all features,WF810_s1,25.0,False
+Consensus (Borda),all features,WF860_s3,25.0,False
+Robust selection + SFFS-LDA (S8),all features,WF1800_s1,80.0,True
+Robust selection + SFFS-LDA (S8),all features,WF1360_s1,80.0,False
+Robust selection + SFFS-LDA (S8),all features,WF830_s1,70.0,False
+Robust selection + SFFS-LDA (S8),all features,FD1810,50.0,True
+Robust selection + SFFS-LDA (S8),all features,"ND(1800,1840)",50.0,True
+Robust selection + SFFS-LDA (S8),all features,WF1810_s4,45.0,True
+Robust selection + SFFS-LDA (S8),all features,WF2040_s3,35.0,False
+Robust selection + SFFS-LDA (S8),all features,CR920-1060_width,25.0,True
+Robust selection + SFFS-LDA (S8),all features,WF1970_s2,25.0,False
+Robust selection + SFFS-LDA (S8),all features,FD1940,25.0,False
+Robust selection + SFFS-LDA (S8),all features,REP_FD,20.0,False
+Robust selection + SFFS-LDA (S8),all features,WF850_s4,15.0,False
+Robust selection + SFFS-LDA (S8),all features,WF2040_s2,15.0,False
+Robust selection + SFFS-LDA (S8),all features,CR1800-2100_pos,15.0,True
+Robust selection + SFFS-LDA (S8),all features,WF1020_s6,15.0,True
+"OFC-SVM (Tian et al., 2021)",all features,WF1810_s4,85.0,True
+"OFC-SVM (Tian et al., 2021)",all features,WF1360_s1,85.0,False
+"OFC-SVM (Tian et al., 2021)",all features,WF1800_s1,55.0,True
+"OFC-SVM (Tian et al., 2021)",all features,"ND(1800,1840)",55.0,True
+"OFC-SVM (Tian et al., 2021)",all features,WF1800_s4,55.0,True
+"OFC-SVM (Tian et al., 2021)",all features,FD1940,40.0,False
+"OFC-SVM (Tian et al., 2021)",all features,FD1810,35.0,True
+"OFC-SVM (Tian et al., 2021)",all features,WF1010_s6,35.0,True
+"OFC-SVM (Tian et al., 2021)",all features,WF830_s1,35.0,False
+"OFC-SVM (Tian et al., 2021)",all features,CR920-1060_width,35.0,True
+"OFC-SVM (Tian et al., 2021)",all features,CR1800-2100_pos,15.0,True
+"OFC-SVM (Tian et al., 2021)",all features,WF1020_s5,10.0,True
+"OFC-SVM (Tian et al., 2021)",all features,WF2050_s5,10.0,False
+"OFC-SVM (Tian et al., 2021)",all features,FD840,10.0,False
+"OFC-SVM (Tian et al., 2021)",all features,FD1830,10.0,False
+SVM-RFE,join bands excluded,WF1830_s3,85.0,False
+SVM-RFE,join bands excluded,WF2160_s2,70.0,False
+SVM-RFE,join bands excluded,WF1180_s2,65.0,False
+SVM-RFE,join bands excluded,WF950_s1,65.0,False
+SVM-RFE,join bands excluded,WF2340_s2,65.0,False
+SVM-RFE,join bands excluded,FD900,55.0,False
+SVM-RFE,join bands excluded,FD1060,55.0,False
+SVM-RFE,join bands excluded,WF1570_s2,55.0,False
+SVM-RFE,join bands excluded,FD1830,50.0,False
+SVM-RFE,join bands excluded,WF560_s1,45.0,False
+SVM-RFE,join bands excluded,WF1750_s1,35.0,False
+SVM-RFE,join bands excluded,WF1920_s2,30.0,False
+SVM-RFE,join bands excluded,ARI2,25.0,False
+SVM-RFE,join bands excluded,WF1750_s2,25.0,False
+SVM-RFE,join bands excluded,WF1760_s5,25.0,False
+SFFS (QDA),join bands excluded,FD1830,100.0,False
+SFFS (QDA),join bands excluded,WF560_s1,55.0,False
+SFFS (QDA),join bands excluded,FD850,55.0,False
+SFFS (QDA),join bands excluded,WF1110_s1,50.0,False
+SFFS (QDA),join bands excluded,WF1880_s5,45.0,False
+SFFS (QDA),join bands excluded,WF750_s6,35.0,False
+SFFS (QDA),join bands excluded,WF830_s1,35.0,False
+SFFS (QDA),join bands excluded,WF800_s2,25.0,False
+SFFS (QDA),join bands excluded,WF760_s7,25.0,False
+SFFS (QDA),join bands excluded,WF860_s4,25.0,False
+SFFS (QDA),join bands excluded,WF810_s1,20.0,False
+SFFS (QDA),join bands excluded,WF1920_s2,20.0,False
+SFFS (QDA),join bands excluded,WF1610_s3,20.0,False
+SFFS (QDA),join bands excluded,WF840_s2,20.0,False
+SFFS (QDA),join bands excluded,CR1300-1650_depth,20.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,WF1360_s1,75.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,FD1830,55.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,WF830_s1,40.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,FD860,30.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,WF1970_s2,25.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,WF2040_s2,25.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,WF2190_s3,20.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,REP_FD,20.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,WF2030_s5,20.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,WF1920_s2,15.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,FD850,15.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,FD1940,15.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,WF1930_s3,15.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,WF830_s4,15.0,False
+Robust selection + SFFS-LDA (S8),join bands excluded,WF1920_s1,10.0,False

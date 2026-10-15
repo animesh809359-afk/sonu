@@ -6,6 +6,180 @@
  "pca": "PC1 (55.8%) and PC2 (30.2%) are driven by date (η² 0.70, 0.49) and stage, not disease (η² ≤ 0.07). Unsupervised methods cannot separate classes, so supervised feature selection is needed.",
  "permanova": "Date explains 31.2% of spectral variance; disease 1.1% (pseudo-F 15.3, p = 0.001) plus 1.6% disease x date. Variety is not significant (p = 0.18). H2 is supported: the disease effect is small but robust.",
  "vi": "The best published index reaches AUC 0.668 (PSSRb). Many chlorophyll indices (NDVI, SR, MTCI) show no difference on 11 Feb and change sign; date-consistent indices are mainly water, anthocyanin and disease indices (WI, HI, RVSI, ARI2, SR).",
- "mwri": "MWRI = (R1810 - R1830) / (R1810 + R1830): mean |d| 1.49 (min 1.32 on any date), AUC 0.869 vs 0.668 for the best published index. The pair lies on the shoulder of the 1940-nm water band inside one detector (artefact checked: same AUC without splice correction). A second family, ND(R870, R890), captures the NIR slope (AUC 0.774).",
- "cwt": "The most sensitive wavelet coefficients are at 1810 nm (fine scales, |d| up to 1.45), 680 nm (chlorophyll well), 1920-1930 nm (water) and 1010 nm at scale 6 (NIR shape). Fine scales capture narrow slope changes; coarse scales capture broad shape (Cheng et al., 2011). Wavelet maxima exceed those of single bands (|d| < 1), consistent with Lv et al. (2023)."
+ "mwri": "MWRI = (R1810 - R1830) / (R1810 + R1830): mean |d| 1.49 (min 1.32 on any date), AUC 0.869 vs 0.668 for the best published index. The pair lies on the shoulder of the 1940-nm water band inside the SWIR-2 detector, 10-30 nm from the 1800-nm join (same AUC without splice correction, but treat with caution). Join-free alternative MWRI-NIR = ND(R870, R890): NIR slope of mesophyll scattering, AUC 0.774, still above every published index.",
+ "cwt": "The most sensitive wavelet coefficients are at 1810 nm (fine scales, |d| up to 1.45), 680 nm (chlorophyll well), 1920-1930 nm (water) and 1010 nm at scale 6 (NIR shape). Fine scales capture narrow slope changes; coarse scales capture broad shape (Cheng et al., 2011). Wavelet maxima exceed those of single bands (|d| < 1), consistent with Lv et al. (2023).",
+ "e1": "First-derivative spectra give the highest accuracy (LR 0.946, SVM 0.940, LDA 0.941), clearly above SNV (LR 0.921, SVM 0.882) and raw reflectance (mean 0.860). Derivatives remove the date-dependent brightness offset and keep slope information. Date normalisation (Lv et al., 2023) helps only when combined with SNV (0.885).",
+ "e1_short": "best: first derivative (LR 0.946, SVM 0.940); SNV LR 0.921",
+ "e1_best": {
+  "lr": 0.9460544375816342,
+  "svm": 0.9396889043855572,
+  "snv_lr": 0.9212784474552256
+ },
+ "matrix": "Highest BA: S1 Full spectrum (SNV, 201 bands) with LR (0.919 ± 0.007). Best compact model: S8 with LS-SVM (0.887, median 7 features). Single-family band and index selections (S2, S3) are weakest.",
+ "friedman": "Best-ranked classifiers: LS-SVM, ELM, SVM; worst: kNN, RF. Best-ranked feature scenarios: S8, S7, S1.",
+ "features": "Final robust set (7 features, selected on all data): FD1810, WF1800_s1, WF1810_s4, WF2040_s3, FD850, CR1800-2100_pos, WF710_s2. Multivariate J-M = 1.21 (pooled), 1.24-1.80 within dates. Features sit on the 1800-1950 nm water shoulder, the NIR slope and red/visible pigment features.",
+ "lr": "The full-spectrum model (0.919 BA with LR) uses contrasts across the whole spectrum. Largest positive weights near 1020, 1030, 1010 nm and negative near 1930, 1940, 1920 nm. Adjacent bands with opposite signs = the model reads local slopes, the same information captured by derivatives, CWT and MWRI.",
+ "subgroups": "With one pooled model, BA is lowest on 13 Mar (0.869) and highest on 24 Feb (0.966); all dates, varieties and stages stay above 0.87. Varieties perform similarly, so a single model serves all three varieties.",
+ "transfer": "Unseen variety: BA 0.93-0.94 (as good as pooled CV). Unseen stage: 0.78-0.85. Unseen date: 0.50-0.86; the model fails on 13 Mar (0.50) because the late-season disease signature is absent from the other dates. All dates must therefore be represented in training (pooled model), as done in the main CV.",
+ "extras": "E3: adding date/variety/stage changes BA by -0.027 to +0.008, so the spectral model is effectively context-independent. E4: BA rises from 0.831 (12 plots) to 0.915 (36 plots) and has not plateaued; more plots would help. E5: Sentinel-2 MSI (10 bands) max BA 0.739; UAV multispectral (5 bands) max BA 0.668 (hyperspectral detail matters). E6: keeping outliers changes BA by -0.016 to +0.004.",
+ "e7": "Tian-style OFCs are compact (median 5, 6 and 7 features). Wrapper-matched models: OFC-LDA+LDA 0.828, OFC-kNN+kNN 0.885, OFC-SVM+SVM 0.905 BA. All DSFs + SVM: 0.913; full spectrum + SVM: 0.878. Best in E7: All DSFs + SVM (0.913). OFCs chosen by a non-linear wrapper work best with non-linear classifiers, as Tian et al. (2021) found.",
+ "e7_best": {
+  "set": "All DSFs",
+  "clf": "SVM",
+  "BA": 0.9131893250094086,
+  "svm_diag": 0.9045128511655708,
+  "n_svm": 6.56
+ },
+ "e8": "With 10 features and an SVM: ReliefF 0.923, Consensus (Borda) 0.918, CARS 0.913, SVM-RFE 0.913, SFFS (QDA) 0.906, LASSO 0.890. Robust S8 0.899, OFC-SVM 0.911, full SNV spectrum 0.879. Ten well-chosen features match or beat the 201-band spectrum.",
+ "e8_rank": "Composite rank 1: ReliefF, then Consensus (Borda) and SFFS (QDA); accuracy levels off at 10-15 features. ReliefF is the most stable (Jaccard 0.61) but 78% of its features lie at the 1800-nm detector join; SVM-RFE (rank 1 in Panda 2026) uses the fewest near-join features (27%).",
+ "joincheck": "Removing near-join features changes SVM balanced accuracy by robust S8 -0.074, SFFS (QDA) -0.040, SVM-RFE -0.023. Selectors that pick many 1800-1840 nm features lose most; SVM-RFE keeps high accuracy from NIR, red-edge and SWIR-2 features, so the disease signal is not a detector artefact, but sensor design should prefer the join-free features (cf. Panda 2026, detector-join check).",
+ "e8_best": {
+  "svm": "ReliefF",
+  "svm_ba": 0.9234384339509862,
+  "s8": 0.8990577281400669,
+  "full": 0.8791279249961258,
+  "drop": {
+   "Robust selection + SFFS-LDA (S8)": -0.07406719750292812,
+   "SFFS (QDA)": -0.04032758849704454,
+   "SVM-RFE": -0.023232272918465413
+  }
+ },
+ "discussion": [
+  {
+   "title": "Discussion 1: the spectral signature of white rust",
+   "points": [
+    "Higher VIS reflectance, red-edge blue shift and lower REV = chlorophyll breakdown, the common fungal response (Zhang et al., 2012; Mandal et al., 2022; Lv et al., 2023)",
+    "Higher SWIR reflectance (1400-1560, 1840-2400 nm) = leaf water loss around pustules; strongest single-band effects",
+    "NIR reflectance barely changes although the NIR slope does: white sori raise scattering and offset mesophyll collapse (Zhang et al., 2012; Tian et al., 2021)",
+    "Class differences are smallest on 11 Feb (spectral angle 0.96 deg) and largest on 03 Mar (3.58 deg)"
+   ],
+   "take": "White rust acts through pigment loss, water loss and mesophyll damage; the white sori mask the NIR drop, so slopes and SWIR water features detect it better than NIR reflectance.",
+   "source": "Zhang et al. 2012; Tian et al. 2021; Mandal et al. 2022; Lv et al. 2023"
+  },
+  {
+   "title": "Discussion 2: why a pooled model works despite strong date effects",
+   "points": [
+    "Date explains about 31% of spectral variance vs 1.1% for disease, yet disease is significant (PERMANOVA)",
+    "SNV and especially first derivatives remove date and leaf brightness effects; the remaining disease signal is in shape (slopes, band ratios), not amplitude",
+    "Features chosen for stability across dates (Tian et al., 2021; Lv et al., 2023) generalise better than date-specific ones",
+    "Metadata inputs do not improve the spectral model, so it is usable without knowing date, variety or stage"
+   ],
+   "take": "Date dominates the raw spectra, but slope-based preprocessing and date-stable features let one pooled model work across dates, varieties and stages - as long as every date is represented in training.",
+   "source": "Anderson 2001; Barnes et al. 1989; Tian et al. 2021; Lv et al. 2023"
+  },
+  {
+   "title": "Discussion 3: which features carry the information",
+   "points": [
+    "Published indices are weak for white rust (AUC <= 0.67); many reverse sign between dates",
+    "The new MWRI (R1810/R1830 normalised difference) reaches AUC 0.87, echoing Mandal et al. (2023) and Selvaprakash et al. (2026), whose best indices were also SWIR/NIR pairs",
+    "Wavelet and derivative features outperform raw bands, as in Lv et al. (2023) and Tian et al. (2021)",
+    "Full-spectrum SNV models remain competitive: with 2,000+ correlated bands, regularised linear models use all slope information",
+    "Tian-style OFCs (SFFS-LDA/kNN/SVM) reach BA 0.90 with OFC-SVM + SVM using ~7 features: compact sets keep most of the full-spectrum accuracy (Tian et al., 2021)"
+   ],
+   "take": "Shape features (derivatives, wavelets, narrow band ratios) carry the white-rust signal; classic greenness indices do not.",
+   "source": "Mandal et al. 2023; Selvaprakash et al. 2026; Lv et al. 2023; Tian et al. 2021"
+  },
+  {
+   "title": "Discussion 4: which feature-selection strategy should be used?",
+   "points": [
+    "With 10 features, ReliefF, Borda consensus, CARS and SVM-RFE all reach BA 0.91-0.92 with an SVM, matching or beating the 201-band spectrum (0.879)",
+    "The order differs from the researcher's 23-method ranking (SVM-RFE first; Panda 2026) mainly because ReliefF and Borda pick many features next to the 1800-nm detector join",
+    "Date-stability filtering (Tian et al., 2021; Lv et al., 2023) gives fewer, more interpretable features (S8 BA 0.899) at a small cost in accuracy",
+    "Redundancy control (|r| < 0.95) and selection strictly inside training plots are essential (Wei et al., 2021; Ambroise & McLachlan, 2002)",
+    "Without join features SVM-RFE keeps BA 0.89, so for sensor design SVM-RFE on join-free features is the safest choice"
+   ],
+   "take": "Ten features chosen by a wrapper or ReliefF are as good as the whole spectrum. Prefer SVM-RFE on join-free features when the result must transfer to another instrument or sensor.",
+   "source": "Panda 2026; Guyon et al. 2002; Kononenko 1994; Li et al. 2009; Wei et al. 2021; Tian et al. 2021; Lv et al. 2023"
+  },
+  {
+   "title": "Discussion 5: comparison with published accuracies",
+   "points": [
+    "Our numbers come from plot-grouped, nested CV pooled over 4 dates, 3 varieties and 3 stages; most published values come from single experiments with random splits",
+    "Strict validation removes optimistic bias from repeated measurements and in-sample selection (Varma & Simon, 2006; Roberts et al., 2017)",
+    "Balanced accuracy and MCC are reported because the data are 1 : 5 imbalanced (Chicco & Jurman, 2020)"
+   ],
+   "table": [
+    [
+     "Study",
+     "Task",
+     "Reported"
+    ],
+    [
+     "Tian et al. 2021",
+     "Rice blast, per stage",
+     "OA 0.65-0.99"
+    ],
+    [
+     "Lv et al. 2023",
+     "SCLB, asympt./sympt.",
+     "OA 0.87 / 0.93"
+    ],
+    [
+     "Zhang et al. 2012",
+     "Powdery mildew, 3 cl.",
+     "OA 0.89, κ 0.84"
+    ],
+    [
+     "Zhu et al. 2017",
+     "TMV, 4 classes",
+     "Acc. 0.98"
+    ],
+    [
+     "Nguyen et al. 2023",
+     "Yellow rust, UAV",
+     "OA 0.79"
+    ],
+    [
+     "This study: FD + LR",
+     "Full spectrum, pooled",
+     "BA 0.95"
+    ],
+    [
+     "This study: SNV + LR",
+     "Full spectrum, pooled",
+     "BA 0.92, MCC 0.77"
+    ],
+    [
+     "This study: 10 selected",
+     "E8 best selector + SVM",
+     "BA 0.92"
+    ],
+    [
+     "This study: robust S8",
+     "~7 date-stable features",
+     "BA 0.89"
+    ]
+   ],
+   "colW": [
+    1.9,
+    2.1,
+    1.8
+   ],
+   "source": "Values as reported in each paper; this study from workbook sheet 21"
+  }
+ ],
+ "conclusions": [
+  "White rust raises visible and SWIR reflectance, blue-shifts the red edge and changes the NIR slope; the effect is significant after removing date, variety and stage effects.",
+  "Date/phenology dominates the spectra (31% of variance), so slope-based preprocessing (first derivative, SNV) and date-stable features are essential for a pooled model.",
+  "A new Mustard White Rust Index, ND(R1810, R1830), outperforms all 46 published indices (AUC 0.87 vs 0.67).",
+  "In the main 10 x 10 comparison the best pipeline is S1 (SNV full spectrum) + LR: BA 0.919 ± 0.007, MCC 0.77, AUC 0.976 under strict plot-grouped nested CV.",
+  "First-derivative full-spectrum logistic regression is the most accurate model overall (BA 0.946 vs 0.921 with SNV).",
+  "A compact model (S8 + LS-SVM, BA 0.887) uses about 7 features, suited to a low-cost sensor.",
+  "Wrapper-based optimal feature combinations (Tian et al., 2021) give compact models: OFC-SVM + SVM reaches BA 0.905 with ~7 features.",
+  "Among 6 published selectors, ReliefF gives the best 10-feature model (BA 0.923 with SVM); SVM-RFE stays at BA 0.89 even without detector-join features.",
+  "One model serves all three varieties (unseen-variety BA about 0.93), but an unseen date cannot be predicted: every season stage must be in the training data."
+ ],
+ "limitations": [
+  "Labels are plot-level (healthy vs diseased plots); individual leaves in diseased plots may be symptom-free, which caps achievable accuracy.",
+  "Only 12 healthy plots: the healthy class drives the uncertainty of every metric.",
+  "The strongest single index (1810-1830 nm) lies next to the ASD 1800-nm detector join; join-free features are recommended for sensors.",
+  "One season and one site; leaf layer and severity scores were not available.",
+  "Healthy plots are numbered 1-12; if they form one field block, field-position effects cannot be fully excluded."
+ ],
+ "future": [
+  "Score severity (PDI) per leaf to build severity regression and multi-class models (Mandal et al., 2023; Lv et al., 2023).",
+  "Validate on a second season / location as an independent test (Terentev et al., 2023).",
+  "Add pre-symptomatic dates with inoculated plots for early detection (Tian et al., 2021).",
+  "Invert PROSPECT-D for pigment and water traits; upscale MWRI to UAV/satellite bands."
+ ]
 }

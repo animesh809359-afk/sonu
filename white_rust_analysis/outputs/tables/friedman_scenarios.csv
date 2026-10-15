@@ -1,0 +1,11 @@
+scenario,Average_rank,Mean_BA,Scenario_name
+S8,2.026,0.8604743972902965,Combined F1-F6 + robust selection
+S7,2.434,0.8542842199641361,F6 Wavelet (CWT) + robust selection
+S1,2.972,0.8310157457218128,"Full spectrum (SNV, 201 bands)"
+S5,4.38,0.8175162382944814,F4 Derivative features + robust selection
+S10,5.228,0.7929237231852295,GA-PLS bands (SNV)
+S4,5.484,0.804806856168781,F3 Novel NDSI (in-fold top-3)
+S9,6.312,0.7790846948263263,SPA bands (SNV)
+S6,7.164,0.7640918565008518,F5 Continuum removal + robust selection
+S2,9.408,0.6509085917956211,F1 Bands + robust selection
+S3,9.592,0.6471503951650397,F2 Vegetation indices + robust selection

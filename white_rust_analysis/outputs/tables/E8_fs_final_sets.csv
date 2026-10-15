@@ -1,0 +1,61 @@
+method,rank,Feature,Near_join
+SVM-RFE,1,WF1810_s1,True
+SVM-RFE,2,"ND(1810,1830)",True
+SVM-RFE,3,WF1700_s3,False
+SVM-RFE,4,WF2180_s3,False
+SVM-RFE,5,WF2160_s2,False
+SVM-RFE,6,WF2140_s3,False
+SVM-RFE,7,WF2340_s1,False
+SVM-RFE,8,CR1800-2100_pos,True
+SVM-RFE,9,CR920-1060_width,True
+SVM-RFE,10,WF950_s1,False
+LASSO,1,"ND(1810,1830)",True
+LASSO,2,WF1800_s1,True
+LASSO,3,FD850,False
+LASSO,4,WF1570_s2,False
+LASSO,5,WF810_s1,False
+LASSO,6,WF680_s1,False
+LASSO,7,WF800_s2,False
+LASSO,8,WF1710_s2,False
+LASSO,9,WF870_s1,False
+LASSO,10,WF950_s1,False
+CARS,1,WF1180_s2,False
+CARS,2,WF1800_s1,True
+CARS,3,WF2160_s2,False
+CARS,4,WF1020_s6,True
+CARS,5,WF800_s2,False
+CARS,6,"ND(1800,1840)",True
+CARS,7,WF1110_s1,False
+CARS,8,WF1570_s2,False
+CARS,9,WF950_s1,False
+CARS,10,WF1430_s2,False
+ReliefF,1,WF1810_s2,True
+ReliefF,2,"ND(1810,1830)",True
+ReliefF,3,WF1820_s1,True
+ReliefF,4,"ND(1800,1840)",True
+ReliefF,5,WF1360_s1,False
+ReliefF,6,WF1800_s1,True
+ReliefF,7,WF1810_s4,True
+ReliefF,8,CR920-1060_width,True
+ReliefF,9,WF1010_s6,True
+ReliefF,10,FD1830,False
+SFFS (QDA),1,WF1810_s1,True
+SFFS (QDA),2,"ND(1810,1830)",True
+SFFS (QDA),3,WF980_s6,True
+SFFS (QDA),4,WF750_s6,False
+SFFS (QDA),5,WF830_s1,False
+SFFS (QDA),6,WF1010_s4,True
+SFFS (QDA),7,WF1570_s2,False
+SFFS (QDA),8,WF760_s2,False
+SFFS (QDA),9,WF850_s3,False
+SFFS (QDA),10,WF890_s1,False
+Consensus (Borda),1,"ND(1810,1830)",True
+Consensus (Borda),2,WF1570_s2,False
+Consensus (Borda),3,WF1800_s1,True
+Consensus (Borda),4,WF1810_s1,True
+Consensus (Borda),5,"ND(1800,1840)",True
+Consensus (Borda),6,WF800_s2,False
+Consensus (Borda),7,WF2160_s2,False
+Consensus (Borda),8,WF950_s1,False
+Consensus (Borda),9,WF1110_s1,False
+Consensus (Borda),10,WF1700_s3,False

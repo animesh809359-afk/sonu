@@ -1,0 +1,3 @@
+Comparison,chi2,p,k,N,CD_Nemenyi_0_05
+Classifiers (blocks = scenario x repeat),1392.5100625575867,3.2100542932948326e-294,10,250,0.8568152504089394
+Feature scenarios (blocks = classifier x repeat),1762.7779340105224,0.0,10,250,0.8568152504089394

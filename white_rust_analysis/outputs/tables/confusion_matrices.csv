@@ -1,0 +1,5 @@
+Role,Pipeline,Repeat,Level,TN,FP,FN,TP
+Best overall,"S1 Full spectrum (SNV, 201 bands) + LR",14,Spectrum,343,35,132,1780
+Best overall,"S1 Full spectrum (SNV, 201 bands) + LR",14,Plot-date (majority vote),47,1,7,137
+Best compact,S8 Combined F1-F6 + robust selection + LS-SVM,3,Spectrum,334,44,217,1695
+Best compact,S8 Combined F1-F6 + robust selection + LS-SVM,3,Plot-date (majority vote),45,3,15,129
