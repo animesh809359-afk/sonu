@@ -73,8 +73,8 @@ const best = J.best[0];
 const methodsOf = (fam) => J.methods.filter((m) => m[1] === fam);
 
 // ================================================================ title
-let s = pres.addSlide({ masterName: "TITLE", sectionTitle: section });
 pres.addSection({ title: "Introduction" });
+let s = pres.addSlide({ masterName: "TITLE", sectionTitle: section });
 s.addText("Which features detect white rust? Filter, wrapper and embedded feature selection on the K1–K4 spectral feature pool", { placeholder: "title" });
 s.addText([{ text: "23 methods from crop-disease research compared under one honest protocol · stable and informative disease-specific features", options: { breakLine: true } },
            { text: `${J.n} leaf spectra (${J.nH} healthy, ${J.nD} white-rust diseased) · 4 dates · 3 growth stages · 3 varieties · ${J.p} features`, options: { breakLine: true, fontSize: 14, color: "B5D6C3" } },
@@ -214,7 +214,7 @@ refnote(s, "Kuncheva 2007; Nogueira et al. 2018");
 
 s = content("Are the differences between methods significant?");
 img(s, "FS07_cd_diagram", M, 1.05, W - 2 * M, 3.6);
-table(s, J.wilcoxon.slice(0, 9), M, 4.75, 7.6, { colW: [2.4, 1.6, 1.2, 1.3, 0.8], fontSize: 9.5, rowH: 0.21 });
+table(s, J.wilcoxon.slice(0, 8), M, 4.7, 7.6, { colW: [2.4, 1.6, 1.2, 1.3, 0.8], fontSize: 8.5, rowH: 0.19 });
 bullets(s, (T.tests || []), 8.3, 4.75, 4.5, 2.0, 12);
 refnote(s, "Friedman 1937 via Demšar 2006 (Friedman–Nemenyi); Holm-corrected Wilcoxon tests");
 

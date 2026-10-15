@@ -43,12 +43,12 @@ def shade(ax):
 
 
 def fs01_workflow():
-    fig, ax = plt.subplots(figsize=(12, 4.6))
+    fig, ax = plt.subplots(figsize=(13, 4.8))
     ax.axis("off")
     ax.set_xlim(0, 12)
     ax.set_ylim(0, 4.6)
 
-    def box(x, y, w, h, t, fc="#f0efec", ec=INK2, fs=8.5, bold=False):
+    def box(x, y, w, h, t, fc="#f0efec", ec=INK2, fs=7.8, bold=False):
         ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.04,rounding_size=0.08", fc=fc, ec=ec, lw=0.8))
         ax.text(x + w / 2, y + h / 2, t, ha="center", va="center", fontsize=fs, color=INK, wrap=True,
                 fontweight="bold" if bold else "normal")
@@ -56,15 +56,15 @@ def fs01_workflow():
     def arr(x1, y1, x2, y2):
         ax.annotate("", xy=(x2, y2), xytext=(x1, y1), arrowprops=dict(arrowstyle="-|>", color=INK2, lw=0.9))
     box(0.1, 1.6, 1.9, 1.4, f"K1–K4 pool\n{len(meta)} features\n(K1 2039 · K2 30 · K3 30\nK4 2031 + 20)\n2264 leaves", bold=False)
-    box(2.4, 1.6, 1.9, 1.4, "20 training sets\nV3: 10 plot-grouped folds\nV4: 10 × 30 % plot hold-out\n+ all leaves (reporting)")
-    for i, (fam, txt) in enumerate((("Filter", "Filter (11)\nr · ANOVA F · Fisher · χ² · MI · ReliefF\nJ–M · mRMR · SPA · MC-UVE · CWT scalogram"),
+    box(2.4, 1.6, 1.9, 1.4, "20 training sets\nV3: 10 plot-grouped\nfolds · V4: 10 × 30 %\nplot hold-outs\n+ all leaves (reporting)")
+    for i, (fam, txt) in enumerate((("Filter", "Filter (11)\nr · ANOVA F · Fisher · χ² · MI · ReliefF\nJ–M · mRMR · SPA · MC-UVE · CWT"),
                                      ("Wrapper", "Wrapper (6)\nSVM-RFE · RF-RFE · CARS\nSFFS (QDA) · SFFS (J–M) · GA"),
                                      ("Embedded", "Embedded (6) + ensemble\nRF · CART · Boruta · PLS-VIP\nLASSO · gradient boosting · Borda"))):
-        box(4.7, 3.15 - i * 1.25, 3.0, 1.05, txt, fc=FAM[fam] + "33", ec=FAM[fam], fs=8)
+        box(4.7, 3.15 - i * 1.25, 3.0, 1.05, txt, fc=FAM[fam] + "33", ec=FAM[fam], fs=7.6)
     box(8.1, 1.6, 1.8, 1.4, "Top-k (5–20)\nplain vs redundancy-\ncontrolled (|r| < 0.95)\nselection inside the\ntraining set only")
     box(10.2, 2.65, 1.7, 1.1, "Held-out plots:\nQDA · LDA · RF\nbalanced accuracy")
     box(10.2, 1.3, 1.7, 1.1, "Stability (Kuncheva,\nJaccard ±10 nm)\nJ–M (all leaves)")
-    box(4.7, 0.05, 7.2, 0.6, "Friedman + Nemenyi · Wilcoxon–Holm → composite ranking → consensus disease-specific features", fc="#e3f4ec", ec=H_COL)
+    box(4.7, 0.05, 7.2, 0.6, "Friedman + Nemenyi · Wilcoxon–Holm → composite ranking → consensus features", fc="#e3f4ec", ec=H_COL)
     arr(2.0, 2.3, 2.4, 2.3)
     for i in range(3):
         arr(4.3, 2.3, 4.7, 3.65 - i * 1.25)
@@ -102,8 +102,8 @@ def fs02_score_spectra():
     axs[0].legend(loc="upper right", fontsize=7, ncol=2)
     axs[-1].set_xlabel("Wavelength (nm)")
     axs[-1].set_xlim(400, 2500)
-    fig.suptitle("Where each method finds information (all leaves; score scaled to its maximum; grey = detector-join guard zones)",
-                 fontsize=10, fontweight="bold", y=1.0)
+    axs[0].set_title("Where each method finds information (all leaves; score scaled to its maximum; grey = detector-join guard zones)",
+                     fontsize=10, fontweight="bold", loc="left")
     save(fig, "FS02_score_spectra")
 
 
@@ -142,13 +142,19 @@ def fs04_ba_vs_k():
         ms = [m for m in dict.fromkeys(s.Method) if s[s.Method == m].Family.iloc[0] in (fam, "Ensemble" if fam == "Embedded" else "")]
         ms = [m for m in ms if m not in ("Pearson r", "Fisher score")]
         best = s[(s.k == 10) & s.Method.isin(ms)].set_index("Method")["BA QDA"].sort_values(ascending=False)
+        labs = []
         for i, m in enumerate(best.index):
             q = s[s.Method == m].sort_values("k")
             col = FAM[q.Family.iloc[0]] if i < 3 or m == "Consensus (Borda)" else "#bdbcb5"
             lw = 2 if i < 3 or m == "Consensus (Borda)" else 1
             ax.plot(q.k, q["BA QDA"] * 100, color=col, lw=lw, marker="o", ms=3.5)
             if i < 3 or m == "Consensus (Borda)":
-                ax.text(20.4, q["BA QDA"].iloc[-1] * 100, m, fontsize=7, color=INK, va="center")
+                labs.append([q["BA QDA"].iloc[-1] * 100, m])
+        labs.sort()
+        for t in range(1, len(labs)):
+            labs[t][0] = max(labs[t][0], labs[t - 1][0] + 1.1)
+        for yy, m in labs:
+            ax.text(20.4, yy, m, fontsize=7, color=INK, va="center")
         for lab, ls in (("Four-tier CART-13 (Part C)", ":"), ("Four-tier RF-17 (Part C)", "--")):
             ax.axhline(ref[lab] * 100, color=INK2, lw=0.8, ls=ls)
         ax.set_title(f"{fam} methods" + (" + consensus" if fam == "Embedded" else ""))
@@ -156,7 +162,8 @@ def fs04_ba_vs_k():
         ax.set_xlim(4, 26)
         ax.set_xlabel("Features used (k)")
     axs[0].set_ylabel("QDA balanced accuracy on held-out plots (%)")
-    axs[0].text(4.3, ref["Four-tier RF-17 (Part C)"] * 100 + 0.4, "four-tier RF-17 (dashed) / CART-13 (dotted)", fontsize=6.5, color=INK2)
+    axs[0].text(4.3, ref["Four-tier RF-17 (Part C)"] * 100 + 0.5, "four-tier RF-17 (dashed) / CART-13 (dotted)", fontsize=6.5, color=INK2,
+                bbox=dict(fc="white", ec="none", pad=0.5))
     fig.suptitle("Accuracy vs number of features (redundancy-controlled top-k; mean of 20 held-out sets; best three of each family coloured)",
                  fontsize=10, fontweight="bold", y=1.02)
     save(fig, "FS04_ba_vs_k")
@@ -166,6 +173,7 @@ def fs05_accuracy():
     s = R["summary"]
     a = s[(s.k == 10) & (s.Guard == "yes")].set_index("Method")
     b = s[(s.k == 10) & (s.Guard == "no")].set_index("Method")
+    a = a.drop(index=[m for m in ("Pearson r", "Fisher score") if m in a.index])
     o = a["BA QDA"].sort_values().index
     fig, ax = plt.subplots(figsize=(8, 7))
     yv = np.arange(len(o))
@@ -183,8 +191,8 @@ def fs05_accuracy():
     ax.text(ref["Four-tier RF-17 (Part C)"] * 100 + 0.2, -0.9, "four-tier RF-17", fontsize=7, color=INK2)
     ax.set_xlabel("Balanced accuracy on held-out plots (%, mean of 20)")
     ax.legend(handles=ax.get_legend_handles_labels()[0] + [Patch(color=c, label=f) for f, c in FAM.items()],
-              fontsize=7, loc="lower right")
-    ax.set_title("Ten features per method: accuracy of QDA and RF on new plots")
+              fontsize=7.5, loc="upper center", bbox_to_anchor=(0.45, -0.08), ncol=4)
+    ax.set_title("Ten features per method: accuracy of QDA and RF on new plots\n(ANOVA F = Pearson r = Fisher score: identical rankings)")
     save(fig, "FS05_accuracy_k10")
 
 
@@ -306,7 +314,7 @@ def fs10_composite():
         ax.text(r["Mean rank"] + 0.15, i, f"{r['Mean rank']:.1f}", va="center", fontsize=7.5)
     ax.set_xlabel("Mean rank over accuracy (QDA, RF), stability and J–M (lower = better)")
     ax.grid(axis="y", visible=False)
-    ax.legend(handles=[Patch(color=v, label=k) for k, v in FAM.items()], fontsize=7.5, loc="lower right")
+    ax.legend(handles=[Patch(color=v, label=k) for k, v in FAM.items()], fontsize=7.5, loc="upper right")
     ax.set_title("Composite ranking of the feature-selection methods")
     save(fig, "FS10_composite_ranking")
 
@@ -368,7 +376,7 @@ def fs14_positions():
                 ax.scatter(pos[j], i, marker="o" if ser[j] == "R" else "^", s=26, color=FAM[r["Family"]], edgecolor="white", lw=0.6, zorder=3)
         sc = [meta["name"].iloc[j] for j in idx if not np.isfinite(pos[j])]
         if sc:
-            ax.text(2530, i, ", ".join(s.replace(" water ", " ") for s in sc), fontsize=6, va="center", color=INK2)
+            ax.text(2530, i, ", ".join(s.replace(" water ", " ") for s in sc), fontsize=7, va="center", color=INK2)
     ax.set_yticks(range(len(full)), full["Method"].iloc[::-1], fontsize=7.5)
     ax.set_xlim(400, 2500)
     ax.set_xlabel("Wavelength (nm)   ● K1 reflectance   ▲ K4 first derivative   ■ CWT feature   (scalar features listed on the right)")
@@ -387,7 +395,7 @@ def fs15_guard():
     ax.scatter(g["Redundancy-controlled top-10"] * 100, yv, s=40, color="#2a78d6", zorder=3, label="redundancy-controlled (|r| < 0.95)")
     ax.set_yticks(yv, g["Method"], fontsize=8)
     ax.set_xlabel("QDA balanced accuracy (%), mean of 20 held-out sets")
-    ax.legend(fontsize=7.5, loc="lower right")
+    ax.legend(fontsize=7.5, loc="upper left")
     ax.set_title("Effect of removing near-duplicate features from a ranking")
     save(fig, "FS15_redundancy_control")
 
