@@ -1,0 +1,23 @@
+# White rust (Albugo candida) in mustard - all dates, growth stages and
+# varieties combined, leaf level. Source: four ASD export workbooks
+# (asd__data_complete_labelled_<ddmmyy>.xlsx), transposed layout.
+title: "Healthy vs white-rust-diseased mustard leaves - all dates, stages and varieties combined"
+subtitle: "Four-tier hierarchical analysis (Das et al., 2020) with imbalance correction, CART vs Random Forest, disease-sensitive features (K) and the four-tier analysis of the combined feature pool"
+author: "Animesh Panda · Division of Agricultural Physics, ICAR-IARI, New Delhi"
+data:
+  files:
+    - [asd__data_complete_labelled_110226.xlsx, 11-02-2026]
+    - [asd__data_complete_labelled_240226.xlsx, 24-02-2026]
+    - [asd__data_complete_labelled_030326.xlsx, 03-03-2026]
+    - [asd__data_complete_labelled_130326.xlsx, 13-03-2026]
+  plot_col: Plot
+  class_col: Class
+  date_col: Date
+  drop_exact_duplicates: true      # 75 copies (13-03 block 2) + 4 unnamed copies (plot 27, 11-02)
+classes: {negative: Healthy, positive: Diseased}
+spectra:
+  keep_range: [400, 2500]          # 350-399 nm removed (detector noise); water bands KEPT (contact probe)
+  canopy: false
+output:
+  dir: ../../deliverables/WhiteRust_AllDates
+  stem: WhiteRust_Mustard_Leaf_AllDates

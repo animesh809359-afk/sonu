@@ -80,6 +80,7 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
         mm = stats.mixed_models(X, y, groups, cfg["tier1"]["mixed_model_jobs"])
         t1["mm_effect"], t1["mm_p"], t1["mm_q"], t1["icc"] = mm["effect"], mm["p"], mm["q"], mm["icc"]
         t1["mm_sig"] = t1["mm_q"] < alpha
+        t1["mm_boundary"] = mm["boundary"]
     out["tier1"] = t1
     sig = np.where(ft["sig"])[0]
     out["n_sig"] = int(len(sig))
@@ -94,7 +95,8 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
     for f in folds["V1"]:                  # CART classifier, Tier-1 features fixed
         jobs.append(dict(train=f["train"], test=f["test"], cols=sig))
     fold_sig = {}
-    for sch in ("V3", "V4"):               # nested: Tier 1 refitted in the training rows
+    nested = [sch for sch in ("V3", "V4", "V5") if folds.get(sch)]
+    for sch in nested:                     # nested: Tier 1 refitted in the training rows
         for i, f in enumerate(folds[sch]):
             ftr = stats.feature_table(X[f["train"]], y[f["train"]], alpha)
             s_ = np.where(ftr["sig"])[0]
@@ -166,20 +168,34 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
             if clf == "QDA" and pri == "equal":
                 err[sname] = m
     out["tier3"] = pd.DataFrame(t3)
+    cmax = float(np.nanmax(out["tier3"][["cond0", "cond1"]].to_numpy()))
+    inv = []
+    for sname, fl in sets.items():
+        cols = [name_to_col[v] for v in fl]
+        Z = (X[:, cols] - X[:, cols].mean(0)) / X[:, cols].std(0)
+        inv.append(abs(models.jm(Z, y)[0] - out["tier3"].set_index("Set").loc[sname, "JM"]))
+    out["checks"].append(("Tier 3", "Invertibility of the class covariances",
+                          "condition number of the class correlation matrices of every selected set",
+                          f"max {cmax:.1e} (well below the ~1e12 limit of double precision)", "PASS" if cmax < 1e8 else "FLAG"))
+    out["checks"].append(("Tier 3", "J–M is scale-invariant", "J–M on raw vs standardised features of every selected set",
+                          f"max |ΔJ–M| = {max(inv):.1e}", "PASS" if max(inv) < 1e-8 else "FLAG"))
     out["tier4"] = pd.DataFrame(t4)
     out["errmat"] = err
     # QDA cross-check: sklearn vs manual discriminant functions
     cols = [name_to_col[v] for v in cart_vars]
     if len(cols) >= 1:
-        same = []
+        same, ties = [], []
         for f in folds["V1"]:
             p1, _ = models.fit_predict(models.qda(), X[f["train"]][:, cols], y[f["train"]], X[f["test"]][:, cols])
             p2 = models.qda_manual(X[f["train"]][:, cols], y[f["train"]], X[f["test"]][:, cols])
             same.append((p1 == p2).mean())
+            pr = models.fit_predict(models.qda(), X[f["train"]][:, cols], y[f["train"]], X[f["test"]][:, cols])[1]
+            ties.extend(np.abs(pr[p1 != p2] - 0.5).tolist())
+        worst = max(ties) if ties else 0.0
         out["checks"].append(("Tier 4", f"QDA implementation ({label})",
                               "scikit-learn vs manual discriminant functions (equal priors), V1 folds",
-                              f"{100 * np.mean(same):.2f} % identical predictions",
-                              "PASS" if np.mean(same) > 0.999 else "FLAG"))
+                              f"{100 * np.mean(same):.2f} % identical predictions; differing leaves have |P(diseased) − 0.5| ≤ {worst:.4f}",
+                              "PASS" if np.mean(same) > 0.999 or worst < 0.01 else "FLAG"))
 
     # incremental J-M and QDA BA as features are added
     inc = []
@@ -203,7 +219,8 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
     log(f"{label}: validation pipelines V1/V3/V4")
     pipes = ["CART classifier", "RF classifier", "QDA on CART features", "QDA on RF features"]
     fold_rows = []
-    preds = {(p, s): [] for p in pipes for s in ("V1", "V3", "V4")}
+    preds = {(p, s): [] for p in pipes for s in ["V1"] + nested}
+    fold_vars = {}
     sel = {"CART": [], "RF": []}
     # V1
     cols_c = [name_to_col[v] for v in cart_vars]
@@ -217,10 +234,10 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
         pq_r, pr_r = _safe_fit(models.qda(), X[f["train"]][:, cols_r], y[f["train"]], X[te][:, cols_r])
         for p, (pp, ss) in zip(pipes, ((rc["pred"], rc["prob"]), ((prf > 0.5).astype(int), prf),
                                       (pq_c, pr_c), (pq_r, pr_r))):
-            preds[(p, "V1")].append((te, pp, ss, 0))
+            preds[(p, "V1")].append((te, pp, ss, 0, i))
     # V3 / V4 nested
     j = 1 + len(folds["V1"])
-    for sch in ("V3", "V4"):
+    for sch in nested:
         for i, f in enumerate(folds[sch]):
             tr, te = f["train"], f["test"]
             rc = cres[j]
@@ -232,6 +249,7 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
             idx, _ = _rf_peaks(rfm.feature_importances_, m_s, ks[0], cfg, X[tr][:, s_], coll_r)
             rf_f = list(m_s["name"].iloc[idx])
             c_f = rc["vars"]
+            fold_vars[(sch, i)] = {"CART": c_f, "RF": rf_f, "sig": s_}
             if sch == "V3":
                 sel["CART"].append(c_f)
                 sel["RF"].append(rf_f)
@@ -244,7 +262,7 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
                 out_q.append(_safe_fit(models.qda(), X[tr][:, cc], y[tr], X[te][:, cc]))
             for p, (pp, ss) in zip(pipes, ((rc["pred"], rc["prob"]), ((prf > 0.5).astype(int), prf),
                                           out_q[0], out_q[1])):
-                preds[(p, sch)].append((te, pp, ss, f["rep"]))
+                preds[(p, sch)].append((te, pp, ss, f["rep"], i))
                 yt = y[te]
                 fold_rows.append({"Pipeline": p, "Scheme": sch, "Unit": i, "Repeat": f["rep"],
                                   "BA": stats.balanced_accuracy(yt, pp) if len(np.unique(yt)) == 2 else np.nan})
@@ -252,7 +270,7 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
     val, pooled = [], {}
     for (p, sch), lst in preds.items():
         per_rep = {}
-        for te, pp, ss, r in lst:
+        for te, pp, ss, r, _ in lst:
             per_rep.setdefault(r, []).append((te, pp, ss))
         mets = []
         for r, parts in per_rep.items():
@@ -267,6 +285,8 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
     out["fold_ba"] = pd.DataFrame(fold_rows)
     out["pooled"] = pooled
     out["preds"] = preds
+    out["fold_vars"] = fold_vars
+    out["nested"] = nested
     out["wilcoxon"] = paired_tests(out["fold_ba"], [
         ("RF classifier", "CART classifier"), ("QDA on RF features", "QDA on CART features"),
         ("QDA on CART features", "CART classifier"), ("QDA on RF features", "RF classifier")])

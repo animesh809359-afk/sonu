@@ -104,8 +104,13 @@ def jm(X, y):
 
 
 def cond_numbers(X, y):
-    return (float(np.linalg.cond(np.atleast_2d(np.cov(X[y == 0], rowvar=False)))),
-            float(np.linalg.cond(np.atleast_2d(np.cov(X[y == 1], rowvar=False)))))
+    """Condition numbers of the class correlation matrices (scale-free: the raw
+    covariance condition number is inflated when features have different units)."""
+    out = []
+    for c in (0, 1):
+        Xc = X[y == c]
+        out.append(float(np.linalg.cond(np.atleast_2d(np.corrcoef(Xc, rowvar=False)))) if X.shape[1] > 1 else 1.0)
+    return tuple(out)
 
 
 # ---------------------------------------------------------------- QDA / LDA

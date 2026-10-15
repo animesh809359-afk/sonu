@@ -55,3 +55,22 @@ def pooled_by_rep(folds, scheme):
     for i, f in enumerate(folds[scheme]):
         reps.setdefault(f["rep"], []).append(i)
     return reps
+
+
+def add_lodo(folds, dates, groups):
+    """V5 - leave one date out on new plots: for every V4 split and every date,
+    train on the other dates' leaves of the training plots, test on the held-out
+    date's leaves of the test plots (unseen date AND unseen plots)."""
+    dates = np.asarray(dates)
+    udates = list(dict.fromkeys(dates))
+    out = []
+    for s, f4 in enumerate(folds["V4"]):
+        test_plots = set(groups[f4["test"]])
+        for d in udates:
+            is_tp = np.isin(groups, list(test_plots))
+            tr = np.where((dates != d) & ~is_tp)[0]
+            te = np.where((dates == d) & is_tp)[0]
+            out.append({"train": tr, "test": te, "rep": s, "fold": udates.index(d), "date": d})
+    folds["V5"] = out
+    folds["V5_dates"] = udates
+    return folds

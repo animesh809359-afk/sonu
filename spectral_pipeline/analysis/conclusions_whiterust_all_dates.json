@@ -1,0 +1,156 @@
+{
+ "key_messages": [
+  "Healthy and white-rust leaves differ significantly at 1653 of 2101 bands even with all dates, stages and varieties pooled (1604 bands with a plot random effect), but the differences are small: no single reflectance band reaches AUC 0.70.",
+  "The four-tier method on reflectance (Part A) gives J–M 1.27 (CART-11) and 1.67 (RF-17), below the 1.90 separability threshold, and QDA with equal priors reaches 72 % balanced accuracy on new plots (V3 72.0 %, V4 72.8 %).",
+  "Random Forest is the better classifier (+6 points over CART, 48 of 50 folds) and the far more stable band selector (Jaccard 0.72 vs 0.30); as a band selector for QDA, CART bands were slightly better on reflectance.",
+  "Disease-sensitive features carry much more information: first-derivative bands (845–875 nm, 1915–1945 nm) and continuum-removed water features (970 nm width, 1940 nm symmetry). The four-tier analysis of the combined pool reaches 83.7 % (V3) and 84.6 % (V4) with QDA on 17 RF-selected features, +15 points over reflectance.",
+  "Transfer to an unseen date in unseen plots is poor (53–62 %): growth stage changes the spectra more than the disease; pod-formation leaves of 13-03-2026 were all called diseased when that date was held out."
+ ],
+ "abstract": [
+  "Leaf reflectance (ASD contact probe, 350–2500 nm) of 2264 mustard leaves (378 healthy, 1886 white-rust-diseased; 48 plots; four dates; vegetative, flowering and pod-formation stages; three varieties) was analysed with the four-tier hierarchical method of Das et al. (2020) — Welch t-test with FDR, CART band selection, Jeffries–Matusita separability and QDA — with corrections for the 1 : 5 class imbalance (equal priors, balanced sampling, balanced accuracy), multiple testing and pseudo-replication, and with validation in which every selection step was repeated inside training data grouped by plot.",
+  "On reflectance, 1653 bands differed significantly; CART selected 11 bands (root 1893 nm) and a Balanced Random Forest 17 importance peaks in the red / red edge (621–773 nm) and the 1880–2020 nm water region. J–M distances (1.27 and 1.67) stayed below 1.90, and QDA with equal priors reached a balanced accuracy of 71.1 % in the paper's protocol and 72.0 ± 1.5 % (nested plot-grouped CV) and 72.8 ± 4.7 % (independent hold-out plots) on new plots. As classifiers, RF beat CART by 6 points (p < 10⁻⁹).",
+  "Disease-sensitive features — first-derivative bands, continuum-removed absorption parameters, 31 vegetation indices, edge parameters and the red-edge inflection point (blue shift of 1.5–3.9 nm in diseased leaves) — were extracted. Applying the four tiers to the combined pool of 4150 features selected mainly first-derivative bands near 845–875 and 1915–1945 nm and the width of the 970 nm and symmetry of the 1940 nm water features; QDA on the 17 RF-selected features reached 83.7 % (V3) and 84.6 % (V4), 15 points above reflectance (50 of 50 folds better). A Balanced RF on all features reached 86 %.",
+  "Performance on an unseen date in unseen plots was only 53–62 %, because growth stage shifts the spectra more than the disease does. White rust is detectable from leaf spectra across varieties, but a model for practical use must be trained on the growth stages to which it will be applied."
+ ],
+ "spectra": [
+  "Diseased leaves reflect slightly more in the visible (chlorophyll loss, white pustules) and in the SWIR beyond 1350 nm (lower leaf water), and less on the NIR plateau at 750–930 nm (damage to the mesophyll structure).",
+  "The differences are small compared with the variation between dates and growth stages (lower panels): the mean spectra of the four dates differ more than healthy and diseased leaves within a date."
+ ],
+ "log10p": [
+  "The Welch test is extremely significant in the red / red edge (≈ 650–700 nm) and in the water bands (1400–1450, 1880–2020 nm); it is not significant at 931–1332 nm (NIR) or at 719–727 nm, where the healthy and diseased curves cross.",
+  "With a random plot effect (orange) the significance drops by tens of orders of magnitude, because the effective sample size is the number of plots (48), not the number of leaves; still 1604 bands remain significant."
+ ],
+ "cart": [
+  "The root split is at 1893 nm (water band II): leaves with R1893 ≥ 0.081 are almost all diseased (748 of 791). The tree then uses 2405 nm, the NIR shoulder at 767 nm, the red edge at 702 nm and the green region (540, 588 nm).",
+  "Only 1893, 767 and 2405 nm are re-selected in more than 75 % of the nested training sets; the other CART bands change from sample to sample — a single tree is an unstable band selector."
+ ],
+ "jm": [
+  "J–M increases steadily as bands are added but stays below 1.90 for both band sets: on the CART bands 1.27, on the RF bands 1.67. By the criterion of Das et al. the classes are not spectrally separable — healthy and diseased leaves overlap, as expected when four dates, three stages and three varieties are pooled.",
+  "The 1-SE tree (4 bands) gives J–M 0.63."
+ ],
+ "qda": [
+  "With equal priors QDA recognises 88.9 % of healthy leaves but only 53.3 % of diseased leaves (BA 71.1 %, OA 59.3 %, κ 0.22). With sample priors the balance reverses (PA 82.0 / 70.3 %), and the balanced accuracy is higher (76.1 %): the broad covariance of the diseased class makes equal priors over-correct. Both are reported; equal priors follow the imbalance correction of the flowering-stage analysis.",
+  "Python and R (MASS::qda) give identical predictions except for 1–3 leaves whose posterior probability lies within 0.004 of 0.5."
+ ],
+ "validation": [
+  "Selection bias and plot leakage are small here: the nested, plot-grouped estimate (V3, 72.0 %) and the hold-out estimate (V4, 72.8 %) equal the paper-protocol estimate (V1, 71.1 %). Random under-sampling instead of equal priors gives the same result (72.4 %).",
+  "Removing 350–399 nm matters: with the noisy detector edge CART picks 350 and 353 nm and the nested accuracy falls to 68.8 %. Trimming both edges (450–2450 nm) gives the same bands and accuracy as the main analysis."
+ ],
+ "a2": [
+  "On all leaves the RF bands separate the classes better than the CART bands (J–M 1.67 vs 1.27) but QDA on them is not more accurate (BA 70.1 vs 71.1 %): RF picks many correlated bands in the same two regions, CART picks complementary regions (green, red edge, NIR, SWIR).",
+  "RF-17 concentrates on the red / red edge (621–773 nm) and on 1882–2019 nm, the same two regions where Tier 1 is most significant."
+ ],
+ "a3": [
+  "RF beats CART as a classifier by 6.0 points (V3, 48 of 50 folds) and 5.3 points (V4, 10 of 10).",
+  "QDA on CART bands beats QDA on RF bands by 3.1 points in V3 (35 of 50 folds, p = 0.003); in V4 the difference is not significant."
+ ],
+ "a4": [
+  "RF re-selects its peaks far more consistently (mean pairwise Jaccard 0.72 vs 0.30; 83 bands chosen within ± 10 nm in all 50 training sets vs none for CART)."
+ ],
+ "reip": [
+  "All four REIP estimators shift to shorter wavelengths in diseased leaves (1.5 nm for the linear four-point method, 2.4–3.9 nm for the derivative-based methods; AUC 0.63–0.64), the classical red-edge 'blue shift' of chlorophyll loss. The four methods agree closely (r 0.85–1.00).",
+  "The shift is clear at flowering (−3.9 nm, AUC 0.72) and on 03-03-2026 (−4.9 nm), small at pod formation (−1.1 nm) and absent at the vegetative stage and on 11-02-2026 (+0.2 nm), when symptoms were still developing."
+ ],
+ "k3b": [
+  "The best pair on all band pairs, NDSI(1794, 1837), brackets the 1800/1801 nm detector join just outside the guard zone; part of its separation can come from the date-dependent start-up rise of the SWIR-2 detector, so it is not recommended. Excluding pairs that straddle a join, the best index is NDSI(849, 850) — a NIR slope index at the same wavelengths as the most important first-derivative bands — with AUC 0.80 and an honest balanced accuracy of 70–71 %."
+ ],
+ "k5": [
+  "RF beats CART on every feature group (2–8 points, all p < 0.01).",
+  "Derivatives (K4) and continuum-removed parameters (K2) carry far more information than reflectance (K1) or the 31 indices (K3): RF 86.8 % and 83.2 % vs 70.8 % and 70.2 % (V3).",
+  "Keeping the guard-zone derivative bands raises RF to 91.1 % — an instrument artefact, not disease, so they are excluded."
+ ],
+ "c5": [
+  "In the combined pool the RF-selected features beat the CART-selected features for QDA by 5.8 points (44 of 50 folds), and QDA on 17 RF features (83.7 %) is close to a Balanced RF on all 4150 features (86.3 %).",
+  "Selection is stable: the width of the 970 nm water feature is chosen in all 50 training sets by both selectors, the symmetry of the 1940 nm feature in 50 (RF) and 45 (CART); RF Jaccard 0.82, CART 0.37."
+ ],
+ "c7": [
+  "The combined pool beats reflectance alone in every pipeline (+6 to +16 points, 41–50 of 50 folds, all p < 10⁻⁵). QDA on 17 RF-selected features is 2.1 points below an RF on all features in V3 and equal in V4 — a compact, interpretable 17-feature model loses little."
+ ],
+ "v5": [
+  "Trained on three dates and tested on the fourth date in new plots, accuracy falls to 53–58 % (reflectance) and 61–62 % (combined pool). When 13-03-2026 (mostly pod formation) is held out, every leaf — healthy or diseased — is called diseased: senescing pod-stage leaves resemble diseased leaves spectrally, and the training dates contained few pod-stage leaves.",
+  "The disease signal is real but stage-dependent; models must be trained on the growth stages and dates to which they will be applied."
+ ],
+ "strata": [
+  "The key features work inside every date, growth stage and variety (same direction in nearly all strata), but their AUC varies widely between dates (e.g. D1 at 872 nm 0.69–0.90; CR3 width 0.57–0.87).",
+  "Classifier accuracy (V3 out-of-fold) of QDA on the combined-pool RF features is 82–86 % in each variety, 73–88 % in each growth stage (lowest at pod formation) and 68–94 % in each date."
+ ],
+ "discussion": [
+  {"h": "4.1 What the spectra say about white rust", "p": [
+   "White rust lowers chlorophyll (higher visible reflectance and a 1.5–4 nm blue shift of the red edge), damages the mesophyll (lower NIR plateau at 750–930 nm) and reduces leaf water (higher SWIR reflectance, shallower and narrower water absorption features at 970 and 1940 nm). These are the same regions in which Das et al. (2020) found genotype differences in rice (chlorophyll absorption, red edge, water bands), but here the effect is small relative to the variation between growth stages and dates.",
+   "Derivative and continuum-removed features remove most of the brightness variation between leaves and dates and isolate band shape, which explains why they discriminate far better (AUC up to 0.79 for single first-derivative bands vs 0.69 for reflectance). The most informative derivative bands (845–875 nm) describe the slope of the NIR plateau, which is sensitive to cell structure and leaf water."]},
+  {"h": "4.2 The four-tier method on a two-class, imbalanced, pooled problem", "p": [
+   "Das et al. obtained J–M ≥ 1.94 and 98 % QDA accuracy for 14 genotypes from canopy spectra of one stage. For healthy vs diseased leaves pooled over stages the classes overlap: J–M 1.27–1.68 and balanced accuracy 71–85 %. The method still works as intended — it reduces 2101 bands (or 4150 features) to 11–17 interpretable features and quantifies how separable the classes are — but separability below 1.90 should be reported honestly rather than read as failure of the method.",
+   "Without correction for the 1 : 5 imbalance overall accuracy would be misleading (sample-prior QDA OA 72 % with healthy recall 82 %; an ordinary class-weighted RF recognises only 49 % of healthy leaves). Equal priors, balanced bootstraps and balanced accuracy make the minority class count. For QDA, equal priors produced high healthy recall and lower diseased recall; sample priors gave a higher balanced accuracy, so the choice of prior (or a decision threshold tuned on training data) should be stated with the results."]},
+  {"h": "4.3 CART versus Random Forest", "p": [
+   "A single CART tree is an unstable band selector: in 50 nested training sets only three of its bands were re-selected in most sets (Jaccard 0.30). RF importance peaks were reproducible (Jaccard 0.72, 0.82 in the combined pool), agreed with an independent R implementation (16 of 17 peaks within ± 10 nm) and gave the more accurate classifier in every feature group. As a band selector for QDA, CART was slightly better on reflectance (it picks complementary regions), RF clearly better on the combined pool."]},
+  {"h": "4.4 Validation and generalisation", "p": [
+   "Because leaves of one plot share conditions, and because bands were selected on the same data, leaf-level cross-validation can be optimistic. Here the nested plot-grouped and hold-out estimates were close to the leaf-level estimate, so selection bias and plot leakage were small with 2264 leaves and 48 plots. The transfer to a new date was the real limitation: growth stage dominates the spectra, and a model trained mostly on vegetative and flowering leaves classified pod-stage healthy leaves as diseased. Stage-specific models, or training data that cover all stages, are required for application."]},
+  {"h": "4.5 Instrument artefacts", "p": [
+   "The ASD detector join at 1800/1801 nm produced a date-dependent rise in the first 20–30 nm of the SWIR-2 detector. Derivative bands inside this zone reached AUC 0.89 and raised RF accuracy to 91 %, and the best two-band index without restriction bracketed the join. Guard zones, a join-free index search and an explicit artefact test kept these effects out of the conclusions; 2–5 % of fold selections still fall within 5 nm of a guard zone and are flagged."]},
+  {"h": "4.6 Limitations", "p": [
+   "Disease severity and leaf position were not used; healthy vs diseased is a plot-level label, so mildly infected leaves of inoculated plots are labelled diseased. The four dates are not independent of growth stage. J–M and QDA assume multivariate normal classes. All results refer to leaf-level contact-probe spectra; canopy or airborne data would require masking of the atmospheric water bands."]}
+ ],
+ "conclusions": [
+  "White rust changes mustard leaf reflectance significantly at 1653 of 2101 bands (1604 with a plot random effect), mainly in the red / red edge, the NIR plateau and the water absorption bands, irrespective of date, growth stage and variety.",
+  "The four-tier method of Das et al. (2020), corrected for imbalance, selects 11 CART bands (root 1893 nm) that give QDA balanced accuracies of 71–73 % on new plots; the classes are not separable by the J–M criterion (1.27 < 1.90).",
+  "Random Forest is a better classifier than CART (+6 points) and a far more stable band selector; RF and CART agree on the red edge (≈ 690–705 nm) and the 1890 nm water band.",
+  "First-derivative spectra and continuum-removed water features are the most disease-sensitive features; the red-edge inflection point shows a blue shift of 1.5–3.9 nm in diseased leaves, strongest at flowering.",
+  "Applying the four tiers to the combined feature pool (4150 features) raises accuracy to 83.7–84.6 % with QDA on 17 RF-selected features and to 86 % with an RF on all features — 15 points above reflectance alone.",
+  "Models transfer poorly to an unseen date (53–62 %) because growth stage changes the spectra more than the disease; practical detection needs stage-specific calibration or training data covering all stages."
+ ],
+ "recommendations": [
+  "Use first-derivative bands (845–875 and 1915–1945 nm) together with the width of the 970 nm and the symmetry of the 1940 nm continuum-removed water features; select them with Random Forest importance and classify with QDA or RF.",
+  "Report balanced accuracy and both class recalls; state the priors used (equal priors favour the healthy class here).",
+  "Validate with plots grouped across dates and test transfer to new dates; calibrate per growth stage or include all stages in training.",
+  "Apply splice correction and guard zones at the ASD detector joins and avoid indices whose bands bracket a join.",
+  "Record a disease-severity score per leaf in future campaigns, so that severity-related spectral changes can be modelled directly."
+ ],
+ "references": [
+  "Ambroise C, McLachlan GJ. 2002. Selection bias in gene extraction on the basis of microarray gene-expression data. Proceedings of the National Academy of Sciences 99:6562–6566.",
+  "Babar MA, Reynolds MP, van Ginkel M, Klatt AR, Raun WR, Stone ML. 2006. Spectral reflectance indices as a potential indirect selection criteria for wheat yield under irrigation. Crop Science 46:578–588.",
+  "Benjamini Y, Hochberg Y. 1995. Controlling the false discovery rate: a practical and powerful approach to multiple testing. Journal of the Royal Statistical Society B 57:289–300.",
+  "Bhattacharyya A. 1943. On a measure of divergence between two statistical populations defined by their probability distributions. Bulletin of the Calcutta Mathematical Society 35:99–109.",
+  "Breiman L. 2001. Random forests. Machine Learning 45:5–32.",
+  "Breiman L, Friedman JH, Olshen RA, Stone CJ. 1984. Classification and regression trees. Belmont (CA): Wadsworth.",
+  "Brodersen KH, Ong CS, Stephan KE, Buhmann JM. 2010. The balanced accuracy and its posterior distribution. Proceedings of the 20th International Conference on Pattern Recognition, 3121–3124.",
+  "Chen C, Liaw A, Breiman L. 2004. Using random forest to learn imbalanced data. Technical Report 666, Department of Statistics, University of California, Berkeley.",
+  "Cho MA, Skidmore AK. 2006. A new technique for extracting the red edge position from hyperspectral data: the linear extrapolation method. Remote Sensing of Environment 101:181–193.",
+  "Clark RN, Roush TL. 1984. Reflectance spectroscopy: quantitative analysis techniques for remote sensing applications. Journal of Geophysical Research 89(B7):6329–6340.",
+  "Cohen J. 1960. A coefficient of agreement for nominal scales. Educational and Psychological Measurement 20:37–46.",
+  "Congalton RG. 1991. A review of assessing the accuracy of classifications of remotely sensed data. Remote Sensing of Environment 37:35–46.",
+  "Das B, Sahoo RN, Biswas A, Pargal S, Krishna G, Verma R, Chinnusamy V, Sehgal VK, Gupta VK. 2020. Discrimination of rice genotypes using field spectroradiometry. Geocarto International 35(1):64–77. doi:10.1080/10106049.2018.1506507",
+  "Dawson TP, Curran PJ. 1998. A new technique for interpolating the reflectance red edge position. International Journal of Remote Sensing 19:2133–2139.",
+  "Gong P, Pu R, Heald RC. 2002. Analysis of in situ hyperspectral data for nutrient estimation of giant sequoia. International Journal of Remote Sensing 23:1827–1850.",
+  "Guyot G, Baret F. 1988. Utilisation de la haute résolution spectrale pour suivre l'état des couverts végétaux. Proceedings of the 4th International Colloquium on Spectral Signatures of Objects in Remote Sensing, ESA SP-287, 279–286.",
+  "Haboudane D, Miller JR, Pattey E, Zarco-Tejada PJ, Strachan IB. 2004. Hyperspectral vegetation indices and novel algorithms for predicting green LAI of crop canopies. Remote Sensing of Environment 90:337–352.",
+  "Hanley JA, McNeil BJ. 1982. The meaning and use of the area under a receiver operating characteristic (ROC) curve. Radiology 143:29–36.",
+  "Hastie T, Tibshirani R, Friedman J. 2009. The elements of statistical learning. 2nd ed. New York: Springer.",
+  "Hedges LV. 1981. Distribution theory for Glass's estimator of effect size and related estimators. Journal of Educational Statistics 6:107–128.",
+  "Horler DNH, Dockray M, Barber J. 1983. The red edge of plant leaf reflectance. International Journal of Remote Sensing 4:273–288.",
+  "Hurlbert SH. 1984. Pseudoreplication and the design of ecological field experiments. Ecological Monographs 54:187–211.",
+  "Kokaly RF, Clark RN. 1999. Spectroscopic determination of leaf biochemistry using band-depth analysis of absorption features and stepwise multiple linear regression. Remote Sensing of Environment 67:267–287.",
+  "Kuncheva LI. 2007. A stability index for feature selection. Proceedings of the 25th IASTED International Multi-Conference: Artificial Intelligence and Applications, 390–395.",
+  "Lemaître G, Nogueira F, Aridas CK. 2017. Imbalanced-learn: a Python toolbox to tackle the curse of imbalanced datasets in machine learning. Journal of Machine Learning Research 18(17):1–5.",
+  "Levene H. 1960. Robust tests for equality of variances. In: Olkin I, editor. Contributions to probability and statistics. Stanford: Stanford University Press; p. 278–292.",
+  "Liaw A, Wiener M. 2002. Classification and regression by randomForest. R News 2(3):18–22.",
+  "Mahlein A-K. 2016. Plant disease detection by imaging sensors — parallels and specific demands for precision agriculture and plant phenotyping. Plant Disease 100:241–251.",
+  "Mahlein A-K, Rumpf T, Welke P, Dehne H-W, Plümer L, Steiner U, Oerke E-C. 2013. Development of spectral indices for detecting and identifying plant diseases. Remote Sensing of Environment 128:21–30.",
+  "Pedregosa F, Varoquaux G, Gramfort A, et al. 2011. Scikit-learn: machine learning in Python. Journal of Machine Learning Research 12:2825–2830.",
+  "Pinheiro J, Bates D, R Core Team. 2023. nlme: linear and nonlinear mixed effects models. R package.",
+  "R Core Team. 2024. R: a language and environment for statistical computing. Vienna: R Foundation for Statistical Computing.",
+  "Richards JA. 2013. Remote sensing digital image analysis. 5th ed. Berlin: Springer.",
+  "Roberts DR, Bahn V, Ciuti S, et al. 2017. Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. Ecography 40:913–929.",
+  "Saharan GS, Verma PR, Meena PD, Kumar A. 2014. White rust of crucifers: biology, ecology and management. New Delhi: Springer India.",
+  "Savitzky A, Golay MJE. 1964. Smoothing and differentiation of data by simplified least squares procedures. Analytical Chemistry 36:1627–1639.",
+  "Seabold S, Perktold J. 2010. Statsmodels: econometric and statistical modeling with Python. Proceedings of the 9th Python in Science Conference, 92–96.",
+  "Strobl C, Boulesteix A-L, Zeileis A, Hothorn T. 2007. Bias in random forest variable importance measures: illustrations, sources and a solution. BMC Bioinformatics 8:25.",
+  "Swain PH, Davis SM. 1978. Remote sensing: the quantitative approach. New York: McGraw-Hill.",
+  "Therneau T, Atkinson B. 2023. rpart: recursive partitioning and regression trees. R package version 4.1.23.",
+  "Varma S, Simon R. 2006. Bias in error estimation when using cross-validation for model selection. BMC Bioinformatics 7:91.",
+  "Venables WN, Ripley BD. 2002. Modern applied statistics with S. 4th ed. New York: Springer.",
+  "Welch BL. 1947. The generalization of 'Student's' problem when several different population variances are involved. Biometrika 34:28–35.",
+  "Wilcoxon F. 1945. Individual comparisons by ranking methods. Biometrics Bulletin 1:80–83.",
+  "Youden WJ. 1950. Index for rating diagnostic tests. Cancer 3:32–35.",
+  "Vegetation-index sources (formulas in workbook sheet 17): Jordan 1969; Gitelson & Merzlyak 1996; Gamon et al. 1992; Chappelle et al. 1992; Blackburn 1998; Raun et al. 2001; Peñuelas et al. 1994, 1995, 1997; Barnes et al. 1992; Merzlyak et al. 1999; Haboudane et al. 2002; Gitelson et al. 2001, 2002; Merton 1998; Broge & Leblanc 2001; Roujean & Bréon 1995; Metternicht 2003; Bausch & Duke 1996."
+ ]
+}

@@ -1,3 +1,6 @@
 node_modules/
 test_data/
 output/
+raw_data/
+work/
+__pycache__/
