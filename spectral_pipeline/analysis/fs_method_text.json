@@ -1,0 +1,319 @@
+{
+ "Pearson r": {
+  "code": "F1",
+  "family": "Filter",
+  "principle": "The point-biserial correlation r measures the linear association between each feature and the disease status coded 0 (healthy) / 1 (diseased). Features are ranked by |r|.",
+  "equation": "r = (x̄₁ − x̄₀)/s · √(n₀n₁/n²)",
+  "settings": "All leaves of the training set; no tuning.",
+  "ranking": "Features sorted by |r|.",
+  "use": "Correlation analysis is the most common first screen in hyperspectral disease studies (Mahlein et al. 2013; Thomas et al. 2018).",
+  "result": [
+   "Pearson r, ANOVA F and the Fisher score gave exactly the same ranking (Spearman ρ = 1): for two classes r² = F/(F + n − 2) and the Fisher score is F times a constant. Their results are therefore reported together under ANOVA F."
+  ]
+ },
+ "ANOVA F": {
+  "code": "F2",
+  "family": "Filter",
+  "principle": "One-way analysis of variance compares the between-class and within-class variance of each feature; a large F means that the class means differ strongly relative to the scatter within classes.",
+  "equation": "F = [Σ_c n_c (x̄_c − x̄)² / (C − 1)] / [Σ_c Σ_i (x_ic − x̄_c)² / (n − C)]",
+  "settings": "C = 2 classes, df = (1, n − 2); computed on the training leaves.",
+  "ranking": "Features sorted by F.",
+  "use": "Abdulridha et al. (2023) used ANOVA-F (with chi-square) to pick wavelengths for wheat stem rust.",
+  "result": [
+   "Top-10 on all leaves (redundancy-controlled): D1_848, D1_884, CR3 water 970 width, D1_825, CR6 water 1940 position, D1_913, D1_920, D1_785, D1_1937, D1_772 — eight of ten are first-derivative bands of the NIR plateau (772–920 nm).",
+   "QDA balanced accuracy on new plots rose from 77.8 % (5 features) to 81.2 % (10) and 83.1 % (15); RF 80.8 %, LDA 79.2 % at k = 10. Stability was moderate (Jaccard 0.66) and J–M of the set was low (1.27).",
+   "The set is highly redundant (mean |r| within the set 0.65): even after removing near-duplicates, the strongest univariate features all describe the same NIR-slope signal. Redundancy control added 3.7 points (plain top-10: 77.5 %)."
+  ]
+ },
+ "Fisher score": {
+  "code": "F3",
+  "family": "Filter",
+  "principle": "The Fisher score is the ratio of between-class scatter to within-class scatter of a feature, the univariate form of Fisher's discriminant criterion.",
+  "equation": "FS = Σ_c n_c (x̄_c − x̄)² / Σ_c n_c σ_c²",
+  "settings": "Computed on the training leaves.",
+  "ranking": "Features sorted by FS.",
+  "use": "Widely used in band-selection reviews (Duda et al. 2001; Saeys et al. 2007).",
+  "result": [
+   "Identical ranking to ANOVA F (see F2)."
+  ]
+ },
+ "Chi-square": {
+  "code": "F4",
+  "family": "Filter",
+  "principle": "Each feature is divided into 10 quantile bins and the χ² statistic of the 2 (class) × 10 (bin) contingency table tests whether the bin frequencies differ between healthy and diseased leaves. Unlike F, χ² also responds to differences in the shape of the distributions.",
+  "equation": "χ² = Σ_c Σ_b (O_cb − E_cb)² / E_cb,  E_cb = n_c · n_b / n",
+  "settings": "10 equal-frequency bins defined on the training leaves.",
+  "ranking": "Features sorted by χ².",
+  "use": "Abdulridha et al. (2023); Wei et al. (2021) compared chi-square with RFE for peanut stem rot.",
+  "result": [
+   "Top-10: CR3 water 970 width, D1_872, CR6 water 1940 symmetry, D1_1911, D1_1939, D1_832, CR6 water 1940 position, D1_899, D1_1933, D1_1922 — χ² puts more weight than F on the 1940-nm water features.",
+   "QDA 70.9 % (k = 5), 79.6 % (10), 82.1 % (15), 85.0 % (20); RF 82.2 %; stability 0.69; J–M 1.45. Composite rank 8.",
+   "χ² benefited most from redundancy control (+6.1 points), because its plain top-10 consists of neighbouring bands."
+  ]
+ },
+ "Mutual information": {
+  "code": "F5",
+  "family": "Filter",
+  "principle": "Mutual information I(X;Y) measures how much knowing the feature reduces the uncertainty about the class, including non-linear dependence. It was estimated with the k-nearest-neighbour estimator of Kraskov et al. (2004).",
+  "equation": "I(X;Y) = Σ_y ∫ p(x,y) log[p(x,y) / (p(x) p(y))] dx",
+  "settings": "k = 3 neighbours, standardised features, fixed random seed.",
+  "ranking": "Features sorted by I.",
+  "use": "Used in hyperspectral stress studies together with RFE (e.g. Navrozidis et al. 2023, olive).",
+  "result": [
+   "Top-10: D1_871, D1_1911, D1_1942, D1_901, D1_832, D1_1934, CR6 water 1940 symmetry, D1_1743, D1_799, CR3 water 970 width.",
+   "QDA 77.8 % at k = 10 (82.0 % at 20), RF 81.8 %; stability 0.60. MI selected the same regions as F and χ² — no non-linear signal was found that the linear statistics missed — but its k-NN estimate is noisier, making it less stable and 28 s per training set slower."
+  ]
+ },
+ "ReliefF": {
+  "code": "F6",
+  "family": "Filter",
+  "principle": "ReliefF (Kira & Rendell 1992; Kononenko 1994) is a multivariate filter: for each sampled leaf it finds the k nearest leaves of the same class (hits) and of the other class (misses). A feature gains weight when it differs between the leaf and its misses and loses weight when it differs between the leaf and its hits, so ReliefF rewards features that separate the classes locally, including in interaction with other features.",
+  "equation": "W_j ← W_j − Σ_h |x_j − H_j| / (m k) + Σ_m |x_j − M_j| / (m k)",
+  "settings": "k = 10 hits and 10 misses, Manhattan distance on min–max-scaled features; sampled instances = all healthy training leaves and the same number of randomly drawn diseased leaves; the final weight is the mean of the two class-wise updates (equal priors).",
+  "ranking": "Features sorted by W.",
+  "use": "Mahlein et al. (2013) used RELIEF-F to select the bands of their disease-specific spectral indices for sugar-beet diseases.",
+  "result": [
+   "Top-10: CR6 water 1940 position, CR3 water 970 width, CR6 water 1940 symmetry, D1_872, D1_981, D1_977, D1_899, D1_798, D1_973, D1_832.",
+   "QDA 84.9 % at k = 10 with the smallest variation across the 20 test sets (SD 2.1 points), RF 83.6 %; 85.5 % at k = 15–20. ReliefF was the MOST STABLE method (Jaccard 0.84, Kuncheva 0.64) and is the best filter (composite rank 5).",
+   "Because it looks at nearest neighbours in the full feature space, ReliefF rewards features that work together — it picked the three water-band continuum features first. 11 % of its selections (D1_973–981) lie within 10 nm of the 1000-nm detector join, on the shoulder of the 970-nm water band; excluding them cost only 0.9 points."
+  ]
+ },
+ "J–M (univariate)": {
+  "code": "F7",
+  "family": "Filter",
+  "principle": "The Jeffries–Matusita distance (Tier 3 of Das et al. 2020) of each single feature, assuming Gaussian classes. It combines the difference of the means and the difference of the variances.",
+  "equation": "B = (μ₀ − μ₁)² / [4(σ₀² + σ₁²)] + ½ ln[(σ₀² + σ₁²) / (2σ₀σ₁)],  J–M = 2(1 − e^(−B))",
+  "settings": "Computed on the training leaves.",
+  "ranking": "Features sorted by J–M.",
+  "use": "Das et al. (2020) used J–M to judge separability of CART-selected bands.",
+  "result": [
+   "Top-10: SDr/SDy, CR3 water 970 width, R1894, D1_1934, RVS2, D1_884, D1_848, D1_1941, D1_913, D1_1931.",
+   "Highest-but-one J–M of all sets (1.75), but only 69.7 % QDA balanced accuracy on new plots (73.5 % at k = 20). Univariate J–M rewards features whose class VARIANCES differ (e.g. SDr/SDy, RVS2), and these variance differences do not transfer to new plots. Stable (0.76) but not informative."
+  ]
+ },
+ "mRMR": {
+  "code": "F8",
+  "family": "Filter",
+  "principle": "Minimum-redundancy maximum-relevance (Peng et al. 2005) selects features one at a time, maximising relevance to the class while penalising redundancy with features already chosen. The F-test correlation quotient form (Ding & Peng 2005) was used.",
+  "equation": "next feature = argmax_j F_j / [ (1/|S|) Σ_{s∈S} |r_js| ]",
+  "settings": "Relevance = ANOVA F, redundancy = mean |r| with the selected set; 30 features selected.",
+  "ranking": "Order of selection.",
+  "use": "Common in hyperspectral band selection where adjacent bands are collinear.",
+  "result": [
+   "Top-10 (8 non-redundant): D1_848, D1_1053, CR6 water 1940 position, CR3 water 970 width, D1_655, CR3 water 970 symmetry, CR6 water 1940 symmetry, D1_884.",
+   "QDA 75.5 % (no gain beyond 10 because only 8 of its 30 ranked features survive the redundancy rule), RF 81.3 %, lowest J–M (0.92). The quotient criterion over-penalises redundancy here: it replaces strong correlated features by weak uncorrelated ones (D1_1053, D1_655)."
+  ]
+ },
+ "SPA": {
+  "code": "F9",
+  "family": "Filter",
+  "principle": "The successive projections algorithm (Araújo et al. 2001) builds a chain of variables with minimal collinearity: starting from one variable, each step projects all remaining variables onto the subspace orthogonal to the last chosen one and picks the variable with the largest projection. SPA is unsupervised except for the choice of the start variable and the chain length.",
+  "equation": "x_j ← x_j − (x_kᵀ x_j)(x_kᵀ x_k)⁻¹ x_k;  next = argmax_j ‖x_j‖",
+  "settings": "Chains of up to 20 variables started from each of the 10 most significant features (ANOVA F); chain and length chosen by plot-grouped 5-fold inner cross-validation of LDA (the MLR validation of the original algorithm).",
+  "ranking": "Order in the chosen chain.",
+  "use": "Zhu et al. (2017) used SPA to choose effective wavelengths for presymptomatic tobacco mosaic virus detection.",
+  "result": [
+   "Chain (all leaves, start D1_873): D1_873, D1_2141, D1_674, SDr/SDb, D1_1052, SDr/SDy, D1_756, D1_1792, CR3 water 970 symmetry, CR1 blue symmetry.",
+   "Lowest redundancy of all sets (mean |r| 0.10) but low accuracy: QDA 67.1 % at k = 10, 72.1 % for its own subset (≈ 20 variables); RF 75.7 %. Composite rank 18.",
+   "SPA minimises collinearity without looking at the class; with 4150 heterogeneous features it picks mutually orthogonal but weakly informative features. It suits continuous calibration with few, similar variables (its original use) better than this two-class pool."
+  ]
+ },
+ "MC-UVE": {
+  "code": "F10",
+  "family": "Filter",
+  "principle": "Monte-Carlo uninformative variable elimination (Centner et al. 1996; Cai et al. 2008) fits PLS models on many random subsets and computes, for each variable, the reliability c = mean(b)/sd(b) of its regression coefficient. Artificial random noise variables are added; real variables that are not more reliable than the noise are uninformative.",
+  "equation": "c_j = mean(b_j) / sd(b_j);  keep j if |c_j| > max |c_noise|",
+  "settings": "100 class-balanced Monte-Carlo sub-samples (80 % of the minority class plus as many majority leaves), PLS-DA with 10 components, 4150 noise variables of amplitude 10⁻¹⁰.",
+  "ranking": "Features sorted by |c|; native subset = |c| above the noise cut-off.",
+  "use": "Standard chemometric pre-selection for NIR and hyperspectral calibration.",
+  "result": [
+   "Top-10 by reliability: D1_1744, D1_1725, D1_2305, D1_2304, D1_2306, D1_1724, D1_899, D1_1747, D1_2324, R1035 — MC-UVE emphasises the 1725–1750 nm and 2305–2325 nm C–H absorption regions.",
+   "QDA 80.5 % (k = 10) to 84.2 % (k = 20); RF 82.6 %. Its own subset is huge (on average 1435 of 4150 features more reliable than noise; RF 86.4 %): MC-UVE removes uninformative variables but does not produce a compact set. Redundancy control +4.5 points."
+  ]
+ },
+ "CWT scalogram": {
+  "code": "F11",
+  "family": "Filter",
+  "principle": "Continuous wavelet analysis (Cheng et al. 2010) decomposes each spectrum with the Mexican-hat wavelet at several scales. Small scales describe narrow absorption shapes (like derivatives), large scales describe broad features (like continuum-removed band depths). The separability (here J–M) of every wavelet coefficient forms a scale × wavelength 'separability scalogram'; its local maxima are the candidate features.",
+  "equation": "W(a, b) = ∫ R(λ) a^(−½) ψ((λ − b)/a) dλ,  ψ(t) = (1 − t²) e^(−t²/2)",
+  "settings": "Mexican-hat CWT of the K0-processed 1-nm spectrum at scales 2, 4, …, 256 nm; coefficients kept every 5 nm; coefficients inside the cone of influence or within one scale of a detector join excluded (2505 valid of 3368).",
+  "ranking": "Local maxima of the scalogram sorted by J–M.",
+  "use": "Cheng et al. (2010) detected green-attack damage of pine with a few wavelet features; widely used for wheat rust and powdery mildew since.",
+  "result": [
+   "Top-10 wavelet features: s8 2385, s8 2265, s2 1920, s32 2435, s16 2360, s4 655, s2 2495, s16 2275, s2 680, s8 2185 nm — mainly small and medium scales in the 2185–2495 nm SWIR region and the red (655–680 nm).",
+   "Lowest accuracy at k = 10 (QDA 66.7 %, RF 76.9 %) but the steepest gain with more features (79.2 % at k = 20). The univariate J–M of each wavelet coefficient has the same weakness as F7; wavelet features from the continuum-removed and derivative domains are already represented in K2/K4, so the CWT adds little here."
+  ]
+ },
+ "SVM-RFE": {
+  "code": "W1",
+  "family": "Wrapper",
+  "principle": "Support-vector-machine recursive feature elimination (Guyon et al. 2002) fits a linear SVM, removes the features with the smallest |weight|, refits on the remaining features and repeats. Because the weights are re-estimated after each removal, a feature's importance is judged in the context of the others.",
+  "equation": "rank by w_j², remove the lowest, refit",
+  "settings": "Linear SVM, C = 0.01, balanced class weights, standardised features; 10 % of the remaining features removed per step down to 100, then one at a time.",
+  "ranking": "Reverse order of elimination (last survivor = rank 1).",
+  "use": "Wei et al. (2021) found RFE better than chi-square and SelectFromModel for peanut stem rot; RFE is the method cited from Liu et al. (2024).",
+  "result": [
+   "Top-10: CR3 water 970 width, CR6 water 1940 position, D1_454, D1_2329, D1_2305, D1_982, D1_1791, D1_1724, D1_2166, D1_2206.",
+   "QDA 84.3 % with only 5 features, 87.1 % (10), 88.1 % (15), 88.3 % (20); the best RF (87.2 %) and LDA (89.0 %) results of all methods at k = 10; AUC 0.948. Stability 0.65. Composite rank 1 (best overall).",
+   "SVM-RFE combines the two water-band continuum features with complementary weakly-correlated bands (blue 454 nm, C–H 1724 and 2305–2329 nm) — features that are weak alone but add information in a linear model. 18 % of its selections are within 10 nm of a detector join (D1_982, D1_1791); excluding them lowered accuracy by 1.5 points to 85.6 %, still among the best."
+  ]
+ },
+ "RF-RFE": {
+  "code": "W2",
+  "family": "Wrapper",
+  "principle": "Recursive feature elimination with a Random Forest: the forest is refitted after each elimination step and the least important features (mean decrease in Gini) are removed.",
+  "equation": "rank by MDI, remove the lowest, refit",
+  "settings": "Balanced Random Forest with 150 trees; 20 % removed per step down to 100 features, 5 at a time down to 30, then one at a time.",
+  "ranking": "Reverse order of elimination.",
+  "use": "Wei et al. (2021); RF-RFE is common in UAV disease studies.",
+  "result": [
+   "Top-10: D1_872, CR6 water 1940 symmetry, D1_1164, CR3 water 970 width, D1_1914, D1_2210, D1_1934, D1_2224, D1_1738, D1_1724.",
+   "Good with RF (86.4 %, 2nd best) but only 78.9 % with QDA at k = 10; stability 0.52; 67 s per training set. Features chosen for trees are not necessarily good for a Gaussian classifier: RF-RFE should be paired with an RF classifier."
+  ]
+ },
+ "CARS": {
+  "code": "W3",
+  "family": "Wrapper",
+  "principle": "Competitive adaptive reweighted sampling (Li et al. 2009) imitates 'survival of the fittest': in each of N Monte-Carlo runs a PLS model is fitted, variables with small |coefficients| are removed by an exponentially decreasing function, and the survivors are re-sampled with probability proportional to their weight. The subset with the best cross-validated performance is kept.",
+  "equation": "r_i = a e^(−k i),  a = (p/2)^(1/(N−1)),  k = ln(p/2)/(N − 1)",
+  "settings": "N = 50 runs, class-balanced 80 % sub-samples, PLS-DA with 10 components, plot-grouped 5-fold inner CV on balanced accuracy.",
+  "ranking": "Sampling run in which the variable was last retained (descending), then final |coefficient|.",
+  "use": "CARS (often with SPA) is the most used wavelength selector in Chinese crop-disease imaging studies, e.g. Liu et al. (2024, Frontiers in Plant Science) for maize/soybean leaf diseases.",
+  "result": [
+   "Top-10: D1_2205, ARI, D1_1723, D1_1749, D1_453, D1_982, D1_2305, D1_2168, CR6 water 1940 position, D1_1791. On all leaves the best of 50 sampling runs was run 25 (31 variables; inner PLS-DA BA 91.6 %).",
+   "QDA 86.8 % (k = 10) and the best value at k = 20 (88.9 %); RF 84.5 %, LDA 87.2 %. Its own subsets (on average 57 variables) give RF 87.9 %. Composite rank 3.",
+   "CARS is unstable (Jaccard 0.34): the Monte-Carlo sampling ends in different subsets in each training set. It also relies most on join-adjacent bands (13.5 % of selections; excluding them cost 4.6 points, to 82.2 %, p < 0.001)."
+  ]
+ },
+ "SFFS (QDA)": {
+  "code": "W4",
+  "family": "Wrapper",
+  "principle": "Sequential floating forward selection (Pudil et al. 1994) adds the single feature that most improves the criterion and then removes features ('floating' backward steps) as long as this improves the best set of that size. The criterion here was the plot-grouped inner-CV balanced accuracy of QDA with equal priors — i.e. the Tier-4 classifier of Das et al. (2020) — so SFFS searches directly for the set that QDA classifies best.",
+  "equation": "J(S) = mean balanced accuracy of QDA in 3-fold plot-grouped inner CV",
+  "settings": "Candidates: the 100 most significant features (ANOVA F) that are mutually non-redundant (|r| < 0.95); subset sizes 1–20; best set per size kept.",
+  "ranking": "Best set for each size k (sets are not nested).",
+  "use": "Mustafa et al. (2023) used SFFS after Boruta to find the best fusarium-head-blight feature combination.",
+  "result": [
+   "Top-10 (all leaves): CR3 water 970 width, D1_938, CR6 water 1940 position, R1386, ARI, D1_884, D1_913, D1_745, D1_1353, D1_1365.",
+   "The most accurate method: QDA 85.0 % with 5 features, 87.9 ± 2.8 % with 10, 88.3 % with 15–20; AUC 0.950; best mean rank in the Friedman test (2.52). Because the criterion is QDA itself, the gain is largest for QDA (RF 83.2 %).",
+   "But SFFS is unstable (Jaccard 0.24): many different 10-feature combinations reach almost the same inner-CV accuracy, and the search picks a different one in each training set. It is the least affected by the detector joins (3.5 % of selections; −1.1 points, not significant). Its rank in the composite is 11 only because of this instability."
+  ]
+ },
+ "SFFS (J–M)": {
+  "code": "W5",
+  "family": "Wrapper",
+  "principle": "The same floating search with the multivariate Jeffries–Matusita distance as criterion, i.e. selection of the feature set with the largest class separability (Tier 3 of Das et al. 2020).",
+  "equation": "J(S) = J–M distance of the multivariate Gaussian classes on the training leaves",
+  "settings": "Same 100 candidates; sizes 1–20.",
+  "ranking": "Best set for each size k.",
+  "use": "J–M-based band selection is common in multispectral/hyperspectral classification (Das et al. 2020).",
+  "result": [
+   "Top-10: RVS2, CR3 water 970 width, CR2 red area, RARSc, GNDVI, CR6 water 1940 position, D1_1921, CR5 water 1450 area, D1_1894, R1901.",
+   "Highest J–M of all sets (1.80; J–M exceeds 1.90 only with 14 or more features) but only 72.7 % QDA balanced accuracy on new plots. Maximising J–M on the training leaves selects features whose class covariances differ (indices and areas), which does not generalise across plots — J–M is not a good selection criterion for this dataset."
+  ]
+ },
+ "Genetic algorithm": {
+  "code": "W6",
+  "family": "Wrapper",
+  "principle": "A genetic algorithm (Leardi et al. 1992) evolves a population of binary chromosomes (feature on/off). Chromosomes with high fitness are selected (tournament), combined (crossover) and mutated; the best ones are kept (elitism).",
+  "equation": "fitness = inner-CV QDA balanced accuracy − 0.002 × number of features",
+  "settings": "Same 100 candidates; 50 chromosomes × 40 generations; tournament size 3; uniform crossover (0.8); bit-flip mutation 1/100; elitism 2; subsets limited to 2–25 features.",
+  "ranking": "Frequency of each feature in the final population; native subset = best chromosome.",
+  "use": "Nagasubramanian et al. (2018) used GA-SVM band selection for charcoal rot in soybean.",
+  "result": [
+   "Best chromosome on all leaves (14 features; fitness 0.887, plateau from generation 24): CR3 water 970 width, CR6 water 1940 position, CR6 water 1940 symmetry, CR1 blue depth, D1_678, D1_705, D1_926, D1_938, D1_970, D1_1083, D1_1353, D1_1365, D1_2417, D1_2460.",
+   "QDA 84.1 % at k = 10 and 88.2 % at k = 15; its own subsets (about 16 features) give QDA 88.5 %, the highest native-subset accuracy. Least stable method (Jaccard 0.22)."
+  ]
+ },
+ "RF importance": {
+  "code": "E1",
+  "family": "Embedded",
+  "principle": "The mean decrease in Gini impurity of a Random Forest (Breiman 2001) sums, over all trees and nodes, the impurity reduction achieved by splits on each feature. A Balanced Random Forest (Chen et al. 2004) draws class-balanced bootstrap samples so that the importance is not dominated by the majority class.",
+  "equation": "MDI_j = (1/T) Σ_trees Σ_{nodes split on j} p(node) ΔGini(node)",
+  "settings": "Balanced RF, 500 trees, √p features per split.",
+  "ranking": "Features sorted by MDI.",
+  "use": "RF importance is the most widely used embedded selector in hyperspectral disease studies; SelectFromModel with RF (SFM-RF) uses the same scores.",
+  "result": [
+   "Top-10: CR3 water 970 width, D1_861, D1_1915, D1_1934, CR6 water 1940 symmetry, D1_898, D1_2222, D1_1923, D1_1942, D1_2209.",
+   "QDA 78.0 % (k = 10) to 85.0 % (k = 20); RF 82.6 %; stable (0.73). RF importance spreads credit over correlated neighbours and therefore needs redundancy control (+2.9 points). Same regions as the four-tier RF-17 set of Part C."
+  ]
+ },
+ "CART importance": {
+  "code": "E2",
+  "family": "Embedded",
+  "principle": "The Gini importance of a single pruned classification tree (Breiman et al. 1984), the mechanism behind Tier 2 of Das et al. (2020). Only variables used in splits receive importance.",
+  "equation": "importance_j = Σ_{nodes split on j} p(node) ΔGini(node)",
+  "settings": "Gini criterion, balanced class weights (equal priors), minimum 20 leaves to split and 7 per terminal node (as rpart); cost-complexity pruning parameter chosen from 10 candidates by plot-grouped 3-fold inner CV.",
+  "ranking": "Features used in the tree sorted by importance; native subset = all features used.",
+  "use": "Das et al. (2020) used CART to select rice-genotype bands.",
+  "result": [
+   "Top-10: D1_861, CR3 water 970 width, CR6 water 1940 symmetry, D1_1164, D1_1950, D1_900, D1_1736, D1_1931, R639, D1_2224 — on all leaves the pruned tree had 13 terminal nodes.",
+   "QDA 77.8 %, RF 84.9 % at k = 10; unstable (0.27) because a single tree changes its splits when the data change — the same weakness found for Tier 2 of the four-tier method. Slow (112 s) because of the pruning search."
+  ]
+ },
+ "Boruta": {
+  "code": "E3",
+  "family": "Embedded",
+  "principle": "Boruta (Kursa & Rudnicki 2010) is an all-relevant method: every feature competes with a randomly shuffled copy of itself (a 'shadow'). In each run a Random Forest is fitted on real and shadow features; a real feature scores a 'hit' when its importance exceeds the best shadow. After each run a binomial test decides whether a feature is significantly more (confirmed) or less (rejected) important than chance.",
+  "equation": "hits_j ~ Binomial(runs, 0.5);  confirm if P(X ≥ hits_j) < α/m",
+  "settings": "Balanced RF, 200 trees per run, 60 runs per training set (100 on all leaves), two-sided test with Bonferroni correction, α = 0.01; rejected features dropped from later runs.",
+  "ranking": "Confirmed features by mean importance, then tentative, then rejected (later rejection = higher rank).",
+  "use": "Mustafa et al. (2022, 2023) used Boruta to identify fusarium-head-blight-sensitive features in wheat.",
+  "result": [
+   "On all leaves after 100 runs: 192 features confirmed, 201 tentative, 3757 rejected; per training set 88–155 confirmed (mean 122). Top-10 by importance: CR3 water 970 width, D1_861, CR6 water 1940 symmetry, D1_1916, D1_1934, D1_2223, D1_2209, D1_899, D1_1946, D1_1724.",
+   "QDA 78.5 % at k = 10 (83.4 % at 20); RF on the confirmed set 84.4 %; stability 0.65; composite rank 6. Boruta is a screening tool: it tells which features carry disease information (all-relevant) rather than which compact set classifies best; it was also the slowest method (304 s per training set)."
+  ]
+ },
+ "PLS-VIP": {
+  "code": "E4",
+  "family": "Embedded",
+  "principle": "Variable importance in projection (Wold et al. 2001) summarises how much each variable contributes to the PLS components, weighted by the variance of the response explained by each component. VIP > 1 is the usual relevance threshold (Chong & Jun 2005).",
+  "equation": "VIP_j = √[ p Σ_a SS_a (w_ja/‖w_a‖)² / Σ_a SS_a ],  SS_a = q_a² t_aᵀt_a",
+  "settings": "PLS-DA on standardised features; 1–15 components chosen by plot-grouped 5-fold inner CV (balanced accuracy).",
+  "ranking": "Features sorted by VIP; native subset = VIP > 1.",
+  "use": "PLS-VIP is standard in chemometric and hyperspectral disease studies.",
+  "result": [
+   "Top-10: CR6 water 1940 position, D1_2305, CR6 water 1940 symmetry, D1_1070, CR1 blue width, D1_1792, D1_1724, D1_2306, D1_1073, D1_1060. On all leaves 15 components were chosen (the upper limit of the grid) and 1349 features had VIP > 1.",
+   "Poor with 10 features (QDA 71.6 %, RF 74.8 %) and low J–M (0.97), although stable (0.73). The VIP > 1 subset (about 1320 features) gives RF 86.3 %, so VIP is useful for screening, not for a compact set."
+  ]
+ },
+ "LASSO": {
+  "code": "E5",
+  "family": "Embedded",
+  "principle": "L1-penalised logistic regression (Tibshirani 1996) shrinks coefficients and sets many exactly to zero, so variable selection happens during model fitting. Features that enter the model at a strong penalty are the most important.",
+  "equation": "min_β −log L(β) + (1/C) ‖β‖₁",
+  "settings": "Balanced class weights, standardised features, C on a 9-point grid from 10⁻³ to 10⁻⁰·⁵ chosen by plot-grouped 3-fold inner CV.",
+  "ranking": "Order of entry along the regularisation path (strong to weak penalty); native subset = non-zero coefficients at the chosen C.",
+  "use": "LASSO and SelectFromModel with L1-SVM (SFM-SVM) are standard embedded selectors.",
+  "result": [
+   "Top-10 (order of entry): CR6 water 1940 position, CR3 water 970 width, D1_848, D1_1724, D1_2330, D1_1792, D1_898, PPR, D1_981, D1_660. On all leaves the cross-validated C was the largest value of the grid (0.316) with 127 non-zero coefficients.",
+   "QDA 85.4 % (k = 10) and 87.2 % (k = 15); RF 85.5 %; stable (Jaccard 0.70, Kuncheva 0.73). Composite rank 2. Like SVM-RFE it combines the water features with complementary bands, but 15 % of its selections are join-adjacent and excluding them cost 3.2 points (82.2 %)."
+  ]
+ },
+ "Gradient boosting": {
+  "code": "E6",
+  "family": "Embedded",
+  "principle": "Gradient-boosted decision trees (Friedman 2001), the algorithm family of XGBoost (Chen & Guestrin 2016), add shallow trees sequentially to correct the errors of the previous ones; the split-gain importance measures each feature's contribution.",
+  "equation": "F_m(x) = F_{m−1}(x) + ν h_m(x)",
+  "settings": "150 trees, depth 3, learning rate 0.1, sub-sample 0.8, √p features per split, balanced sample weights.",
+  "ranking": "Features sorted by importance.",
+  "use": "XGBoost importance is increasingly used for UAV disease mapping.",
+  "result": [
+   "Top-10: D1_849, D1_795, D1_2222, D1_1909, D1_888, CR6 water 1940 position, CR3 water 970 width, R1330, D1_2461, D1_1064.",
+   "QDA 77.4 %, RF 84.7 % at k = 10; unstable (0.32, Kuncheva 0.10) because boosting uses only a few features per tree and the choice among correlated neighbours is arbitrary."
+  ]
+ },
+ "Consensus (Borda)": {
+  "code": "C1",
+  "family": "Ensemble",
+  "principle": "Ensemble feature selection (Saeys et al. 2008): the redundancy-controlled top-20 of every distinct method gets Borda points (20 for rank 1 … 1 for rank 20), the points are summed over methods, and features are ranked by their total. Repeating this inside every training set makes the consensus itself an honestly validated method.",
+  "equation": "Borda_j = Σ_methods (21 − rank_jm) for rank_jm ≤ 20",
+  "settings": "21 distinct methods (Pearson r and Fisher score counted once, as ANOVA F; the CWT scalogram excluded because it works on wavelet features).",
+  "ranking": "Features sorted by Borda total.",
+  "use": "Rank aggregation is recommended to stabilise selections in high-dimensional data.",
+  "result": [
+   "Consensus top-10 on all leaves: CR3 water 970 width, CR6 water 1940 position, CR6 water 1940 symmetry, D1_1934, D1_848, D1_1724, D1_2305, D1_1792, ARI, D1_899.",
+   "QDA 82.7 %, RF 85.1 % at k = 10; stability 0.55; composite rank 4. Aggregating 21 methods gives an interpretable, moderately stable signature but not the highest accuracy: the consensus averages strong and weak methods."
+  ]
+ }
+}

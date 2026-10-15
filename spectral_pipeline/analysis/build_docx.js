@@ -21,7 +21,7 @@ const P = (text, opts = {}) => body.push(new Paragraph({ children: runs(text, op
 function runs(text, opts = {}) {
   // **bold** and _italic_ markup
   const out = [];
-  const re = /(\*\*[^*]+\*\*|_[^_]+_)/g;
+  const re = /(\*\*[^*]+\*\*|(?<![A-Za-z0-9])_[^_]+_(?![A-Za-z0-9]))/g;   // _italic_ only at word boundaries (feature names contain "_")
   let last = 0, m;
   while ((m = re.exec(text))) {
     if (m.index > last) out.push(new TextRun({ text: text.slice(last, m.index), size: opts.size || 22, italics: opts.italics }));
