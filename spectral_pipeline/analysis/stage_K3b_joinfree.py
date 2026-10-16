@@ -147,6 +147,7 @@ _ab = [int(v) for v in re.findall(r"\d+", _best)[:2]]
 _str = len(_ab) == 2 and straddles(*_ab)
 K["k3b_jf"]["allpair_straddles"] = bool(_str)
 K["k3b_jf"]["allpair_best"] = _best
+K["checks"] = [c for c in K["checks"] if c[1] != "Best pair straddles a detector join?"]   # idempotent on re-runs
 K["checks"].append(("K3b", "Best pair straddles a detector join?",
                     "pairs with one band on each side of the 1000/1001 or 1800/1801 nm join (within 100 nm) excluded and the search repeated",
                     (f"all-pair best {_best} brackets a detector join → treated as artefact-prone; " if _str else
