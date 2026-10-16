@@ -16,7 +16,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import StratifiedGroupKFold
 
 RUNNER = Path(__file__).with_name("rpart_runner.R")
 
@@ -26,10 +25,13 @@ def r_available() -> bool:
 
 
 def grouped_xval(y, groups, k=10, seed=42):
-    """Plot-grouped fold assignment (1..k) for rpart's internal CV."""
-    sgk = StratifiedGroupKFold(k, shuffle=True, random_state=seed)
+    """Plot-grouped fold assignment (1..k) for rpart's internal CV; k is capped at the number of
+    plots of the smaller class so that every fold holds both classes."""
+    from .folds import group_folds, n_group_folds
+    k = n_group_folds(y, groups, k)
     xv = np.zeros(len(y), int)
-    for f, (_, te) in enumerate(sgk.split(np.zeros(len(y)), y, groups)):
+    splits, _ = group_folds(y, groups, k, seed)
+    for f, (_, te) in enumerate(splits):
         xv[te] = f + 1
     return xv
 

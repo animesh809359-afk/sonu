@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import wilcoxon
 
-from common import cfg, load, save
+from common import cfg, load, present_dates, save, v5_label, v5_level
 from sp import stats
 
 C = cfg()
@@ -31,6 +31,7 @@ def k5b(group, clf, sch):
     return f[(f.Group == group) & (f.Classifier == clf) & (f.Scheme == sch)].set_index(["Repeat", "Unit"])["BA"]
 
 
+NPOOL = K["features"]["groups"]["G5"][1].X.shape[1]
 pairs = [
     ("Combined pool: QDA on CART features", lambda s: fb(Cc, "QDA on CART features", s),
      "Reflectance: QDA on CART bands", lambda s: fb(A, "QDA on CART features", s)),
@@ -43,15 +44,15 @@ pairs = [
     ("Combined pool: QDA on RF features", lambda s: fb(Cc, "QDA on RF features", s),
      "Combined pool: QDA on CART features", lambda s: fb(Cc, "QDA on CART features", s)),
     ("Combined pool: QDA on RF features", lambda s: fb(Cc, "QDA on RF features", s),
-     "K5: RF classifier on all 4151 features", lambda s: k5b("G5", "RF", s)),
+     f"K5: RF classifier on all {NPOOL} features", lambda s: k5b("G5", "RF", s)),
     ("Combined pool: QDA on RF features", lambda s: fb(Cc, "QDA on RF features", s),
      "K5: QDA on 15 features chosen by AUC", lambda s: k5b("GS", "QDA", s)),
     ("Combined pool: RF classifier (Tier-1 features)", lambda s: fb(Cc, "RF classifier", s),
-     "K5: RF classifier on all 4151 features", lambda s: k5b("G5", "RF", s)),
+     f"K5: RF classifier on all {NPOOL} features", lambda s: k5b("G5", "RF", s)),
 ]
 rows = []
 for an, af, bn, bf in pairs:
-    for sch, lab in (("V3", "V3 nested (50 folds)"), ("V4", "V4 hold-out (10 splits)")):
+    for sch, lab in (("V3", f"V3 nested ({len(F['V3'])} folds)"), ("V4", f"V4 hold-out ({len(F['V4'])} splits)")):
         d = (af(sch) - bf(sch)).dropna()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -63,6 +64,7 @@ out["cross_wilcoxon"] = pd.DataFrame(rows)
 
 # ---------------------------------------------------------------- V5 by date
 dates = F["V5_dates"]
+LEVEL = v5_level(F)
 lodo = []
 for lab, R in (("Reflectance (Part A)", A), ("Combined pool (Part C)", Cc)):
     for p in ["CART classifier", "RF classifier", "QDA on CART features", "QDA on RF features"]:
@@ -71,11 +73,14 @@ for lab, R in (("Reflectance (Part A)", A), ("Combined pool (Part C)", Cc)):
             for te, pp, ss, rep, i in R["preds"][(p, "V5")]:
                 if F["V5"][i]["date"] != d:
                     continue
-                bas.append(stats.balanced_accuracy(y[te], pp))
                 n_te.append(len(te))
-            lodo.append({"Feature set": lab, "Pipeline": p, "Held-out date": d, "Splits": len(bas),
-                         "Mean test leaves": float(np.mean(n_te)), "BA mean": float(np.mean(bas)),
-                         "BA SD": float(np.std(bas, ddof=1))})
+                if len(np.unique(y[te])) == 2:      # BA needs both classes in the test leaves
+                    bas.append(stats.balanced_accuracy(y[te], pp))
+            lodo.append({"Feature set": lab, "Pipeline": p, LEVEL: d, "Splits": len(n_te),
+                         "Splits with both classes": len(bas),
+                         "Mean test leaves": float(np.mean(n_te)) if n_te else np.nan,
+                         "BA mean": float(np.mean(bas)) if bas else np.nan,
+                         "BA SD": float(np.std(bas, ddof=1)) if len(bas) > 1 else np.nan})
 out["lodo"] = pd.DataFrame(lodo)
 
 # ---------------------------------------------------------------- stratified checks
@@ -123,6 +128,7 @@ out["strata_ba"] = pd.DataFrame(cls_rows)
 
 # ---------------------------------------------------------------- synthesis
 syn = []
+V5COL = f"BA V5 ({v5_label(F, short=True)})"
 for lab, R in (("Part A · reflectance four-tier", A), ("Part C · combined-pool four-tier", Cc)):
     v = R["validation"].set_index(["Pipeline", "Scheme"])
     for p, nm in (("QDA on CART features", f"QDA on {R['cart_name']} (CART-selected)"),
@@ -131,7 +137,7 @@ for lab, R in (("Part A · reflectance four-tier", A), ("Part C · combined-pool
         syn.append({"Approach": f"{lab}: {nm}", "BA V1 (leaf 10-fold)": v.loc[(p, "V1"), "BA"],
                     "BA V3 (nested CV)": v.loc[(p, "V3"), "BA"], "SD V3": v.loc[(p, "V3"), "BA_SD"],
                     "BA V4 (hold-out plots)": v.loc[(p, "V4"), "BA"], "SD V4": v.loc[(p, "V4"), "BA_SD"],
-                    "BA V5 (new date + plots)": v.loc[(p, "V5"), "BA"], "AUC V3": v.loc[(p, "V3"), "AUC"],
+                    V5COL: v.loc[(p, "V5"), "BA"], "AUC V3": v.loc[(p, "V3"), "AUC"],
                     "κ V3": v.loc[(p, "V3"), "kappa"]})
 t = K["k5"]
 gn = {"G0": "full raw spectrum", "G1": "K1 reflectance", "G2": "K2 continuum removal", "G3": "K3 vegetation indices",
@@ -144,18 +150,18 @@ for g in gn:
             syn.append({"Approach": f"K5 · {gn[g]}: {clf}", "BA V1 (leaf 10-fold)": np.nan,
                         "BA V3 (nested CV)": a.iloc[0]["BA"], "SD V3": a.iloc[0]["BA_SD"],
                         "BA V4 (hold-out plots)": b.iloc[0]["BA"], "SD V4": b.iloc[0]["BA_SD"],
-                        "BA V5 (new date + plots)": np.nan, "AUC V3": a.iloc[0]["AUC"], "κ V3": a.iloc[0]["kappa"]})
+                        V5COL: np.nan, "AUC V3": a.iloc[0]["AUC"], "κ V3": a.iloc[0]["kappa"]})
 for nm, tab in (("K2 best single parameter", K["k2"]), ("K3 best single index", K["k3"]),
                 ("K4 best edge parameter", K["k4_edge"]), ("REIP best method", K["reip"])):
     r = tab.iloc[0]
     syn.append({"Approach": f"Single feature · {nm}: {r['name']} (threshold)", "BA V1 (leaf 10-fold)": r["BA all leaves"],
                 "BA V3 (nested CV)": r["BA plot-grouped CV"], "SD V3": np.nan, "BA V4 (hold-out plots)": r["BA hold-out"],
-                "SD V4": np.nan, "BA V5 (new date + plots)": np.nan, "AUC V3": r["AUC"], "κ V3": np.nan})
+                "SD V4": np.nan, V5COL: np.nan, "AUC V3": r["AUC"], "κ V3": np.nan})
 for lab, h in (("K3b optimised NDSI, all pairs — brackets the 1800 nm join (search nested)", K["k3b_honest"]["NDSI"]),
                ("K3b optimised NDSI, join-free pairs (search nested)", K["k3b_jf"]["honest"]["NDSI"])):
     syn.append({"Approach": f"Single feature · {lab}", "BA V1 (leaf 10-fold)": np.nan,
                 "BA V3 (nested CV)": h["BA CV"], "SD V3": np.nan, "BA V4 (hold-out plots)": h["BA hold-out"], "SD V4": h["SD"],
-                "BA V5 (new date + plots)": np.nan, "AUC V3": np.nan, "κ V3": np.nan})
+                V5COL: np.nan, "AUC V3": np.nan, "κ V3": np.nan})
 out["synthesis"] = pd.DataFrame(syn).sort_values("BA V3 (nested CV)", ascending=False).reset_index(drop=True)
 # ---------------------------------------------------------------- guard-edge proximity (artefact leakage?)
 guards = {"R": C["spectra"]["guard"]["R"], "D1": C["spectra"]["guard"]["D1"]}
@@ -176,11 +182,11 @@ for meth in ("CART", "RF"):
     tot = sum(len(l) for l in lists)
     near = sum(near_guard(v) for l in lists for v in l)
     ge_rows.append({"Selector": meth, "All-leaf set": ", ".join(v for v in allset if near_guard(v)) or "none",
-                    "Selections within 5 nm of a guard zone (50 training sets)": near, "Of": tot, "Share": near / tot})
+                    f"Selections within 5 nm of a guard zone ({len(F['V3'])} training sets)": near, "Of": tot, "Share": near / tot})
 out["guard_edge"] = pd.DataFrame(ge_rows)
 save(out, "compare")
 pd.set_option("display.width", 250)
 print(out["cross_wilcoxon"])
-print(out["lodo"].pivot_table(index=["Feature set", "Pipeline"], columns="Held-out date", values="BA mean"))
+print(out["lodo"].pivot_table(index=["Feature set", "Pipeline"], columns=LEVEL, values="BA mean"))
 print(out["synthesis"].head(15)[["Approach", "BA V3 (nested CV)", "BA V4 (hold-out plots)"]])
 print(out["strata_auc"].groupby("Feature")["AUC"].agg(["min", "max"]))

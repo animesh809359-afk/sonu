@@ -9,7 +9,7 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from matplotlib.patches import FancyBboxPatch  # noqa: E402
 
-from common import WORK, load  # noqa: E402
+from common import WORK, cfg, load, present_dates, subset_label, v3_label, v5_label  # noqa: E402
 
 FIG = WORK / "figures"
 FIG.mkdir(exist_ok=True)
@@ -37,6 +37,12 @@ A = _try("partA")
 K = _try("partK")
 Cc = _try("partC")
 spec, y, wl = D["spec"], D["y"], D["spec"].wl
+F = D["folds"]
+PD = present_dates(D)
+SUBSET = subset_label(cfg())
+N0, N1 = int((y == 0).sum()), int((y == 1).sum())
+NP0, NP1 = len(set(D["groups"][y == 0])), len(set(D["groups"][y == 1]))
+NSETS = len(F["V3"])
 CFG_GUARD = {"R": [[990, 1010], [1795, 1835]], "D1": [[988, 1012], [1793, 1837]]}
 done = []
 
@@ -57,14 +63,14 @@ def f01_workflow():
     fig, ax = plt.subplots(figsize=(10, 6.2))
     ax.axis("off")
     boxes = [
-        (0.5, 0.95, "Leaf spectra: 4 dates × 48 plots (12 healthy, 36 white rust)\n2264 unique leaves · ASD FieldSpec contact probe · 350–2500 nm", "#f0efec"),
-        (0.5, 0.82, "Step 0–1 · Data audit, duplicates removed, 400–2500 nm (water bands kept)\nimbalance 1 : 5 → equal priors / balanced sampling throughout", "#f0efec"),
+        (0.5, 0.95, f"Leaf spectra ({SUBSET}): {len(PD)} date(s) × {NP0 + NP1} plots ({NP0} healthy, {NP1} white rust)\n{len(y)} unique leaves · ASD FieldSpec contact probe · 350–2500 nm", "#f0efec"),
+        (0.5, 0.82, f"Step 0–1 · Data audit, duplicates removed, 400–2500 nm (water bands kept)\nimbalance 1 : {N1 / N0:.1f} → equal priors / balanced sampling throughout", "#f0efec"),
         (0.5, 0.69, "Tier 1 · Welch t-test + Benjamini–Hochberg FDR at every band\n(+ ANOVA, mixed model with plot, 1000 balanced subsets, −log10 p spectrum)", "#cde2fb"),
         (0.27, 0.54, "Tier 2a · CART (rpart)\nprior 0.5/0.5 · split variables", "#cde2fb"),
         (0.73, 0.54, "Tier 2b · Balanced Random Forest\nMDI importance peaks ≥ 10 nm apart", "#fde2c5"),
         (0.5, 0.415, "Tier 3 · Jeffries–Matusita distance on each selected band set (threshold 1.90 / 1.94)", "#cde2fb"),
         (0.5, 0.295, "Tier 4 · QDA with equal priors · error matrix, OA, BA, κ, PA, UA", "#cde2fb"),
-        (0.5, 0.175, "Validation · V1 leaf 10-fold · V2 plot-grouped · V3 nested plot-grouped × 5 · V4 30 % plot hold-out × 10\nV5 new date + new plots · Wilcoxon tests · band stability", "#f0efec"),
+        (0.5, 0.175, f"Validation · V1 leaf 10-fold · V2 plot-grouped · V3 nested plot-grouped {v3_label(F)} · V4 30 % plot hold-out × {len(F['V4'])}\nV5 {v5_label(F)} · Wilcoxon tests · band stability", "#f0efec"),
         (0.5, 0.045, "Part K · K0 denoising → K1 reflectance · K2 continuum removal · K3 indices (+K3b)\nK4 derivatives / REIP · K6 correlation → K5 CART vs RF  |  Part C · four tiers on the combined K1–K4 pool", "#e3f4ec"),
     ]
     for x, y0, t, c in boxes:
@@ -89,12 +95,13 @@ def f02_mean_spectra():
         ax.fill_between(wl, m - s, m + s, color=col, alpha=0.15, lw=0)
         ax.plot(wl, m, color=col, label=f"{lab} (n = {(y == c).sum()})")
     ax.set(xlabel="Wavelength (nm)", ylabel="Reflectance", xlim=(400, 2500), ylim=(0, None))
-    ax.set_title("Mean reflectance of healthy and diseased leaves (± 1 SD), all dates combined")
+    ax.set_title(f"Mean reflectance of healthy and diseased leaves (± 1 SD), {SUBSET}", fontsize=9)
     ax.legend(loc="upper right")
     save(fig, "F02_mean_spectra")
     # by date (small multiples)
-    fig, axs = plt.subplots(1, 4, figsize=(12, 3), sharey=True)
-    for ax, d in zip(axs, D["folds"]["V5_dates"]):
+    fig, axs = plt.subplots(1, len(PD), figsize=(max(4.5, 3 * len(PD)), 3), sharey=True, squeeze=False)
+    axs = axs[0]
+    for ax, d in zip(axs, PD):
         m = D["dates"] == d
         for c, col in ((0, H_COL), (1, D_COL)):
             ax.plot(wl, spec.R_raw[m & (y == c)].mean(0), color=col, lw=1.1)
@@ -128,7 +135,7 @@ def f04_frequency():
     a1.axhline(95, color=INK2, lw=0.8, ls="--")
     a1.text(2490, 96, "95 %", ha="right", va="bottom", fontsize=8, color=INK2)
     a1.set(ylabel="Balanced subsets with\nsignificant difference (%)", ylim=(0, 102))
-    a1.set_title("Significance frequency over 1000 balanced subsets (378 vs 378 leaves)")
+    a1.set_title(f"Significance frequency over 1000 balanced subsets ({N0} vs {N0} leaves)")
     a2.plot(wl, spec.R_raw.mean(0), color=INK)
     a2.set(xlabel="Wavelength (nm)", ylabel="Mean reflectance", xlim=(400, 2500))
     save(fig, "F04_tier1_frequency")
@@ -222,7 +229,7 @@ def f08_reselection():
     fig, ax = plt.subplots(figsize=(7, 3.2))
     x = np.arange(len(t))
     ax.bar(x - 0.2, t["Bootstrap re-selection (±10 nm)"] * 100, 0.38, color="#86b6ef", label="200 plot-level bootstraps")
-    ax.bar(x + 0.2, t["Nested-CV re-selection (±10 nm)"] * 100, 0.38, color=CART_COL, label="50 nested-CV training sets")
+    ax.bar(x + 0.2, t["Nested-CV re-selection (±10 nm)"] * 100, 0.38, color=CART_COL, label=f"{NSETS} nested-CV training sets")
     ax.set_xticks(x, [f"{int(b)}" for b in t["Band (nm)"]], rotation=90)
     ax.set(xlabel="CART band (nm)", ylabel="Re-selected (%)", ylim=(0, 105))
     ax.set_title("Stability of the CART bands (a band within ± 10 nm counts)")
@@ -300,7 +307,7 @@ def pipelines_chart(R, name, title):
     pipes = ["CART classifier", "RF classifier", "QDA on CART features", "QDA on RF features"]
     schemes = [s for s in ("V1", "V3", "V4", "V5") if s in set(v["Scheme"])]
     lab = {"V1": "V1 leaf 10-fold (optimistic)", "V3": "V3 nested plot-grouped", "V4": "V4 30 % plot hold-out",
-           "V5": "V5 new date + new plots"}
+           "V5": f"V5 {v5_label(F, short=True)}"}
     fig, ax = plt.subplots(figsize=(9, 3.6))
     x = np.arange(len(pipes))
     w = 0.8 / len(schemes)
@@ -338,8 +345,8 @@ def f15_k0():
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(10, 3.4))
     m = (wf >= 980) & (wf <= 1020)
     m2 = (wf >= 1770) & (wf <= 1850)
-    for k, d in enumerate(D["folds"]["V5_dates"]):
-        col = SEQ[k]
+    for k, d in enumerate(PD):
+        col = SEQ[k % len(SEQ)]
         a1.plot(wf[m], k0["date_means"][d][m], color=col, label=d)
         a1.plot(wf[m], k0["date_means_sc"][d][m], color=col, ls="--", lw=0.9)
         a2.plot(wf[m2], k0["date_means_sc"][d][m2], color=col, label=d)
@@ -453,7 +460,7 @@ def f21_reip():
     x = np.arange(len(q))
     ax2.plot(x, q["Mean REIP healthy (nm)"], color=H_COL, marker="o", label="Healthy")
     ax2.plot(x, q["Mean REIP diseased (nm)"], color=D_COL, marker="o", label="Diseased")
-    order = D["folds"]["V5_dates"]
+    order = PD
     q = q.set_index("Level").reindex(order).reset_index()
     ax2.cla()
     ax2.plot(x, q["Mean REIP healthy (nm)"], color=H_COL, marker="o", label="Healthy")
@@ -471,7 +478,7 @@ def f22_corr():
         shade_guard(ax, "D1" if tag == "D1" else "R")
         for k, c in enumerate([c for c in t.columns if c.startswith("r ") and c[2].isdigit()]):
             ax.plot(t["Wavelength (nm)"], t[c], color=SEQ[k], lw=0.6, alpha=0.8, label=c.replace("r ", ""))
-        ax.plot(t["Wavelength (nm)"], t["r (point-biserial)"], color=INK, lw=1.3, label="all dates")
+        ax.plot(t["Wavelength (nm)"], t["r (point-biserial)"], color=INK, lw=1.3, label="all leaves")
         ax.axhline(0, color=INK2, lw=0.6)
         ax.set(ylabel="r with disease status", title=ttl)
     a2.set(xlabel="Wavelength (nm)", xlim=(400, 2500))
@@ -592,7 +599,7 @@ def f29_synthesis():
 
 def f30_lodo():
     rows = []
-    dates = D["folds"]["V5_dates"]
+    dates = F["V5_dates"]
     for lab, R in (("Reflectance", A), ("Combined pool", Cc)):
         for p in ["RF classifier", "QDA on CART features", "QDA on RF features"]:
             lst = R["preds"][(p, "V5")]
@@ -605,8 +612,10 @@ def f30_lodo():
         bas = []
         for _, r in g.iterrows():
             yt = y[r["te"]]
+            if len(np.unique(yt)) < 2:          # BA needs both classes
+                continue
             bas.append(0.5 * ((r["pp"][yt == 1] == 1).mean() + (r["pp"][yt == 0] == 0).mean()))
-        out.append((p, d, np.mean(bas)))
+        out.append((p, d, np.mean(bas) if bas else np.nan))
     o = pd.DataFrame(out, columns=["Pipeline", "Date", "BA"])
     fig, ax = plt.subplots(figsize=(8, 3.6))
     pipes = list(dict.fromkeys(o["Pipeline"]))
@@ -616,9 +625,11 @@ def f30_lodo():
     for k, p in enumerate(pipes):
         q = o[o.Pipeline == p].set_index("Date").reindex(dates)
         ax.bar(x + (k - (len(pipes) - 1) / 2) * w, q["BA"] * 100, w * 0.92, color=pal[k], label=p)
-    ax.set_xticks(x, [f"held-out date\n{d}" for d in dates], fontsize=8)
+    unit = "date" if F["V5_by"] == "Date" else "variety"
+    ax.set_xticks(x, [f"held-out {unit}\n{d}" for d in dates], fontsize=8)
     ax.set(ylabel="Balanced accuracy (%)", ylim=(40, 100))
-    ax.set_title("V5: trained on three dates, tested on the fourth date in new plots")
+    ax.set_title("V5: trained on the other dates, tested on the held-out date in new plots" if unit == "date"
+                 else "V5: trained on the other varieties, tested on the held-out variety")
     ax.legend(fontsize=7, ncol=2, loc="upper left")
     save(fig, "F30_V5_leave_one_date_out")
     return o
@@ -642,7 +653,7 @@ if __name__ == "__main__":
         f11_validation_qda()
         f12_rf_importance(A, "F12_A1_rf_importance", "A1: Balanced RF importance spectrum with the RF peaks and CART bands")
         pipelines_chart(A, "F13_A3_pipelines", "A3: CART and RF as classifiers and as band selectors for QDA (reflectance)")
-        f14_stability(A, "F14_A4_stability", "A4: re-selection in the 50 nested training sets (± 10 nm)")
+        f14_stability(A, "F14_A4_stability", f"A4: re-selection in the {NSETS} nested training sets (± 10 nm)")
     if only in ("all", "K"):
         f15_k0()
         f16_k1_auc()
@@ -659,7 +670,7 @@ if __name__ == "__main__":
         f25_c_top()
         f09_incremental(Cc, "F27_C_incremental", "Part C: CART vs RF feature order (combined pool)")
         pipelines_chart(Cc, "F28_C_pipelines", "Part C: four pipelines on the combined pool")
-        f14_stability(Cc, "F28b_C_stability", "Part C: re-selection in the 50 nested training sets")
+        f14_stability(Cc, "F28b_C_stability", f"Part C: re-selection in the {NSETS} nested training sets")
         f29_synthesis()
         lodo = f30_lodo()
         lodo.to_pickle(WORK / "lodo_by_date.pkl")
@@ -670,6 +681,6 @@ if __name__ == "__main__":
         f24_composition(CR, "F34_CR_composition", "Part C′: which feature families the selectors pick from raw + K2 + K3 + K4")
         f09_incremental(CR, "F35_CR_incremental", "Part C′: CART vs RF feature order (raw + K2 + K3 + K4)")
         pipelines_chart(CR, "F36_CR_pipelines", "Part C′: four pipelines on raw + K2 + K3 + K4")
-        f14_stability(CR, "F37_CR_stability", "Part C′: re-selection in the 50 nested training sets")
+        f14_stability(CR, "F37_CR_stability", f"Part C′: re-selection in the {NSETS} nested training sets")
         f38_compare(CR)
     print(len(done), "figures:", done)

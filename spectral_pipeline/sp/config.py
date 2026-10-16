@@ -25,6 +25,8 @@ DEFAULTS = {
         "class_map": {},         # raw value -> "Healthy" / "Diseased"
         "date_col": None,        # optional: measurement date (used in K0 / K3b checks)
         "id_cols": [],           # extra descriptor columns copied to the fold sheet
+        "subset": None,          # optional {column: value} filter applied after cleaning (e.g. {Date: 11-02-2026})
+        "subset_label": None,    # human-readable name of the subset
         "wavelength_regex": r"^\D{0,3}(\d{3,4}(?:\.0+)?)$",
     },
     "classes": {"negative": "Healthy", "positive": "Diseased"},
@@ -64,7 +66,8 @@ DEFAULTS = {
            "n_jobs": -1, "peak_min_sep_nm": 10, "top_k": [17, 10]},
     "validation": {"v1_folds": 10, "v1_seed": 42, "v3_folds": 10,
                    "v3_seeds": [101, 102, 103, 104, 105],
-                   "v4_fraction": 0.30, "v4_splits": 10, "v4_seed": 2026},
+                   "v4_fraction": 0.30, "v4_splits": 10, "v4_seed": 2026,
+                   "v5_by": "auto"},   # transfer test: "Date" (leave-one-date-out), "Variety" or "auto"
     "jm": {"threshold": 1.90, "threshold_strict": 1.94},
     "k3b": {"grid_nm": 5, "refine_nm": 5},
     "k5": {"top_n": 15, "max_abs_r": 0.9},

@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from scipy.signal import savgol_filter
 
-from common import RAW_DIR, cfg, region_of, save
+from common import RAW_DIR, cfg, region_of, save, subset_mask
 from sp import folds as fl
 from sp import load_asd, preprocess
 from sp.data import Dataset
@@ -28,6 +28,16 @@ keep = ~dup_mask
 meta = meta_all[keep].reset_index(drop=True)
 meta["Spectrum ID"] = np.arange(1, len(meta) + 1)
 R_full = R_all[keep]
+# ---- subset (date / growth stage / variety): applied after duplicate removal on all files
+n_before_subset = len(meta)
+smask = subset_mask(meta, C)
+meta = meta[smask].reset_index(drop=True)
+R_full = R_full[smask]
+subset_info = {"filter": C["data"].get("subset"), "label": C["data"].get("subset_label"),
+               "n_all": n_before_subset, "n_subset": len(meta)}
+if C["data"].get("subset"):
+    dup_rows = [d for d in dup_rows if ((meta["Date"] == d["Date"]) & (meta["Plot"] == d["Plot"])).any()]
+present_dates = [d for _, d in C["data"]["files"] if d in set(meta["Date"])]
 
 y = (meta["Class"].values == "Diseased").astype(int)
 groups = meta["Plot"].astype(str).values
@@ -38,21 +48,19 @@ spec = preprocess.preprocess(ds, C)
 # ---- audit tables
 counts = (meta.groupby("Class").agg(Plots=("Plot", "nunique"), Spectra=("Plot", "size"))
           .reindex(["Healthy", "Diseased"]).reset_index())
-by_date = pd.crosstab(meta["Date"], meta["Class"]).reindex(
-    [d for _, d in C["data"]["files"]])[["Healthy", "Diseased"]]
+by_date = pd.crosstab(meta["Date"], meta["Class"]).reindex(present_dates)[["Healthy", "Diseased"]]
 by_stage = pd.crosstab([meta["Date"], meta["Growth stage"]], meta["Class"])[["Healthy", "Diseased"]]
-by_stage = by_stage.reindex(sorted(by_stage.index, key=lambda t: ([d for _, d in C["data"]["files"]].index(t[0]), t[1])))
+by_stage = by_stage.reindex(sorted(by_stage.index, key=lambda t: (present_dates.index(t[0]), t[1])))
 by_variety = pd.crosstab(meta["Variety"], meta["Class"])[["Healthy", "Diseased"]]
 by_stage_total = pd.crosstab(meta["Growth stage"], meta["Class"])[["Healthy", "Diseased"]]
 per_plot = (meta.groupby("Plot").agg(Class=("Class", "first"), Variety=("Variety", "first"),
                                     Spectra=("Class", "size"),
                                     Dates=("Date", "nunique"))
             .reset_index())
-for d in [d for _, d in C["data"]["files"]]:
+for d in present_dates:
     per_plot[d] = meta[meta["Date"] == d].groupby("Plot").size().reindex(per_plot["Plot"]).fillna(0).astype(int).values
 plot_consistency = meta.groupby("Plot").agg(n_class=("Class", "nunique"), n_var=("Variety", "nunique"))
-stage_by_plot_date = meta.pivot_table(index="Plot", columns="Date", values="Growth stage", aggfunc="first")[
-    [d for _, d in C["data"]["files"]]]
+stage_by_plot_date = meta.pivot_table(index="Plot", columns="Date", values="Growth stage", aggfunc="first")[present_dates]
 
 # ---- noise by region (SG residual of the raw spectra, full 350-2500)
 Rs = savgol_filter(R_full, 11, 2, axis=1)
@@ -103,18 +111,23 @@ checks = [
      "PASS" if (plot_consistency.n_class == 1).all() else "FAIL"),
     ("Each plot has one variety on every date", f"{int((plot_consistency.n_var == 1).sum())} of {len(plot_consistency)} plots",
      "PASS" if (plot_consistency.n_var == 1).all() else "FAIL"),
-    ("Healthy = plots 1–12, diseased = plots 13–48",
-     "consistent" if set(meta.loc[meta.Class == "Healthy", "Plot"]) == set(range(1, 13)) else "inconsistent",
-     "PASS" if set(meta.loc[meta.Class == "Healthy", "Plot"]) == set(range(1, 13)) else "FLAG"),
+    ("Healthy plots within 1–12, diseased plots within 13–48",
+     f"healthy plots {sorted(set(meta.loc[meta.Class == 'Healthy', 'Plot'].astype(int)))}; {meta.loc[meta.Class == 'Diseased', 'Plot'].nunique()} diseased plots",
+     "PASS" if set(meta.loc[meta.Class == "Healthy", "Plot"].astype(int)) <= set(range(1, 13))
+     and set(meta.loc[meta.Class == "Diseased", "Plot"].astype(int)) <= set(range(13, 49)) else "FLAG"),
     ("Repeated ASD file names within a date (counter restarted on 13-03-2026)",
-     f"{int(meta.duplicated(['Date', 'File']).sum())} names repeated; spectra differ (max |Δ| ≥ "
-     f"{min(np.abs(R_full[a] - R_full[b]).max() for a, b in meta[meta.duplicated(['Date', 'File'], keep=False)].groupby(['Date', 'File']).apply(lambda g: g.index.tolist())):.3f}) → distinct leaves, kept",
+     (f"{int(meta.duplicated(['Date', 'File']).sum())} names repeated; spectra differ (max |Δ| ≥ "
+      f"{min(np.abs(R_full[a] - R_full[b]).max() for a, b in meta[meta.duplicated(['Date', 'File'], keep=False)].groupby(['Date', 'File']).apply(lambda g: g.index.tolist())):.3f}) → distinct leaves, kept")
+     if meta.duplicated(['Date', 'File']).any() else "none in this data set",
      "PASS"),
 ]
+if C["data"].get("subset"):
+    checks.insert(0, ("Subset selected after duplicate removal on all four files",
+                      f"{C['data']['subset_label']}: {len(meta)} of {n_before_subset} leaf spectra", "PASS"))
 
 # ---- folds (identical everywhere) + leave-one-date-out on new plots
 F = fl.make_folds(y, groups, C)
-F = fl.add_lodo(F, dates, groups)
+F = fl.add_transfer(F, dates, meta["Variety"].values, groups, C["validation"].get("v5_by", "auto"), y)
 ftab = F["table"].copy()
 ftab.insert(1, "Spectrum ID", meta["Spectrum ID"].values)
 ftab.insert(2, "Date", dates)
@@ -122,14 +135,28 @@ ftab.insert(3, "File", meta["File"].values)
 ftab["Class"] = np.where(y == 1, "Diseased", "Healthy")
 F["table"] = ftab.drop(columns=["row", "y"])
 assert all(not set(groups[f["train"]]) & set(groups[f["test"]]) for s in ("V3", "V4", "V5") for f in F[s])
-assert all(not set(dates[f["train"]]) & set(dates[f["test"]]) for f in F["V5"])
+assert all(len(np.unique(y[f["test"]])) == 2 for s in ("V3", "V4") for f in F[s]), "a test fold lacks one class"
+if F["V5_by"] == "Date":
+    assert all(not set(dates[f["train"]]) & set(dates[f["test"]]) for f in F["V5"])
+else:
+    vv = meta["Variety"].values
+    assert all(not set(vv[f["train"]]) & set(vv[f["test"]]) for f in F["V5"])
+checks.append(("Validation folds: V3 k, V4 hold-out, V5 transfer units",
+               f"V3 k = {F['v3_k']} plot-grouped folds × {len(C['validation']['v3_seeds'])} ({F['v3_method']}); "
+               f"V4 holds out {F['v4_plots'][0]} healthy + {F['v4_plots'][1]} diseased plots; "
+               f"V5 by {F['V5_by']}: {len(F['V5'])} units"
+               + (f", {len(F['V5_dropped'])} split×date units skipped (held-out date has no leaves of the test plots "
+                  f"or the training set has < 5 leaves of a class)" if F["V5_dropped"] else ""),
+               "PASS"))
+print("folds: V3 k =", F["v3_k"], "(", F["v3_method"], ") | V4 plots held out", F["v4_plots"], "| V5 by", F["V5_by"], F["V5_dates"])
 
 save({"meta": meta, "meta_all": meta_all, "R_full": R_full, "R_all": R_all, "dup_all": dup_mask,
       "wl_full": wl, "y": y, "groups": groups, "dates": dates, "spec": spec, "folds": F,
       "logs": logs, "dup_rows": dup_rows,
       "audit": {"counts": counts, "by_date": by_date, "by_stage": by_stage, "by_stage_total": by_stage_total,
                 "by_variety": by_variety, "per_plot": per_plot, "stage_by_plot_date": stage_by_plot_date,
-                "checks": checks, "noise": noise, "sam": sam_tab, "top_dev": top_dev}},
+                "checks": checks, "noise": noise, "sam": sam_tab, "top_dev": top_dev, "subset": subset_info,
+                "present_dates": present_dates}},
      "data")
 print(counts, "\n", by_date, "\n", by_stage_total, "\n", by_variety)
 print("bands analysed", len(spec.wl), "| K0 bump flag", spec.k0["bump_flag"])

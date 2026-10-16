@@ -58,7 +58,7 @@ for meth in ("CART", "RF"):
     tot = sum(len(l) for l in lists)
     vc = pd.Series([ty[v] for l in lists for v in l]).value_counts()
     for k, v in vc.items():
-        fold_comp.append({"Selector": meth, "Feature type": k, "Selected (50 training sets)": int(v),
+        fold_comp.append({"Selector": meth, "Feature type": k, f"Selected ({len(F['V3'])} training sets)": int(v),
                           "Share": v / tot})
 Cres["fold_composition"] = pd.DataFrame(fold_comp)
 Cres["runtime_min"] = (time.time() - T0) / 60

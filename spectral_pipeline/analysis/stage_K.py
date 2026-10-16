@@ -11,7 +11,7 @@ from scipy import stats as st
 from scipy.spatial import ConvexHull
 from scipy.stats import wilcoxon
 
-from common import cfg, load, region_of, save
+from common import cfg, load, present_dates, region_of, save
 from sp import cart, features, fourtier, models, stats
 from sp.features import FeatureSet
 from sp.metrics import evaluate, summarise
@@ -254,11 +254,13 @@ for tag, M, gm in (("R", spec.R, spec.guard["R"]), ("D1", spec.D1, spec.guard["D
     r = (yc @ Mc) / (np.sqrt((yc ** 2).sum()) * np.sqrt((Mc ** 2).sum(0)))
     tt = r * np.sqrt((len(y) - 2) / (1 - r ** 2))
     p = 2 * st.t.sf(np.abs(tt), len(y) - 2)
-    by_date = {d: np.corrcoef(y[dates == d], M[dates == d].T)[0, 1:] for d in D["folds"]["V5_dates"]}
+    by_date = {d: np.corrcoef(y[dates == d], M[dates == d].T)[0, 1:] for d in present_dates(D)}
     corr[tag] = pd.DataFrame({"Wavelength (nm)": wl, "Guard": gm, "r (point-biserial)": r, "r²": r ** 2,
                               "p": p, "q (BH)": stats.bh(p), **{f"r {d}": v for d, v in by_date.items()}})
 K["corr"] = corr
 rows = []
+_nd = len(present_dates(D))
+SAME_SIGN = f"Same sign on all {_nd} dates" if _nd > 1 else "Same sign (single date)"
 for tag in ("R", "D1"):
     tab = corr[tag][~corr[tag]["Guard"]]
     for _, a, b in REG:
@@ -267,7 +269,7 @@ for tag in ("R", "D1"):
         rows.append({"Spectrum": "Reflectance" if tag == "R" else "First derivative", "Region (nm)": f"{a}–{b}",
                      "Band of max |r|": s.at[j, "Wavelength (nm)"], "r": s.at[j, "r (point-biserial)"],
                      "q (BH)": s.at[j, "q (BH)"],
-                     "Same sign on all 4 dates": "yes" if all(np.sign(s.at[j, c]) == np.sign(s.at[j, "r (point-biserial)"])
+                     SAME_SIGN: "yes" if all(np.sign(s.at[j, c]) == np.sign(s.at[j, "r (point-biserial)"])
                                                             for c in s.columns if c.startswith("r 1") or c.startswith("r 0") or c.startswith("r 2")) else "no"})
 K["corr_regions"] = pd.DataFrame(rows)
 # r and Welch t rank bands identically? (r_pb is a monotone function of Student t)
@@ -375,7 +377,7 @@ for form in ("NDSI", "DI"):
     a, c, v = refined[form]
     r = {"Pair": f"{form}({a}, {c})", "AUC all leaves": stats.auc_free(v[:, None], y)[0][0]}
     dirs = []
-    for dte in D["folds"]["V5_dates"]:
+    for dte in present_dates(D):
         mm = dates == dte
         au = stats.auc(v[mm][:, None], y[mm])[0]
         r[f"AUC {dte}"] = max(au, 1 - au)
@@ -493,7 +495,7 @@ wr = []
 fr = K["k5_folds"]
 gnames = {**{k: v[0] for k, v in FE["groups"].items()}, "GS": "K-selected (top 15 non-redundant)"}
 for gk in list(FE["groups"]) + ["GS"]:
-    for sch, lab in (("V3", "CV (50 folds)"), ("V4", "Hold-out (10 splits)")):
+    for sch, lab in (("V3", f"CV ({len(F['V3'])} folds)"), ("V4", f"Hold-out ({len(F['V4'])} splits)")):
         a = fr[(fr.Group == gk) & (fr.Classifier == "RF") & (fr.Scheme == sch)].set_index(["Repeat", "Unit"])["BA"]
         b = fr[(fr.Group == gk) & (fr.Classifier == "CART") & (fr.Scheme == sch)].set_index(["Repeat", "Unit"])["BA"]
         dlt = (a - b).dropna()

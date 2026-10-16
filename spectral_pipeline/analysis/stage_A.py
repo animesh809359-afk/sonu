@@ -13,10 +13,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy import stats as st
-from sklearn.model_selection import StratifiedGroupKFold
 from sklearn.tree import DecisionTreeClassifier
 
-from common import cfg, contiguous, load, region_of, save
+from common import cfg, contiguous, load, region_of, save, subset_mask, v3_label, v5_label
 from sp import cart, folds as fl, fourtier, models, stats
 from sp.features import FeatureSet, _meta
 from sp.metrics import evaluate, summarise
@@ -72,7 +71,7 @@ A["tier1_tests"] = pd.DataFrame([
     ("One-way ANOVA + BH-FDR q < 0.05", int((t1["anova_q"] < 0.05).sum())),
     ("Welch t-test p < 0.05, uncorrected", int((t1["p"] < 0.05).sum())),
     ("Mixed model (random plot effect) + BH-FDR q < 0.05", int(t1["mm_sig"].sum())),
-    ("Balanced subsets (378 vs 378): significant in ≥ 95 % of 1000 subsets", int((t1["balanced_pct"] >= 95).sum())),
+    (f"Balanced subsets ({n0} vs {n0}): significant in ≥ 95 % of 1000 subsets", int((t1["balanced_pct"] >= 95).sum())),
     ("Levene test p < 0.05 (unequal variances → Welch)", int((np.array(t1["levene_p"]) < 0.05).sum())),
 ], columns=["Test", "Significant bands"])
 _cols = list(range(0, X.shape[1], 50))
@@ -252,18 +251,18 @@ def pooled(units, pri, colsel):
     return summarise(mets)
 
 
-sgk = StratifiedGroupKFold(10, shuffle=True, random_state=42)
-V2 = [{"train": tr, "test": te, "rep": 0} for tr, te in sgk.split(X, y, groups)]
+_v2, _ = fl.group_folds(y, groups, F["v3_k"], 42)
+V2 = [{"train": tr, "test": te, "rep": 0} for tr, te in _v2]
 for pri, plab in (("equal", "equal (corrected)"), ("sample", "sample (uncorrected)")):
     val_rows.append({"Scheme": "V1 · leaf-level 10-fold, bands fixed", "Priors": plab,
                      **pooled([(f, cart_cols) for f in F["V1"]], pri, None)})
-    val_rows.append({"Scheme": "V2 · plot-grouped 10-fold, bands fixed", "Priors": plab,
+    val_rows.append({"Scheme": f"V2 · plot-grouped {F['v3_k']}-fold, bands fixed", "Priors": plab,
                      **pooled([(f, cart_cols) for f in V2], pri, None)})
-    val_rows.append({"Scheme": "V3 · nested plot-grouped 10-fold × 5", "Priors": plab,
+    val_rows.append({"Scheme": f"V3 · nested plot-grouped {v3_label(F)}", "Priors": plab,
                      **pooled([(f, [name_to_col[v] for v in A["fold_vars"][("V3", i)]["CART"]]) for i, f in enumerate(F["V3"])], pri, None)})
     val_rows.append({"Scheme": "V4 · 30 % plot hold-out × 10", "Priors": plab,
                      **pooled([(f, [name_to_col[v] for v in A["fold_vars"][("V4", i)]["CART"]]) for i, f in enumerate(F["V4"])], pri, None)})
-    val_rows.append({"Scheme": "V5 · new date and new plots (leave-one-date-out × 10)", "Priors": plab,
+    val_rows.append({"Scheme": f"V5 · {v5_label(F)} ({len(F['V5'])} units)", "Priors": plab,
                      **pooled([(f, [name_to_col[v] for v in A["fold_vars"][("V5", i)]["CART"]]) for i, f in enumerate(F["V5"])], pri, None)})
 # V3-RUS: random under-sampling of diseased leaves inside each training set (repeat 1)
 rus_jobs, rus_units = [], []
@@ -300,7 +299,7 @@ cm <- table(m$y, m$predicted); ba <- mean(diag(cm)/rowSums(cm)); write(ba, '{td}
     r_imp = pd.read_csv(td / "imp.csv")["imp"].to_numpy()
     r_ba = float(open(td / "ba.txt").read())
 msig = fsA.meta.iloc[sig].reset_index(drop=True)
-idx_r, _ = models.select_peaks(r_imp, msig["series"].to_numpy(), msig["position"].to_numpy(float), 17, 10)
+idx_r, _ = models.select_peaks(r_imp, msig["series"].to_numpy(), msig["position"].to_numpy(float), len(A["sets"][A["rf_name"]]), 10)
 r_peaks = list(msig["name"].iloc[idx_r])
 rf17 = A["sets"][A["rf_name"]]
 rho_r = float(pd.Series(imp["importance"].to_numpy()).corr(pd.Series(r_imp), method="spearman"))
@@ -309,15 +308,16 @@ within_r = sum(any(abs(float(a[2:]) - float(b[2:])) <= 10 for b in r_peaks) for 
 from sklearn.metrics import roc_auc_score  # noqa: E402
 top50 = np.argsort(-imp["importance"].to_numpy())[:50]
 drops = np.zeros(50)
-sg5 = StratifiedGroupKFold(5, shuffle=True, random_state=42)
+_k5 = min(5, F["v3_k"])
+_sg5, _ = fl.group_folds(y, groups, _k5, 42)
 prng = np.random.default_rng(0)
-for tr, te in sg5.split(Xs, y, groups):
+for tr, te in _sg5:
     m = models.brf(C).fit(Xs[tr], y[tr])
     base = roc_auc_score(y[te], m.predict_proba(Xs[te])[:, 1])
     for k, j in enumerate(top50):
         Xp = Xs[te].copy()
         Xp[:, j] = prng.permutation(Xp[:, j])
-        drops[k] += (base - roc_auc_score(y[te], m.predict_proba(Xp)[:, 1])) / 5
+        drops[k] += (base - roc_auc_score(y[te], m.predict_proba(Xp)[:, 1])) / _k5
 rho_perm = float(pd.Series(imp["importance"].to_numpy()[top50]).corr(pd.Series(drops), method="spearman"))
 from sklearn.ensemble import RandomForestClassifier  # noqa: E402
 cw = RandomForestClassifier(500, class_weight="balanced", oob_score=True, random_state=42, n_jobs=-1).fit(Xs, y)
@@ -326,10 +326,10 @@ cw_ba = stats.balanced_accuracy(y, oob_pred)
 cw_rec = float((oob_pred[y == 0] == 0).mean())
 A["rf_checks"] = pd.DataFrame([
     ("Reproducibility: importance of seed 42 vs seed 7 (Spearman ρ)", f"{A['rf_seed_check']['rho']:.3f}",
-     f"{A['rf_seed_check']['within10']} of 17 peaks within ±10 nm", "PASS" if A["rf_seed_check"]["within10"] >= 12 else "FLAG"),
-    ("R randomForest (stratified sampsize 378 + 378), mean decrease in Gini", f"ρ = {rho_r:.3f}",
-     f"{within_r} of 17 peaks within ±10 nm; R out-of-bag BA {r_ba:.3f}", "PASS" if within_r >= 12 else "FLAG"),
-    ("Permutation importance (drop in AUC, 5 plot-grouped folds) vs Gini, top-50 bands", f"ρ = {rho_perm:.2f}",
+     f"{A['rf_seed_check']['within10']} of {len(rf17)} peaks within ±10 nm", "PASS" if A["rf_seed_check"]["within10"] >= 0.7 * len(rf17) else "FLAG"),
+    (f"R randomForest (stratified sampsize {n0} + {n0}), mean decrease in Gini", f"ρ = {rho_r:.3f}",
+     f"{within_r} of {len(rf17)} peaks within ±10 nm; R out-of-bag BA {r_ba:.3f}", "PASS" if within_r >= 0.7 * len(rf17) else "FLAG"),
+    (f"Permutation importance (drop in AUC, {_k5} plot-grouped folds) vs Gini, top-50 bands", f"ρ = {rho_perm:.2f}",
      "shuffling one band hardly changes the forest because its neighbours carry the same information"
      if rho_perm < 0.3 else "permutation and Gini rankings agree", "FLAG" if rho_perm < 0.3 else "PASS"),
     ("Ordinary RF with class weights only (no balanced bootstrap), out-of-bag", f"BA {cw_ba:.3f}",
@@ -362,24 +362,31 @@ for lab, lo, hi in (("400–2500 nm (main: 350–399 removed)", 400, 2500),
                  "BA V4 hold-out": v.loc[("QDA on CART features", "V4"), "BA"],
                  "CART bands (nm)": ", ".join(str(int(float(b[2:]))) for b in sorted(r["sets"][r["cart_name"]], key=lambda s: float(s[2:])))})
 A["sensitivity_range"] = pd.DataFrame(sens)
-# duplicates kept (2268 spectra, folds rebuilt with the same seeds)
+# duplicates kept (the 4 unnamed plot-27 copies of 11-02-2026; folds rebuilt with the same seeds)
 keepall = ~D["meta_all"]["Exact duplicate (removed)"].to_numpy() | D["meta_all"]["Unnamed"].to_numpy()
-ma = D["meta_all"][keepall].reset_index(drop=True)
-Ra = D["R_all"][keepall]
-ya = (ma["Class"].values == "Diseased").astype(int)
-ga = ma["Plot"].astype(str).values
-Fa = fl.make_folds(ya, ga, C)
-ma_wl = (D["wl_full"] >= 400) & (D["wl_full"] <= 2500)
-r = fourtier.run(raw_fs(Ra[:, ma_wl], D["wl_full"][ma_wl]), ya, ga, {k: Fa[k] for k in ("V1", "V3", "V4")}, Clight, "sens duplicates kept", mixed=False)
-v = r["validation"].set_index(["Pipeline", "Scheme"])
-A["sensitivity_dups"] = pd.DataFrame([
-    {"Data": f"main: exact duplicates removed (n = {len(y)})", "CART bands": len(cart_set),
-     "BA V1": A["validation"].set_index(["Pipeline", "Scheme"]).loc[("QDA on CART features", "V1"), "BA"],
-     "BA V3": A["validation"].set_index(["Pipeline", "Scheme"]).loc[("QDA on CART features", "V3"), "BA"],
-     "BA V4": A["validation"].set_index(["Pipeline", "Scheme"]).loc[("QDA on CART features", "V4"), "BA"]},
-    {"Data": f"4 unnamed plot-27 copies kept (n = {len(ya)})", "CART bands": len(r["sets"][r["cart_name"]]),
-     "BA V1": v.loc[("QDA on CART features", "V1"), "BA"], "BA V3": v.loc[("QDA on CART features", "V3"), "BA"],
-     "BA V4": v.loc[("QDA on CART features", "V4"), "BA"]}])
+keepall &= subset_mask(D["meta_all"], C)
+_main = A["validation"].set_index(["Pipeline", "Scheme"])
+_rows = [{"Data": f"main: exact duplicates removed (n = {len(y)})", "CART bands": len(cart_set),
+          "BA V1": _main.loc[("QDA on CART features", "V1"), "BA"], "BA V3": _main.loc[("QDA on CART features", "V3"), "BA"],
+          "BA V4": _main.loc[("QDA on CART features", "V4"), "BA"]}]
+if keepall.sum() > len(y):
+    ma = D["meta_all"][keepall].reset_index(drop=True)
+    Ra = D["R_all"][keepall]
+    ya = (ma["Class"].values == "Diseased").astype(int)
+    ga = ma["Plot"].astype(str).values
+    Fa = fl.make_folds(ya, ga, C)
+    ma_wl = (D["wl_full"] >= 400) & (D["wl_full"] <= 2500)
+    r = fourtier.run(raw_fs(Ra[:, ma_wl], D["wl_full"][ma_wl]), ya, ga, {k: Fa[k] for k in ("V1", "V3", "V4")}, Clight,
+                     "sens duplicates kept", mixed=False)
+    v = r["validation"].set_index(["Pipeline", "Scheme"])
+    _rows.append({"Data": f"{int(keepall.sum()) - len(y)} unnamed plot-27 copies kept (n = {len(ya)})",
+                  "CART bands": len(r["sets"][r["cart_name"]]),
+                  "BA V1": v.loc[("QDA on CART features", "V1"), "BA"], "BA V3": v.loc[("QDA on CART features", "V3"), "BA"],
+                  "BA V4": v.loc[("QDA on CART features", "V4"), "BA"]})
+    A["sensitivity_dups_applicable"] = True
+else:
+    A["sensitivity_dups_applicable"] = False
+A["sensitivity_dups"] = pd.DataFrame(_rows)
 
 A["runtime_min"] = (time.time() - T0) / 60
 save(A, "partA")

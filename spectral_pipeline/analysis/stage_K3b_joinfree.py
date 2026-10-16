@@ -8,7 +8,7 @@ import time
 import numpy as np
 import pandas as pd
 
-from common import cfg, load, save
+from common import cfg, load, present_dates, save
 from sp import features, fourtier, stats
 from sp.features import FeatureSet
 
@@ -131,7 +131,7 @@ for form in ("NDSI", "DI"):
     a, c, v = refined[form]
     r = {"Pair": f"{form}({a}, {c})", "AUC all leaves": stats.auc_free(v[:, None], y)[0][0]}
     dirs = []
-    for dte in F["V5_dates"]:
+    for dte in present_dates(D):
         m = dates == dte
         au = stats.auc(v[m][:, None], y[m])[0]
         r[f"AUC {dte}"] = max(au, 1 - au)
