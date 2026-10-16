@@ -118,7 +118,11 @@ con = [
        + ("uncorrected p < 0.05." if A["tier1_rule"] == "uncorrected p" else "the smallest p-values.")),
     f"Tier 2: CART (rpart, prior 0.5/0.5) selected {len(cart)} bands (root {str(root).replace('WV', '')} nm): {bands(cart)} nm. "
     f"The Balanced RF importance peaks ({A['rf_name']}) were {bands(A['sets'][A['rf_name']])} nm.",
-    f"Tier 3: J–M = {jm_c:.2f} on the CART bands and {jm_r:.2f} on the RF bands; CART bands {sep_c}.",
+    f"Tier 3: J–M = {jm_c:.2f} on the CART bands and {jm_r:.2f} on the RF bands: "
+    + ("both sets separate the classes (≥ 1.90)." if min(jm_c, jm_r) >= 1.9 else
+       "neither set reaches the 1.90 separability threshold (Das et al. used 1.94)." if max(jm_c, jm_r) < 1.9 else
+       f"only the {'RF' if jm_r >= 1.9 else 'CART'} bands reach the 1.90 separability threshold"
+       + (" (and the 1.94 threshold of Das et al.)." if max(jm_c, jm_r) >= 1.94 else " (but not 1.94, the threshold of Das et al.).")),
     f"Tier 4: QDA with equal priors on the CART bands gives BA {pc(em['BA'])} in the paper's protocol (V1; healthy recall "
     f"{pc(em['PA_H'])}, diseased recall {pc(em['PA_D'])}) and {pc(qda_v3)} ± {pc(sd(A, 'QDA on CART features', 'V3'))} (V3 nested, "
     f"plot-grouped) / {pc(qda_v4)} (V4 hold-out plots) on new plots.",
@@ -134,7 +138,8 @@ con.append(f"Disease-sensitive features (Part K): the strongest group for RF is 
            f"{k2b['name']} (AUC {k2b['AUC']:.2f}), {k3b_['name']} (AUC {k3b_['AUC']:.2f}), {k4b['name']} (AUC {k4b['AUC']:.2f}). "
            f"REIP ({reip['name'].replace('REIP – ', '')}) shifts by {shift:+.1f} nm in diseased leaves (AUC {reip['AUC']:.2f}).")
 con.append(f"Part C (four tiers on the combined K1 + K2–K4 pool, {Cc['n_features']} features, {Cc['n_sig']} significant): CART chose "
-           f"{len(Cc['sets'][Cc['cart_name']])} features, RF {len(Cc['sets'][Cc['rf_name']])}; QDA on the RF features reaches "
+           f"{len(Cc['sets'][Cc['cart_name']])} features, RF {len(Cc['sets'][Cc['rf_name']])} (J–M {float(Cc['tier3'].set_index('Set').loc[Cc['cart_name'], 'JM']):.2f} / "
+           f"{float(Cc['tier3'].set_index('Set').loc[Cc['rf_name'], 'JM']):.2f}); QDA on the RF features reaches "
            f"{pc(c_v3)} (V3) / {pc(c_v4)} (V4), {100 * gain:+.1f} points vs QDA on RF reflectance bands; best pipeline on the pool: "
            f"{best_c} ({pc(ba(Cc, best_c, 'V3'))}, V3).")
 if F.get("V5_by", "Date") == "Date":
