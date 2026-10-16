@@ -148,14 +148,19 @@ con.append(f"Part C (four tiers on the combined K1 + K2–K4 pool, {Cc['n_featur
            f"{float(Cc['tier3'].set_index('Set').loc[Cc['rf_name'], 'JM']):.2f}); QDA on the RF features reaches "
            f"{pc(c_v3)} (V3) / {pc(c_v4)} (V4), {100 * gain:+.1f} points vs QDA on RF reflectance bands; best pipeline on the pool: "
            f"{best_c} ({pc(ba(Cc, best_c, 'V3'))}, V3).")
+_v5 = [(f"{lab}: {p}", ba(R, p, "V5")) for lab, R in (("reflectance", A), ("combined pool", Cc))
+       for p in ("CART classifier", "RF classifier", "QDA on CART features", "QDA on RF features")]
+_v5 = [t for t in _v5 if np.isfinite(t[1])]
+V5_BEST = max(_v5, key=lambda t: t[1]) if _v5 else ("—", np.nan)
 if F.get("V5_by", "Date") == "Date":
     con.append(f"Transfer (V5, leave-one-date-out on new plots): QDA on CART reflectance bands {pc(v5_a)}, QDA on combined-pool RF features "
                f"{pc(v5_c)} — {'a clear drop from' if v5_c < c_v3 - 0.05 else 'close to'} the V3 estimate ({pc(c_v3)}); the date/stage effect "
-               f"{'limits' if v5_c < c_v3 - 0.05 else 'hardly affects'} transfer.")
+               f"{'limits' if v5_c < c_v3 - 0.05 else 'hardly affects'} transfer. Best pipeline under transfer: {V5_BEST[0]} ({pc(V5_BEST[1])}).")
 else:
     con.append(f"Transfer (V5, leave-one-variety-out): QDA on CART reflectance bands {pc(v5_a)}, QDA on combined-pool RF features {pc(v5_c)} "
                f"({'a clear drop from' if v5_c < c_v3 - 0.05 else 'close to'} the V3 estimate, {pc(c_v3)}), i.e. features chosen on two "
-               f"varieties {'transfer only partly' if v5_c < c_v3 - 0.05 else 'transfer well'} to the third.")
+               f"varieties {'transfer only partly' if v5_c < c_v3 - 0.05 else 'transfer well'} to the third. Best pipeline under transfer: "
+               f"{V5_BEST[0]} ({pc(V5_BEST[1])}).")
 if ref:
     con.append(f"Compared with all dates, stages and varieties pooled (V3: reflectance QDA-CART {pc(ref['a'])}, combined-pool QDA-RF "
                f"{pc(ref['c'])}; J–M {ref['jm']:.2f}), this subset gives {pc(qda_v3)} and {pc(c_v3)} (J–M {jm_c:.2f}): "
@@ -171,6 +176,10 @@ rec = [
     f"Base conclusions on the plot-grouped estimates (V3 {v3_label(F)}, V4 {NV4} hold-outs), not on the leaf-level V1 estimate.",
     "Interpret features near the ASD detector joins (≈ 1000 and 1800 nm) with care; guard zones were excluded from the rankings.",
 ]
+rec.append(f"For application to a new {'date' if F.get('V5_by', 'Date') == 'Date' else 'variety'}, the most robust pipeline here was "
+           f"{V5_BEST[0]} (V5 BA {pc(V5_BEST[1])})"
+           + ("; accuracy on an unseen date is much lower than within the date, so calibrate with leaves of the target date or growth stage."
+              if F.get("V5_by", "Date") == "Date" and V5_BEST[1] < c_v3 - 0.05 else "."))
 if len(set(D["groups"][y == 0])) < 8:
     rec.append(f"Only {len(set(D['groups'][y == 0]))} healthy plots are in this subset: validation folds hold few healthy plots each, so "
                "the SDs of V3/V4 are large and the results should be confirmed with more healthy plots.")
