@@ -78,7 +78,7 @@ _cols = list(range(0, X.shape[1], 50))
 _sm = stats.mixed_models_statsmodels(X[:, _cols], y, groups, 4)
 _rho = st.spearmanr(_sm["p"], t1["mm_p"].to_numpy()[_cols]).correlation
 A["checks"].append(("Tier 1", "Mixed model implementation", "R nlme::lme vs Python statsmodels MixedLM (Powell), every 50th band",
-                    f"Spearman ρ of p-values {_rho:.3f} (statsmodels uses a Wald z-test, nlme a t-test with 46 df, so nlme p-values are larger)",
+                    f"Spearman ρ of p-values {_rho:.3f} (statsmodels uses a Wald z-test, nlme a t-test with {len(set(groups)) - 2} df, so nlme p-values are larger)",
                     "PASS" if _rho > 0.95 else "FLAG"))
 A["tier1_balanced"] = {"subsets": B, "per_subset": f"{n0} + {n0}", "median": float(np.median(n_sig_sub)),
                        "min": int(np.min(n_sig_sub)), "max": int(np.max(n_sig_sub)),
@@ -110,7 +110,7 @@ A["checks"] += [
     ("Tier 1", "Class imbalance", f"{B} balanced subsets ({n0} vs {n0} leaves)",
      f"median {np.median(n_sig_sub):.0f} significant bands per subset vs {int(t1['sig'].sum())} on all leaves", "PASS"),
     ("Tier 1", "Pseudo-replication",
-     "linear mixed model v ~ Disease + (1|plot), REML, R nlme::lme (t-test, 46 df), BH-FDR",
+     f"linear mixed model v ~ Disease + (1|plot), REML, R nlme::lme (t-test, {len(set(groups)) - 2} df), BH-FDR",
      f"{int(t1['mm_sig'].sum())} of {len(t1)} bands significant (Welch: {int(t1['sig'].sum())}); plot ICC median {np.nanmedian(t1['icc']):.3f}",
      "PASS"),
 ]
@@ -185,7 +185,7 @@ A["checks"].append(("Tier 2", "CART implementation", "rpart (R) vs scikit-learn 
                     f"root variable rpart '{r_root}' vs sklearn '{root_f} < {root_thr:.4g}'",
                     "PASS" if root_f in r_root else "FLAG"))
 A["checks"].append(("Tier 2", "Stability of the selected bands",
-                    "200 plot-level bootstrap trees; 50 nested-CV training sets",
+                    f"200 plot-level bootstrap trees; {len(F['V3'])} nested-CV training sets",
                     "; ".join(f"{int(r['Band (nm)'])} nm {100 * r['Nested-CV re-selection (±10 nm)']:.0f} %"
                               for r in sorted(cart_tab, key=lambda r: -r["Nested-CV re-selection (±10 nm)"])[:3]),
                     "PASS"))
