@@ -3,6 +3,8 @@ detector join (one band ≤ join, the other > join, both within 100 nm of it).
 Such pairs measure the splice step / start-up bump at 1000/1001 or 1800/1801 nm."""
 from __future__ import annotations
 
+import re
+
 import time
 
 import numpy as np
@@ -140,11 +142,17 @@ for form in ("NDSI", "DI"):
     rows.append(r)
 K["k3b_jf"] = {"top": top, "refined": ref_tab, "honest": honest, "bydate": pd.DataFrame(rows),
                "npairs": int(keep.sum()), "excluded": int((~keep).sum()), "near_nm": NEAR}
+_best = K["k3b_refined"].iloc[0]["name"]
+_ab = [int(v) for v in re.findall(r"\d+", _best)[:2]]
+_str = len(_ab) == 2 and straddles(*_ab)
+K["k3b_jf"]["allpair_straddles"] = bool(_str)
+K["k3b_jf"]["allpair_best"] = _best
 K["checks"].append(("K3b", "Best pair straddles a detector join?",
                     "pairs with one band on each side of the 1000/1001 or 1800/1801 nm join (within 100 nm) excluded and the search repeated",
-                    f"all-pair best {K['k3b_refined'].iloc[0]['name']} brackets the 1800/1801 nm join → treated as artefact-prone; "
-                    f"join-free best {ref_tab.iloc[0]['name']} (AUC {ref_tab.iloc[0]['AUC']:.3f}; honest BA {100 * honest['NDSI']['BA CV']:.1f} % CV)",
-                    "FLAG"))
+                    (f"all-pair best {_best} brackets a detector join → treated as artefact-prone; " if _str else
+                     f"all-pair best {_best} does not straddle a join (same as the join-free search); ")
+                    + f"join-free best {ref_tab.iloc[0]['name']} (AUC {ref_tab.iloc[0]['AUC']:.3f}; honest BA {100 * honest['NDSI']['BA CV']:.1f} % CV)",
+                    "FLAG" if _str else "PASS"))
 save(K, "partK")
 fourtier.log(f"K3b join-free done in {(time.time() - T0) / 60:.1f} min")
 print(top.groupby("Form").head(3))

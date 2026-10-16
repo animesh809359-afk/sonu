@@ -35,7 +35,11 @@ RATIO = nD / nH
 V5BY = F.get("V5_by", "Date")
 NOISE = float(pd.DataFrame(D["audit"]["noise"]).iloc[0, 2])
 NDUP_UNNAMED = len(D["dup_rows"])
-NBLOCK2 = sum(len(l_["block2"]) for l_ in D["logs"])
+_keys = set(zip(meta["Date"].astype(str), meta["Plot"].astype(int), meta["File"].astype(str)))
+B2 = pd.DataFrame([{"Date": l_["date"], **r} for l_ in D["logs"] for r in l_["block2"]])
+if len(B2):
+    B2 = B2[[(d, int(p_), f_) in _keys for d, p_, f_ in zip(B2["Date"], B2["Plot"], B2["Block-1 file"])]]
+NBLOCK2 = len(B2)
 if V5BY == "Date":
     V5_TXT = (f"V5 = leave-one-date-out on new plots ({len(F['V5'])} units: {NV4} V4 splits × {len(F['V5_dates'])} dates"
               + (f", {len(F['V5_dropped'])} units without usable test leaves skipped" if F.get("V5_dropped") else "") + ")")
@@ -154,7 +158,7 @@ corr = pd.DataFrame([
     ("Detector edge 350–399 nm", f"removed (noise {NOISE:.0f} × the 500–699 nm level); sensitivity run with 350–2500 nm", "noise could be chosen by CART"),
     ("Detector joins 1000/1001 and 1800/1801 nm (Part K)", "splice correction; guard zones excluded from feature ranking (reported with and without)", "instrument artefacts must not be read as disease"),
     ("Exact duplicate spectra", "75 copies (13-03-2026, block 2) and 4 unnamed copies (plot 27, 11-02-2026) removed from the four files before the subset was taken"
-     + (f"; {NBLOCK2 + NDUP_UNNAMED} of them fall in this subset" if IS_SUB else "")
+     + (f"; {NBLOCK2 + NDUP_UNNAMED} of them belong to this subset ({NBLOCK2} block-2, {NDUP_UNNAMED} unnamed)" if IS_SUB else "")
      + ("; sensitivity run with the unnamed copies kept" if A.get("sensitivity_dups_applicable", True) else ""), "a duplicate in both training and test inflates V1"),
     *([("Subset", f"{SUBSET}: {len(y)} of {D['audit']['subset']['n_all']} leaf spectra; folds, Tier 1–4, Part K and Part C rebuilt for this subset only",
         "each date, stage and variety analysed separately as requested")] if IS_SUB else []),
@@ -221,9 +225,11 @@ if len(D["dup_rows"]):
     S.table(pd.DataFrame(D["dup_rows"]), title="Table 0.7  Exact duplicates removed among the named/unnamed columns (in this subset)")
 else:
     S.para("Table 0.7  No unnamed duplicate spectrum belongs to this subset (the 4 removed copies are plot 27, 11-02-2026).", font=F_NOTE)
-b2 = pd.DataFrame([r for l_ in D["logs"] for r in l_["block2"]])
-if len(b2):
-    S.table(b2, title="Table 0.8  13-03-2026 second data block — each spectrum and its identical block-1 copy (removed before taking the subset)", max_rows=75)
+if len(B2):
+    S.table(B2, title="Table 0.8  13-03-2026 second data block — each removed spectrum and its identical block-1 copy"
+            + (" (copies whose block-1 spectrum belongs to this subset)" if IS_SUB else ""), max_rows=75)
+elif IS_SUB:
+    S.para("Table 0.8  None of the 75 block-2 copies of 13-03-2026 belongs to this subset.", font=F_NOTE)
 pp = D["audit"]["per_plot"].copy()
 S.table(pp, title="Table 0.9  Plots: class, variety and leaf spectra per date")
 S.table(D["audit"]["stage_by_plot_date"].reset_index(), title="Table 0.10  Growth stage of every plot on every date")
@@ -660,14 +666,19 @@ S.table(pd.DataFrame([(f, h[f]["BA CV"], h[f]["BA hold-out"], h[f]["SD"], h[f]["
         widths={"E": 80})
 S.table(K["k3b_bydate"], title="Table K3b.4  Is the separation the same on every measurement date?")
 ng = K["k3b_noguard"]
-S.para(f"Without the guard zones the best NDSI pair would be ({ng[0]:.0f}, {ng[1]:.0f}) nm with AUC {ng[2]:.3f} — inside the 1800/1801 nm start-up artefact.", font=F_NOTE)
+_in_guard = any(a_ <= w_ <= b_ for w_ in ng[:2] for a_, b_ in C["spectra"]["guard"]["R"])
+S.para(f"Without the guard zones the best NDSI pair would be ({ng[0]:.0f}, {ng[1]:.0f}) nm with AUC {ng[2]:.3f}"
+       + (" — a band inside a detector-join guard zone (start-up artefact)." if _in_guard else
+          " — no band inside a guard zone, so the guard zones do not change the result here."), font=F_NOTE)
 jf = K["k3b_jf"]
 S.h2("Additional step K3b-JF · search repeated without pairs that straddle a detector join")
-S.para(f"The best all-pair index brackets the 1800/1801 nm detector join (one band just below 1795 nm, the other just above 1835 nm), "
-       f"so part of its separation can come from the splice step and the date-dependent start-up rise after 1801 nm (sheet 14). "
-       f"Pairs with one band on each side of the 1000/1001 or 1800/1801 nm join and both within {jf['near_nm']} nm of it were "
+S.para((f"The best all-pair index {jf.get('allpair_best', '')} brackets a detector join, "
+        f"so part of its separation can come from the splice step and the date-dependent start-up rise after 1801 nm (sheet 14). "
+        if jf.get("allpair_straddles", True) else
+        f"The best all-pair index {jf.get('allpair_best', '')} does not straddle a detector join; the join-free search is shown as a check. ")
+       + f"Pairs with one band on each side of the 1000/1001 or 1800/1801 nm join and both within {jf['near_nm']} nm of it were "
        f"therefore excluded ({jf['excluded']:,} of {jf['npairs'] + jf['excluded']:,} pairs) and the search, refinement and nested "
-       "validation were repeated. The join-free result is the one recommended for interpretation.")
+       "validation were repeated." + (" The join-free result is the one recommended for interpretation." if jf.get("allpair_straddles", True) else ""))
 S.table(jf["top"].drop(columns=["Form"]), title="Table K3b.5  Ten best join-free pairs of each form (5 nm grid, all leaves)")
 S.table(feat_table(jf["refined"]), title="Table K3b.6  The refined best join-free indices (1 nm)",
         fmts={"BA all leaves": PCT, "BA plot-grouped CV": PCT, "BA hold-out": PCT})
