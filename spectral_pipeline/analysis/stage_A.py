@@ -271,7 +271,7 @@ for f in [f for f in F["V3"] if f["rep"] == 0]:
     tr = f["train"]
     t0_, t1_ = tr[y[tr] == 0], tr[y[tr] == 1]
     trb = np.concatenate([t0_, rngr.choice(t1_, len(t0_), replace=False)])
-    s_ = np.where(stats.feature_table(X[trb], y[trb])["sig"])[0]
+    s_, _ = fourtier.tier1_cols(stats.feature_table(X[trb], y[trb]))
     rus_jobs.append(dict(train=trb, test=f["test"], cols=s_))
     rus_units.append({"train": trb, "test": f["test"], "rep": 0})
 rus = cart.run_jobs(X, y, fsA.names, rus_jobs, C)

@@ -57,6 +57,20 @@ def _safe_fit(model, Xtr, ytr, Xte):
         return np.ones(len(Xte), int), np.full(len(Xte), 0.5)
 
 
+def tier1_cols(ft, alpha=0.05, k_min=2, k_fallback=20):
+    """Tier-1 features passed to Tier 2: BH-FDR q < alpha. When fewer than k_min features pass (weak
+    signal in a small training set), fall back to uncorrected p < alpha, then to the k_fallback
+    smallest p-values, so that Tier 2 always has candidates. Returns (columns, rule)."""
+    s_ = np.where(ft["sig"])[0]
+    if len(s_) >= k_min:
+        return s_, "FDR"
+    p = np.asarray(ft["p"])
+    s_ = np.where(p < alpha)[0]
+    if len(s_) >= k_min:
+        return s_, "uncorrected p"
+    return np.sort(np.argsort(p)[:k_fallback]), "smallest p"
+
+
 def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
     """fs: FeatureSet. Returns a dict of tables for the report."""
     out = {"label": label, "checks": []}
@@ -82,8 +96,11 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
         t1["mm_sig"] = t1["mm_q"] < alpha
         t1["mm_boundary"] = mm["boundary"]
     out["tier1"] = t1
-    sig = np.where(ft["sig"])[0]
-    out["n_sig"] = int(len(sig))
+    out["n_sig"] = int(ft["sig"].sum())
+    sig, out["tier1_rule"] = tier1_cols(ft, alpha)
+    if out["tier1_rule"] != "FDR":
+        out["checks"].append(("Tier 1", "Fewer than 2 FDR-significant features on all leaves", "fallback rule for Tier 2 candidates",
+                              f"{len(sig)} features by {out['tier1_rule']}", "FLAG"))
     out["n_features"] = int(X.shape[1])
     msig = meta.iloc[sig].reset_index(drop=True)
     Xsig = X[:, sig]
@@ -95,16 +112,27 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
     for f in folds["V1"]:                  # CART classifier, Tier-1 features fixed
         jobs.append(dict(train=f["train"], test=f["test"], cols=sig))
     fold_sig = {}
+    fallback = []
     nested = [sch for sch in ("V3", "V4", "V5") if folds.get(sch)]
     for sch in nested:                     # nested: Tier 1 refitted in the training rows
         for i, f in enumerate(folds[sch]):
             ftr = stats.feature_table(X[f["train"]], y[f["train"]], alpha)
-            s_ = np.where(ftr["sig"])[0]
+            s_, rule = tier1_cols(ftr, alpha)
+            if rule != "FDR":
+                fallback.append((sch, i, rule, len(s_)))
             fold_sig[(sch, i)] = s_
             jobs.append(dict(train=f["train"], test=f["test"], cols=s_))
     t0 = time.time()
     cres = cart.run_jobs(X, y, names, jobs, cfg)
     log(f"{label}: {len(jobs)} rpart trees in {time.time() - t0:.0f} s")
+    out["tier1_fallback"] = fallback
+    ntr = sum(len(folds[s]) for s in nested)
+    out["checks"].append(("Tier 1", "Training sets with < 2 FDR-significant features (nested V3/V4/V5)",
+                          "fallback: uncorrected p < 0.05, else the 20 smallest p",
+                          f"{len(fallback)} of {ntr} training sets"
+                          + (": " + "; ".join(f"{a} #{b + 1} → {c} ({d})" for a, b, c, d in fallback[:8])
+                             + (" …" if len(fallback) > 8 else "") if fallback else ""),
+                          "FLAG" if fallback else "PASS"))
     full = cres[0]
     name_to_col = {nm: i for i, nm in enumerate(names)}
     cart_vars = full["vars"]

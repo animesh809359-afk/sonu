@@ -4,3 +4,4 @@ output/
 raw_data/
 work/
 __pycache__/
+work_subsets/

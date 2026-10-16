@@ -1,0 +1,35 @@
+# Subset 5 of 9: vegetative growth stage only. Same data, cleaning and settings as whiterust_all_dates.yaml;
+# the subset filter is applied after duplicate removal on all four files.
+title: Healthy vs white-rust-diseased mustard leaves - vegetative growth stage only
+subtitle: Four-tier hierarchical analysis (Das et al., 2020) with imbalance correction,
+  CART vs Random Forest, disease-sensitive features (K) and the four-tier analysis
+  of the combined feature pool
+author: Animesh Panda · Division of Agricultural Physics, ICAR-IARI, New Delhi
+data:
+  files:
+  - - asd__data_complete_labelled_110226.xlsx
+    - 11-02-2026
+  - - asd__data_complete_labelled_240226.xlsx
+    - 24-02-2026
+  - - asd__data_complete_labelled_030326.xlsx
+    - 03-03-2026
+  - - asd__data_complete_labelled_130326.xlsx
+    - 13-03-2026
+  plot_col: Plot
+  class_col: Class
+  date_col: Date
+  drop_exact_duplicates: true
+  subset:
+    Growth stage: Vegetative
+  subset_label: vegetative growth stage only
+classes:
+  negative: Healthy
+  positive: Diseased
+spectra:
+  keep_range:
+  - 400
+  - 2500
+  canopy: false
+output:
+  dir: ../../../deliverables/WhiteRust_Subsets
+  stem: 05_WhiteRust_Mustard_Leaf_Stage_Vegetative

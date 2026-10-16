@@ -80,7 +80,7 @@ def present_dates(D):
 def v3_label(F):
     """'k-fold × r' label of the nested plot-grouped CV."""
     reps = len({f["rep"] for f in F["V3"]})
-    return f"{F['v3_k']}-fold × {reps} = {len(F['V3'])} folds"
+    return f"{F.get('v3_k', 10)}-fold × {reps} = {len(F['V3'])} folds"
 
 
 def v5_label(F, short=False):

@@ -625,7 +625,7 @@ def f30_lodo():
     for k, p in enumerate(pipes):
         q = o[o.Pipeline == p].set_index("Date").reindex(dates)
         ax.bar(x + (k - (len(pipes) - 1) / 2) * w, q["BA"] * 100, w * 0.92, color=pal[k], label=p)
-    unit = "date" if F["V5_by"] == "Date" else "variety"
+    unit = "date" if F.get("V5_by", "Date") == "Date" else "variety"
     ax.set_xticks(x, [f"held-out {unit}\n{d}" for d in dates], fontsize=8)
     ax.set(ylabel="Balanced accuracy (%)", ylim=(40, 100))
     ax.set_title("V5: trained on the other dates, tested on the held-out date in new plots" if unit == "date"

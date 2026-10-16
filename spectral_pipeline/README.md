@@ -59,3 +59,27 @@ Mixed models use R `nlme::lme` (REML; t-test with between-plot df). CART uses R 
 Requirements: Python ≥ 3.11 (numpy, scipy, pandas, statsmodels, scikit-learn,
 imbalanced-learn, matplotlib, openpyxl, pyyaml), R ≥ 4.3 with rpart, nlme, MASS,
 randomForest, jsonlite; Node with pptxgenjs and docx; LibreOffice for the formula recalculation.
+
+## Separate analyses by date, growth stage and variety (9 subsets)
+
+`configs/subsets/*.yaml` hold one config per subset (4 dates, vegetative and pod-formation stages,
+varieties V1–V3). Each has `data.subset` ({column: value}); the filter is applied in
+`stage_data.py` after the duplicate removal on all four files. Run one subset with
+
+    ./run_subset.sh configs/subsets/01_Date_11-02-2026.yaml        # optional 2nd arg: first stage
+
+(stages: data, A, K, K3b_joinfree, C, compare, figures, conclusions, excel, recalc; work files in
+`work_subsets/<name>/`, workbook in `../deliverables/WhiteRust_Subsets/`). The feature-selection
+benchmark and Part C′ are not run for the subsets.
+
+Subset-specific validation:
+* V3 uses k = min(10, plots of the smaller class) plot-grouped folds (variety subsets have 4 healthy
+  plots → k = 4); every test fold must contain both classes, otherwise plots are dealt round-robin
+  per class (`sp/folds.py: group_folds`).
+* V5 = leave-one-date-out on the V4 test plots when the subset spans several dates (stage and
+  variety subsets); single-date subsets use leave-one-variety-out. Units whose held-out date has no
+  leaves of the test plots, or whose training set has < 5 leaves of a class, are skipped and listed.
+* When a training set has fewer than 2 FDR-significant features, Tier 2 receives the features with
+  uncorrected p < 0.05 (else the 20 smallest p); such training sets are flagged in the cross-checks.
+* `auto_conclusions.py` writes the conclusions, recommendations and the "Result in brief" text of
+  each sheet from the numbers of that run.

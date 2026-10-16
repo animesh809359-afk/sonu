@@ -10,12 +10,13 @@ from openpyxl.chart import BarChart, Reference, ScatterChart, Series
 from openpyxl.chart.layout import Layout, ManualLayout
 
 import xl
-from common import ROOT, WORK, cfg, load
+from common import ROOT, WORK, cfg, load, present_dates, subset_label, v3_label, v5_label, v5_level
 from xl import F_BOLD, F_NOTE, FILL_KEY, Sheet, error_matrix
 
 C = cfg()
 D, A, K, Cc, X = load("data"), load("partA"), load("partK"), load("partC"), load("compare")
-CR, XR = load("partCR"), load("compareCR")
+HAS_CR = (WORK / "partCR.pkl").exists() and (WORK / "compareCR.pkl").exists() and not C["data"].get("subset")
+CR, XR = (load("partCR"), load("compareCR")) if HAS_CR else (None, None)
 TXT = json.loads((WORK / "conclusions.json").read_text()) if (WORK / "conclusions.json").exists() else {}
 FIG = WORK / "figures"
 OUT = (ROOT / C["output"]["dir"]).resolve()
@@ -23,6 +24,24 @@ OUT.mkdir(parents=True, exist_ok=True)
 spec, y, wl, meta, F = D["spec"], D["y"], D["spec"].wl, D["meta"], D["folds"]
 nH, nD = int((y == 0).sum()), int((y == 1).sum())
 REG = C["spectra"]["regions"]
+SUBSET = subset_label(C)
+IS_SUB = bool(C["data"].get("subset"))
+PD = present_dates(D)
+grp = D["groups"]
+NP0, NP1 = len(set(grp[y == 0])), len(set(grp[y == 1]))
+NSETS, K3, NV4 = len(F["V3"]), F["v3_k"], len(F["V4"])
+NREP = len({f["rep"] for f in F["V3"]})
+RATIO = nD / nH
+V5BY = F.get("V5_by", "Date")
+NOISE = float(pd.DataFrame(D["audit"]["noise"]).iloc[0, 2])
+NDUP_UNNAMED = len(D["dup_rows"])
+NBLOCK2 = sum(len(l_["block2"]) for l_ in D["logs"])
+if V5BY == "Date":
+    V5_TXT = (f"V5 = leave-one-date-out on new plots ({len(F['V5'])} units: {NV4} V4 splits × {len(F['V5_dates'])} dates"
+              + (f", {len(F['V5_dropped'])} units without usable test leaves skipped" if F.get("V5_dropped") else "") + ")")
+else:
+    V5_TXT = f"V5 = leave-one-variety-out ({len(F['V5'])} units: train on the other varieties, test on all leaves of the held-out variety)"
+DATES_TXT = ", ".join(PD)
 wb = Workbook()
 wb.remove(wb.active)
 SHEETS = []
@@ -32,6 +51,10 @@ PCT = "0.0%"
 def S_(name, title, sub="", **kw):
     s = Sheet(wb, name, title, sub, **kw)
     SHEETS.append((name, title))
+    if TXT.get("readings", {}).get(name):
+        s.h2("Result in brief")
+        for t in TXT["readings"][name]:
+            s.para(t)
     return s
 
 
@@ -62,22 +85,22 @@ cA, cK, cC = A["checks"], K["checks"], Cc["checks"]
 
 # =====================================================================================
 # 00 README (filled at the end with the sheet guide)
-readme = S_("00_README", "Healthy vs white-rust-diseased mustard leaves — all dates, growth stages and varieties combined",
+readme = S_("00_README", f"Healthy vs white-rust-diseased mustard leaves — {SUBSET}",
             "Four-tier hierarchical analysis of Das et al. (2020, Geocarto International 35:64–77) with imbalance and "
             "pseudo-replication corrections; CART vs Random Forest; disease-sensitive features (Part K); four-tier "
-            "analysis of the combined feature pool (Part C: K1 + K2–K4; Part C′: raw reflectance + K2–K4). Leaf level, ASD FieldSpec contact probe.")
+            "analysis of the combined feature pool (Part C: K1 + K2–K4" + ("; Part C′: raw reflectance + K2–K4" if HAS_CR else "") + "). Leaf level, ASD FieldSpec contact probe.")
 
 # =====================================================================================
 # 01 Summary
 S = S_("01_Summary", "Summary — results of every step", "Balanced accuracy (BA) = mean of healthy and diseased recall; "
-       "it is the headline metric because the classes are imbalanced (1 : 5).")
+       f"it is the headline metric because the classes are imbalanced (1 : {RATIO:.1f}).")
 S.h2("Key numbers")
 v3a = vrow(A, "QDA on CART features", "V3")
 key = [
-    ("Leaf spectra analysed (healthy / diseased)", f"{len(y)} ({nH} / {nD}); 48 plots (12 / 36); 4 dates; 3 growth stages; 3 varieties"),
+    ("Leaf spectra analysed (healthy / diseased)", f"{len(y)} ({nH} / {nD}); {NP0 + NP1} plots ({NP0} / {NP1}); {len(PD)} date(s): {DATES_TXT}; growth stage(s): {', '.join(sorted(meta['Growth stage'].unique()))}; variety(ies): {', '.join(sorted(meta['Variety'].unique()))}"),
     ("Tier 1 — bands significant (Welch + FDR)", f"{A['n_sig']} of {A['n_features']}"),
     ("Tier 2 — CART bands (rpart, prior 0.5/0.5)", f"{len(A['sets'][A['cart_name']])}: {bands_txt(A['sets'][A['cart_name']])} nm"),
-    ("Tier 2 — RF bands (top-17 MDI peaks)", f"{bands_txt(A['sets'][A['rf_name']])} nm"),
+    (f"Tier 2 — RF bands (top-{len(A['sets'][A['rf_name']])} MDI peaks)", f"{bands_txt(A['sets'][A['rf_name']])} nm"),
     ("Tier 3 — J–M healthy vs diseased (CART / RF bands)",
      f"{A['tier3'].set_index('Set').loc[A['cart_name'], 'JM']:.3f} / {A['tier3'].set_index('Set').loc[A['rf_name'], 'JM']:.3f} (threshold 1.90)"),
     ("Tier 4 — QDA equal priors, 10-fold CV (V1): BA CART / RF bands",
@@ -85,19 +108,20 @@ key = [
     ("Honest estimate (V3 nested plot-grouped CV): QDA on CART bands", f"BA {100 * v3a['BA']:.1f} ± {100 * v3a['BA_SD']:.1f} %"),
     ("Part C — combined pool: features / Tier-1 significant", f"{Cc['n_features']} / {Cc['n_sig']}"),
     ("Part C — CART features", f"{len(Cc['sets'][Cc['cart_name']])}: {', '.join(Cc['sets'][Cc['cart_name']])}"),
-    ("Part C — QDA on RF-17 features (V3 / V4)",
+    (f"Part C — QDA on {Cc['rf_name']} features (V3 / V4)",
      f"{100 * vrow(Cc, 'QDA on RF features', 'V3')['BA']:.1f} % / {100 * vrow(Cc, 'QDA on RF features', 'V4')['BA']:.1f} %"),
+] + ([
     ("Part C′ — raw reflectance + K2–K4: features / Tier-1 significant", f"{CR['n_features']} / {CR['n_sig']}"),
     ("Part C′ — CART features", f"{len(CR['sets'][CR['cart_name']])}: {', '.join(CR['sets'][CR['cart_name']])}"),
     (f"Part C′ — QDA on {CR['rf_name']} features (V3 / V4)",
      f"{100 * vrow(CR, 'QDA on RF features', 'V3')['BA']:.1f} % / {100 * vrow(CR, 'QDA on RF features', 'V4')['BA']:.1f} %"),
-]
+] if HAS_CR else [])
 S.table(pd.DataFrame(key, columns=["Item", "Result"]), widths={"A": 52, "B": 90})
 S.h2("Table Z.1  All approaches side by side (ranked by the honest V3 balanced accuracy)")
 syn = X["synthesis"].copy()
 S.table(syn, fmts={c: PCT for c in syn.columns if c.startswith(("BA", "SD"))} | {"AUC V3": "0.000", "κ V3": "0.000"},
         note="V1 = leaf-level 10-fold CV with features chosen on all leaves (the paper's protocol; optimistic). "
-             "V3 = nested 10-fold CV grouped by plot × 5 repeats, V4 = 30 % of plots held out × 10, V5 = new date and new plots; "
+             f"V3 = nested plot-grouped CV ({v3_label(F)}), V4 = 30 % of plots held out × {NV4}, {V5_TXT}; "
              "in V3–V5 every selection step is repeated inside the training set. Single features: threshold chosen on training plots.")
 S.image(FIG / "F29_synthesis.png", 820)
 if TXT.get("conclusions"):
@@ -116,29 +140,36 @@ S = S_("02_Design", "Workflow, validation design and model settings",
 S.image(FIG / "F01_workflow.png", 860)
 S.h2("Table 2.1  Corrections applied to the protocol of Das et al. (2020) and why")
 corr = pd.DataFrame([
-    ("Class imbalance (378 healthy : 1886 diseased = 1 : 5.0)", "QDA/LDA with equal prior probabilities; rpart prior = c(0.5, 0.5); Balanced RF (each tree on a balanced bootstrap); balanced accuracy as headline metric; 1000 balanced subsets in Tier 1",
+    (f"Class imbalance ({nH} healthy : {nD} diseased = 1 : {RATIO:.1f})", "QDA/LDA with equal prior probabilities; rpart prior = c(0.5, 0.5); Balanced RF (each tree on a balanced bootstrap); balanced accuracy as headline metric; 1000 balanced subsets in Tier 1",
      "without it every classifier favours 'diseased' and overall accuracy is inflated"),
     ("Two classes only", "Welch t-test instead of one-way ANOVA + Tukey HSD (ANOVA reported for comparison: identical ranking)",
      "Tukey HSD is for many pairs; Welch allows unequal variances (Levene)"),
-    ("Multiple testing (2101 bands)", "Benjamini–Hochberg FDR (q < 0.05); uncorrected counts reported",
-     "2101 tests at α = 0.05 give ≈ 105 false positives"),
-    ("Pseudo-replication (leaves nested in plots, plots measured on 4 dates)", "mixed model with random plot intercept; every honest validation grouped by plot across all dates",
+    (f"Multiple testing ({len(wl)} bands)", "Benjamini–Hochberg FDR (q < 0.05); uncorrected counts reported",
+     f"{len(wl)} tests at α = 0.05 give ≈ {round(0.05 * len(wl))} false positives"),
+    (f"Pseudo-replication (leaves nested in plots" + (f", plots measured on {len(PD)} dates)" if len(PD) > 1 else ")"), "mixed model with random plot intercept; every honest validation grouped by plot" + (" across all dates" if len(PD) > 1 else ""),
      "leaves of one plot are not independent"),
     ("Selection bias", "Tier 1, band selection and classifier refitted inside every training set (nested V3, V4, V5)",
      "selecting bands on all leaves and validating on the same leaves is optimistic"),
     ("Water-absorption bands", "kept (contact probe with its own light source; no atmospheric path)", "Das et al. removed them for canopy measurements"),
-    ("Detector edge 350–399 nm", "removed (noise 116 × the 500–699 nm level); sensitivity run with 350–2500 nm", "noise could be chosen by CART"),
+    ("Detector edge 350–399 nm", f"removed (noise {NOISE:.0f} × the 500–699 nm level); sensitivity run with 350–2500 nm", "noise could be chosen by CART"),
     ("Detector joins 1000/1001 and 1800/1801 nm (Part K)", "splice correction; guard zones excluded from feature ranking (reported with and without)", "instrument artefacts must not be read as disease"),
-    ("Exact duplicate spectra", "75 copies (13-03-2026, block 2) and 4 unnamed copies (plot 27, 11-02-2026) removed; sensitivity run with the 4 kept", "a duplicate in both training and test inflates V1"),
+    ("Exact duplicate spectra", "75 copies (13-03-2026, block 2) and 4 unnamed copies (plot 27, 11-02-2026) removed from the four files before the subset was taken"
+     + (f"; {NBLOCK2 + NDUP_UNNAMED} of them fall in this subset" if IS_SUB else "")
+     + ("; sensitivity run with the unnamed copies kept" if A.get("sensitivity_dups_applicable", True) else ""), "a duplicate in both training and test inflates V1"),
+    *([("Subset", f"{SUBSET}: {len(y)} of {D['audit']['subset']['n_all']} leaf spectra; folds, Tier 1–4, Part K and Part C rebuilt for this subset only",
+        "each date, stage and variety analysed separately as requested")] if IS_SUB else []),
 ], columns=["Issue", "Correction", "Why"])
 S.table(corr, widths={"A": 34, "B": 70, "C": 50})
 S.h2("Table 2.2  Validation design (identical folds in every step; sheet 36_Folds)")
 vd = pd.DataFrame([
     ("V1 · leaf-level 10-fold CV", "StratifiedKFold, seed 42", "bands fixed (chosen on all leaves); classifier refitted", "reproduces the paper (optimistic: leaves of a plot in train and test)"),
-    ("V2 · plot-grouped 10-fold CV", "StratifiedGroupKFold, seed 42", "bands fixed; classifier refitted", "removes plot leakage, keeps selection bias"),
-    ("V3 · nested plot-grouped 10-fold CV × 5", "StratifiedGroupKFold, seeds 101–105", "Tier 1 + selection + classifier refitted", "honest estimate for new plots"),
-    ("V4 · hold-out of 30 % of plots × 10", "4 healthy + 11 diseased plots per split, default_rng(2026)", "everything refitted on the remaining plots", "independent test plots"),
-    ("V5 · new date and new plots (additional)", "train: 3 dates × V4 training plots; test: 4th date × V4 test plots", "everything refitted", "transfer to an unseen date and unseen plots"),
+    (f"V2 · plot-grouped {K3}-fold CV", f"{F['v3_method']}, seed 42", "bands fixed; classifier refitted", "removes plot leakage, keeps selection bias"),
+    (f"V3 · nested plot-grouped CV, {v3_label(F)}", f"{F['v3_method']}, seeds 101–105; k = min(10, plots of the smaller class = {min(NP0, NP1)}) so every test fold holds both classes",
+     "Tier 1 + selection + classifier refitted", "honest estimate for new plots"),
+    (f"V4 · hold-out of 30 % of plots × {NV4}", f"{F['v4_plots'][0]} healthy + {F['v4_plots'][1]} diseased plots per split, default_rng(2026)", "everything refitted on the remaining plots", "independent test plots"),
+    ((f"V5 · new date and new plots (additional)", "train: other dates × V4 training plots; test: held-out date × V4 test plots", "everything refitted", "transfer to an unseen date and unseen plots")
+     if V5BY == "Date" else
+     ("V5 · new variety (additional; single date, so no date transfer)", "train: the other varieties; test: all leaves of the held-out variety", "everything refitted", "transfer to an unseen variety (its plots are unseen too)")),
 ], columns=["Scheme", "Folds", "What is refitted", "Purpose"])
 S.table(vd, widths={"D": 50})
 S.h2("Table 2.3  CART and Random Forest settings")
@@ -147,8 +178,8 @@ st_ = pd.DataFrame([
     ("Split criterion", "Gini", "Gini"),
     ("Imbalance correction", "prior = c(0.5, 0.5)", "sampling_strategy = 'all', replacement = True, bootstrap = False (balanced bootstrap per tree)"),
     ("Size / randomness", "minsplit 20, minbucket 7, cp 0.01, maxcompete 0, maxsurrogate 0", "500 trees (1000 for importance), max_features = √p, random_state 42"),
-    ("Pruning", "default tree used; 1-SE tree from plot-grouped 10-fold CV of cp", "—"),
-    ("Band selection", "split variables of the tree", "top-17 / top-10 MDI importance peaks, local maxima ≥ 10 nm apart"),
+    ("Pruning", f"default tree used; 1-SE tree from plot-grouped {K3}-fold CV of cp", "—"),
+    ("Band selection", "split variables of the tree", "top-17 / top-10 MDI importance peaks (+ a set the size of the CART set), local maxima ≥ 10 nm apart"),
     ("Prediction", "class of the terminal node (prior-adjusted)", "majority vote (probability > 0.5)"),
 ], columns=["Setting", "CART", "Random Forest"])
 S.table(st_, widths={"B": 55, "C": 60})
@@ -162,9 +193,11 @@ S.para("The four files (11-02-2026, 24-02-2026, 03-03-2026, 13-03-2026) were rea
        "variety, growth stage and the healthy/diseased label. The 48+ numbered columns per file are =AVERAGE() plot means and were "
        "ignored (leaf level only). On 13-03-2026 a second data block (75 columns) repeats plots 13, 34, 38, 41 and 42 exactly; "
        "on 11-02-2026 four unnamed columns of plot 27 are exact copies of Mustard00215–00218. These 79 copies were removed. "
-       "Leaf level and disease score were not used (instruction: healthy vs diseased only).")
+       "Leaf level and disease score were not used (instruction: healthy vs diseased only)."
+       + (f" Only the subset '{SUBSET}' was then kept: {len(y)} of {D['audit']['subset']['n_all']} unique leaf spectra "
+          f"({nH} healthy, {nD} diseased; dates {DATES_TXT}). Every following step uses this subset only." if IS_SUB else ""))
 cnt = D["audit"]["counts"].copy()
-f, l, L = S.table(cnt, title="Table 0.1  Leaf spectra by class (all dates, stages and varieties combined)")
+f, l, L = S.table(cnt, title=f"Table 0.1  Leaf spectra by class ({SUBSET})")
 S.cell(S.row - 1, 1, "Total", F_BOLD)
 S.cell(S.row - 1, 2, f"=SUM(B{f}:B{l})")
 S.cell(S.row - 1, 3, f"=SUM(C{f}:C{l})")
@@ -180,13 +213,17 @@ S.cell(S.row - 1, 2, f"=SUM(B{f}:B{l})")
 S.cell(S.row - 1, 3, f"=SUM(C{f}:C{l})")
 S.row += 1
 S.table(D["audit"]["by_stage"].reset_index(), title="Table 0.3  Leaf spectra by date, growth stage and class")
-S.table(D["audit"]["by_stage_total"].reset_index(), title="Table 0.4  Leaf spectra by growth stage (all dates)")
+S.table(D["audit"]["by_stage_total"].reset_index(), title="Table 0.4  Leaf spectra by growth stage")
 S.table(D["audit"]["by_variety"].reset_index(), title="Table 0.5  Leaf spectra by variety")
 S.table(pd.DataFrame(D["audit"]["checks"], columns=["Check", "Result", "Status"]), title="Table 0.6  Data-quality checks",
         flag_col="Status", widths={"A": 46, "B": 50})
-S.table(pd.DataFrame(D["dup_rows"]), title="Table 0.7  Exact duplicates removed among the named/unnamed columns")
+if len(D["dup_rows"]):
+    S.table(pd.DataFrame(D["dup_rows"]), title="Table 0.7  Exact duplicates removed among the named/unnamed columns (in this subset)")
+else:
+    S.para("Table 0.7  No unnamed duplicate spectrum belongs to this subset (the 4 removed copies are plot 27, 11-02-2026).", font=F_NOTE)
 b2 = pd.DataFrame([r for l_ in D["logs"] for r in l_["block2"]])
-S.table(b2, title="Table 0.8  13-03-2026 second data block — each spectrum and its identical block-1 copy", max_rows=75)
+if len(b2):
+    S.table(b2, title="Table 0.8  13-03-2026 second data block — each spectrum and its identical block-1 copy (removed before taking the subset)", max_rows=75)
 pp = D["audit"]["per_plot"].copy()
 S.table(pp, title="Table 0.9  Plots: class, variety and leaf spectra per date")
 S.table(D["audit"]["stage_by_plot_date"].reset_index(), title="Table 0.10  Growth stage of every plot on every date")
@@ -197,10 +234,10 @@ S = S_("04_Step1_Preprocessing", "Step 1 · Pre-processing — band set, noise a
        "Das et al. (2020) removed 1350–1430, 1800–1950 and 2350–2500 nm (atmospheric water, canopy). Here the contact probe has its own light source, so water bands are kept.")
 S.h2("What was done")
 S.para("Noise of every band = SD of the residual after Savitzky–Golay smoothing (window 11, order 2). The 350–399 nm detector edge "
-       "is far noisier than the rest and was removed; everything else (400–2500 nm, 2101 bands) was analysed on the raw "
+       f"is far noisier than the rest and was removed; everything else (400–2500 nm, {len(wl)} bands) was analysed on the raw "
        "(unsmoothed) reflectance in Tiers 1–4, as in Das et al. Outliers were screened with the spectral angle (SAM) to the class "
        "median spectrum and flagged, not removed (diseased leaves are expected to vary more).")
-bs = pd.DataFrame([("350–399", 50, "Removed", "detector edge: noise ×116 of the 500–699 nm level"),
+bs = pd.DataFrame([("350–399", 50, "Removed", f"detector edge: noise ×{NOISE:.0f} of the 500–699 nm level"),
                    ("400–1349", 950, "Retained", "visible, red edge, NIR"),
                    ("1350–1430", 81, "Retained", "water band I — contact probe (Das et al. removed it)"),
                    ("1431–1799", 369, "Retained", "SWIR-1"),
@@ -219,8 +256,11 @@ S.h2("Figure 3 (as in Das et al. 2020). Mean reflectance of healthy and diseased
 S.image(FIG / "F02_mean_spectra.png", 820)
 S.image(FIG / "F02b_mean_spectra_by_date.png", 900)
 S.para("Native Excel chart of the same data: sheet 37_ChartData, columns A–C.", font=F_NOTE)
-S.table(A["sensitivity_dups"], title="Table 1.5  Sensitivity: the 4 unnamed duplicate spectra of plot 27 kept vs removed (QDA on CART bands)",
-        fmts={"BA V1": PCT, "BA V3": PCT, "BA V4": PCT})
+if A.get("sensitivity_dups_applicable", True):
+    S.table(A["sensitivity_dups"], title="Table 1.5  Sensitivity: the unnamed duplicate spectra of plot 27 kept vs removed (QDA on CART bands)",
+            fmts={"BA V1": PCT, "BA V3": PCT, "BA V4": PCT})
+else:
+    S.para("Table 1.5  Duplicate sensitivity run not applicable: the 4 unnamed plot-27 copies (11-02-2026) are not part of this subset.", font=F_NOTE)
 
 # =====================================================================================
 # 05 Tier 1
@@ -230,8 +270,8 @@ S = S_("05_Tier1_Ttest", "Step 2 · Tier 1 — Welch's t-test at every band with
 S.h2("What was done")
 S.para(f"At each of the {len(wl)} bands the mean reflectance of healthy (n = {nH}) and diseased (n = {nD}) leaves was compared "
        "with Welch's t-test (unequal variances; Levene's test shows unequal variances at many bands) and the p-values were "
-       "adjusted with the Benjamini–Hochberg false-discovery rate. Bands with q < 0.05 go to Tier 2. Because 1886 diseased "
-       "leaves give high power even for tiny differences, the test was repeated on 1000 balanced random subsets (378 vs 378), "
+       f"adjusted with the Benjamini–Hochberg false-discovery rate. Bands with q < 0.05 go to Tier 2. Because {nD} diseased "
+       f"leaves give high power even for tiny differences, the test was repeated on 1000 balanced random subsets ({nH} vs {nH}), "
        "and a linear mixed model with a random plot intercept checks pseudo-replication.")
 tt = A["tier1_tests"].copy()
 f, l, L = S.table(tt, title="Table 2.1  Number of significant bands")
@@ -263,7 +303,7 @@ S.para("Native Excel versions of Figures 3–5b: sheet 37_ChartData (charts plac
 checks_table(S, [c for c in cA if c[0] == "Tier 1"])
 
 # 05b all bands (with Excel formulas)
-S = S_("05b_Tier1_AllBands", "Step 2 · Tier 1 — full results for all 2101 bands",
+S = S_("05b_Tier1_AllBands", f"Step 2 · Tier 1 — full results for all {len(wl)} bands",
        "Values from Python/SciPy; columns marked (Excel) are formulas recomputing the difference, % difference, significance and the Welch t from the class means and SDs.")
 ab = pd.DataFrame({"Wavelength (nm)": wl, "Region": t1["region"], "n healthy": nH, "n diseased": nD,
                    "Mean healthy": t1["mean0"], "SD healthy": t1["sd0"], "Mean diseased": t1["mean1"], "SD diseased": t1["sd1"],
@@ -295,7 +335,7 @@ S.para(f"Input: the {A['n_sig']} FDR-significant bands of Tier 1 (raw reflectanc
        "'class', prior = c(0.5, 0.5) (imbalance correction), split = 'gini', minsplit 20, minbucket 7, cp 0.01, no competitor or "
        "surrogate splits. The wavelengths used as split variables form the CART band set. The complexity parameter was "
        "cross-validated with plot-grouped folds; the 1-SE tree gives a smaller alternative set. Stability: rpart refitted on 200 "
-       "plot-level bootstrap samples and inside the 50 nested training sets of V3 (a band counts as re-selected if a band within "
+       f"plot-level bootstrap samples and inside the {NSETS} nested training sets of V3 (a band counts as re-selected if a band within "
        "± 10 nm is chosen).")
 S.table(A["cart_table"], title=f"Table 3.1  The {len(cart_set)} wavelengths selected by CART",
         fmts={"Bootstrap re-selection (±10 nm)": PCT, "Nested-CV re-selection (±10 nm)": PCT}, widths={"B": 24, "L": 44})
@@ -306,7 +346,7 @@ fr.columns = ["Node", "Depth", "Split variable", "Rule (left branch of the paren
 S.table(fr, title="Table 3.2  Tree nodes (rpart frame)")
 S.table(A["cart_full"]["cptable"].rename(columns={"CP": "CP", "nsplit": "Number of splits", "rel error": "Relative error",
                                                   "xerror": "Cross-validated error (plot-grouped)", "xstd": "SE of CV error"}),
-        title="Table 3.3  Complexity-parameter table (plot-grouped 10-fold CV)")
+        title=f"Table 3.3  Complexity-parameter table (plot-grouped {K3}-fold CV)")
 S.image(FIG / "F07_cart_cp.png", 600)
 sets_rows = [(k, len(v), bands_txt(v)) for k, v in A["sets"].items() if k.startswith("CART")]
 S.table(pd.DataFrame(sets_rows, columns=["Tree", "Bands", "Wavelengths (nm)"]), title="Table 3.4  Selected band sets", widths={"C": 80})
@@ -374,15 +414,16 @@ S = S_("09_Validation", "Step 6 · Validation of the complete four-tier pipeline
        "From the protocol of Das et al. (bands chosen on all leaves, leaf-level CV) to honest estimates for new plots and new dates.")
 S.h2("What was done")
 S.para("Das et al. selected bands on all data and validated QDA by 10-fold CV on the same data (V1). Here the pipeline is also "
-       "validated with folds grouped by plot (V2), with the whole pipeline nested inside plot-grouped folds (V3, 5 repeats), on "
-       "independent hold-out plots (V4, 10 splits), with random under-sampling instead of equal priors (V3-RUS) and on an unseen "
-       "date in unseen plots (V5, additional). All rows: QDA on CART-selected bands.")
+       f"validated with folds grouped by plot (V2), with the whole pipeline nested inside plot-grouped folds (V3, {v3_label(F)}), on "
+       f"independent hold-out plots (V4, {NV4} splits), with random under-sampling instead of equal priors (V3-RUS) and "
+       + ("on an unseen date in unseen plots (V5, additional)" if V5BY == "Date" else "on an unseen variety (V5, additional)")
+       + ". All rows: QDA on CART-selected bands.")
 vq = A["validation_qda_cart"][["Scheme", "Priors", "repeats", "OA", "BA", "BA_SD", "kappa", "AUC", "PA_H", "PA_D", "UA_H", "UA_D"]].copy()
 S.table(vq, title="Table 6.1  Validation results (mean over repeats; SD over repeats)",
         fmts={c: PCT for c in ["OA", "BA", "BA_SD", "PA_H", "PA_D", "UA_H", "UA_D"]})
 S.image(FIG / "F11_validation_qda_cart.png", 820)
-for sch, lab in (("V3", "nested plot-grouped CV, 5 repeats pooled"), ("V4", "independent hold-out plots, 10 splits pooled"),
-                 ("V5", "new date and new plots, 40 units pooled")):
+for sch, lab in (("V3", f"nested plot-grouped CV, {NREP} repeats pooled"), ("V4", f"independent hold-out plots, {NV4} splits pooled"),
+                 ("V5", f"{v5_label(F)}, {len(F['V5'])} units pooled")):
     p = A["pooled"][("QDA on CART features", sch)]
     error_matrix(S, p, f"Table 6.{2 + ['V3', 'V4', 'V5'].index(sch)}  Error matrix, {sch} ({lab}) — QDA on CART bands, equal priors")
 S.table(A["sensitivity_range"], title="Table 6.5  Sensitivity to the band set (full pipeline repeated)",
@@ -396,7 +437,7 @@ S.h2("What was done")
 S.para(f"A Balanced Random Forest (1000 trees, √{A['n_sig']} candidate bands per split, each tree grown on a balanced bootstrap "
        f"of {nH} + {nH} leaves) was fitted to all leaves; band importance = mean decrease in Gini impurity (MDI). Because "
        "neighbouring bands are almost identical, bands were picked as importance peaks: local maxima of the importance "
-       "spectrum, at least 10 nm apart. The 17 highest peaks form the RF band set (same size as the CART set of Das et al.); "
+       "spectrum, at least 10 nm apart. The 17 highest peaks form the RF band set (the CART set of Das et al. had 17 bands); "
        "the 10 highest a smaller set. Checks: a second forest with another seed, R randomForest, permutation importance, and an "
        "ordinary class-weighted forest.")
 imp = A["rf_importance"].set_index("name")
@@ -452,12 +493,12 @@ S.image(FIG / "F09_tier3_tier4_incremental.png", 900)
 # =====================================================================================
 # 12 A3
 S = S_("12_A3_CART_vs_RF", "Part A3 · CART vs RF as classifiers and as band selectors — honest validation",
-       "Same folds everywhere: V1 leaf-level 10-fold; V3 nested plot-grouped 10-fold × 5; V4 30 % plot hold-out × 10; V5 new date + new plots.")
+       f"Same folds everywhere: V1 leaf-level 10-fold; V3 nested plot-grouped {v3_label(F)}; V4 30 % plot hold-out × {NV4}; V5 {v5_label(F)}.")
 S.h2("What was done")
 S.para("Four pipelines on identical folds. CART classifier: the rpart tree itself predicts. RF classifier: a Balanced RF "
        "(500 trees) on the Tier-1 bands predicts. QDA on CART bands: Tier 4 of the paper. QDA on RF bands: QDA on the 17 RF "
        "importance peaks. In V3, V4 and V5, Tier 1 and band selection are repeated inside every training set. Paired "
-       "Wilcoxon signed-rank tests compare pipelines over the 50 V3 folds and the 10 V4 splits.")
+       f"Wilcoxon signed-rank tests compare pipelines over the {NSETS} V3 folds and the {NV4} V4 splits.")
 va = A["validation"][["Pipeline", "Scheme", "repeats", "OA", "BA", "BA_SD", "kappa", "AUC", "PA_H", "PA_D", "UA_H", "UA_D"]]
 S.table(va, title="Table A3.1  Validation results (mean over repeats; SD over repeats)",
         fmts={c: PCT for c in ["OA", "BA", "BA_SD", "PA_H", "PA_D", "UA_H", "UA_D"]})
@@ -465,16 +506,16 @@ S.image(FIG / "F13_A3_pipelines.png", 860)
 S.table(A["wilcoxon"], title="Table A3.2  Paired comparisons (same folds; positive = first pipeline better)",
         fmts={"Mean difference": PCT, "SD": PCT})
 for p in ["CART classifier", "RF classifier", "QDA on CART features", "QDA on RF features"]:
-    error_matrix(S, A["pooled"][(p, "V4")], f"Error matrix — {p}, V4 hold-out plots (10 splits pooled)")
+    error_matrix(S, A["pooled"][(p, "V4")], f"Error matrix — {p}, V4 hold-out plots ({NV4} splits pooled)")
 
 # =====================================================================================
 # 13 A4
 S = S_("13_A4_Band_Stability", "Part A4 · Stability of the CART and RF band sets",
-       "Re-selection in the 50 nested training sets of V3 (a band counts if a band within ± 10 nm is selected).")
+       f"Re-selection in the {NSETS} nested training sets of V3 (a band counts if a band within ± 10 nm is selected).")
 S.table(A["stability"]["reselect_CART"], title=f"Table A4.1  The {A['cart_name']} bands", fmts={c: PCT for c in A["stability"]["reselect_CART"].columns if c.startswith("Re-")})
 S.table(A["stability"]["reselect_RF"], title=f"Table A4.2  The {A['rf_name']} bands", fmts={c: PCT for c in A["stability"]["reselect_RF"].columns if c.startswith("Re-")})
 S.table(A["stability"]["index"], title="Table A4.3  Stability index",
-        note="Stability index (exact) = bands selected in all 50 training sets ÷ all bands ever selected; the ±10 nm version counts a band as re-selected when a band within 10 nm is chosen; the mean pairwise Jaccard index (±10 nm) compares every pair of training sets.")
+        note=f"Stability index (exact) = bands selected in all {NSETS} training sets ÷ all bands ever selected; the ±10 nm version counts a band as re-selected when a band within 10 nm is chosen; the mean pairwise Jaccard index (±10 nm) compares every pair of training sets.")
 S.image(FIG / "F14_A4_stability.png", 900)
 for meth in ("CART", "RF"):
     S.table(A["stability"]["freq"][meth].head(30), title=f"Table A4.{4 + (meth == 'RF')}  Bands most often selected by {meth} (exact band)",
@@ -601,8 +642,8 @@ checks_table(S, [c for c in cK if c[0] == "K3"])
 S = S_("18_K3b_Optimised_Index", "Step K3b (extra) · Optimised two-band index — exhaustive NDSI / DI search",
        "NDSI(i, j) = (Ri − Rj)/(Ri + Rj); DI(i, j) = Ri − Rj; all band pairs on a 5 nm grid (guard zones excluded), best pair refined at 1 nm.")
 S.para(f"Every pair of bands on a 5 nm grid ({K['k3b_nbands']} bands, {K['k3b_npairs']:,} pairs) was scored by AUC. Choosing the "
-       "best of so many pairs on all leaves is optimistic, so the search was repeated inside 20 training sets (V3 repeat 1 and "
-       "the 10 V4 splits) and the chosen pair was tested on the held-out plots (honest estimate).")
+       f"best of so many pairs on all leaves is optimistic, so the search was repeated inside {K3 + NV4} training sets (V3 repeat 1 and "
+       f"the {NV4} V4 splits) and the chosen pair was tested on the held-out plots (honest estimate).")
 S.table(K["k3b_top"].drop(columns=["Form"]), title="Table K3b.1  Ten best pairs of each form (5 nm grid, all leaves)")
 S.table(feat_table(K["k3b_refined"]), title="Table K3b.2  The refined best indices (1 nm)",
         fmts={"BA all leaves": PCT, "BA plot-grouped CV": PCT, "BA hold-out": PCT},
@@ -610,7 +651,7 @@ S.table(feat_table(K["k3b_refined"]), title="Table K3b.2  The refined best indic
 h = K["k3b_honest"]
 S.table(pd.DataFrame([(f, h[f]["BA CV"], h[f]["BA hold-out"], h[f]["SD"], h[f]["pairs"]) for f in ("NDSI", "DI")],
                      columns=["Index form", "BA plot-grouped CV (search inside folds)", "BA hold-out (search inside training plots)",
-                              "Hold-out SD", "Pairs chosen in the 20 training sets"]),
+                              "Hold-out SD", f"Pairs chosen in the {K3 + NV4} training sets"]),
         title="Table K3b.3  Honest (nested) validation of the search",
         fmts={"BA plot-grouped CV (search inside folds)": PCT, "BA hold-out (search inside training plots)": PCT, "Hold-out SD": PCT},
         widths={"E": 80})
@@ -630,7 +671,7 @@ S.table(feat_table(jf["refined"]), title="Table K3b.6  The refined best join-fre
 hj = jf["honest"]
 S.table(pd.DataFrame([(f, hj[f]["BA CV"], hj[f]["BA hold-out"], hj[f]["SD"], hj[f]["pairs"]) for f in ("NDSI", "DI")],
                      columns=["Index form", "BA plot-grouped CV (search inside folds)", "BA hold-out (search inside training plots)",
-                              "Hold-out SD", "Pairs chosen in the 20 training sets"]),
+                              "Hold-out SD", f"Pairs chosen in the {K3 + NV4} training sets"]),
         title="Table K3b.7  Honest (nested) validation of the join-free search",
         fmts={"BA plot-grouped CV (search inside folds)": PCT, "BA hold-out (search inside training plots)": PCT, "Hold-out SD": PCT})
 S.table(jf["bydate"], title="Table K3b.8  Join-free best pairs on each date")
@@ -681,7 +722,8 @@ S = S_("21_K6_Correlation", "Step K6 · Correlation of reflectance with disease 
        "Severity scores were not used (instruction), so the point-biserial correlation with the binary status (healthy = 0, diseased = 1) is reported.")
 S.para("r(λ) = Pearson correlation between the band value and the 0/1 disease status (point-biserial r), for the smoothed "
        "reflectance and the first derivative, on all leaves and separately on each date. r is a monotone function of "
-       "Student's t, so the ranking matches Tier 1; the per-date curves show whether the sign is stable over time.")
+       "Student's t, so the ranking matches Tier 1; the per-date curves show whether the sign is stable over time"
+       + (" (this subset has a single date)." if len(PD) == 1 else "."))
 S.table(K["corr_regions"], title="Table K6.1  Band of maximum |r| per region")
 S.image(FIG / "F22_K6_correlation.png", 820)
 checks_table(S, [c for c in cK if c[0] == "K6"])
@@ -689,7 +731,7 @@ checks_table(S, [c for c in cK if c[0] == "K6"])
 # =====================================================================================
 # 22 K5
 S = S_("22_K5_CART_vs_RF", "Step K5 · CART vs Random Forest on each disease-sensitive feature group",
-       "Plot-grouped 10-fold CV × 5 repeats ('CV' = V3) and 10 hold-outs of 30 % of plots (V4), identical folds.")
+       f"Plot-grouped CV {v3_label(F)} ('CV' = V3) and {NV4} hold-outs of 30 % of plots (V4), identical folds.")
 S.para("Each feature group was given to CART (rpart, equal priors, cp 0.01) and to a Balanced RF (500 trees) without any "
        "pre-screening; both were refitted in every training set. 'K-selected' = 15 non-redundant features (|r| < 0.9) with the "
        "highest AUC, chosen inside every training set from the combined pool, then classified by RF, CART and QDA.")
@@ -704,7 +746,7 @@ S.table(K["k5_wilcoxon"], title="Table K5.3  Paired comparison RF vs CART (same 
 S.table(K["k5_type_share"], title="Table K5.4  Where the Random Forest finds its information (all leaves, combined pool)",
         note="The share depends on how many features a type has; 'importance per feature' corrects for that.")
 S.table(K["k5_top20"], title="Table K5.5  Twenty most important features of the combined pool")
-S.table(K["k5_selected"], title="Table K5.6  Features most often chosen for the compact set (60 training sets)", fmts={"Share": PCT})
+S.table(K["k5_selected"], title=f"Table K5.6  Features most often chosen for the compact set ({NSETS + NV4} training sets)", fmts={"Share": PCT})
 S.table(pd.DataFrame([(FE["groups"][g][0], len(v), ", ".join(v)) for g, v in K["k5_trees"].items()],
                      columns=["Feature group", "Variables in the tree", "Variables used (order of first use)"]),
         title="Table K5.7  CART trees fitted to all leaves", widths={"C": 110})
@@ -793,7 +835,7 @@ def part_c_sheets(R, names, label, pool_txt, figs, all_sheet, reflect_desc):
 
     S = S_(names[6], f"{label}6 · Stability of the features selected from the combined pool")
     S.table(R["stability"]["index"], title=f"Table {label}6.1  Stability index")
-    S.table(R["fold_composition"], title=f"Table {label}6.2  Feature types selected in the 50 nested training sets", fmts={"Share": PCT})
+    S.table(R["fold_composition"], title=f"Table {label}6.2  Feature types selected in the {NSETS} nested training sets", fmts={"Share": PCT})
     S.table(R["stability"]["reselect_CART"], title=f"Table {label}6.3  Re-selection of the all-leaf CART features", fmts={c: PCT for c in R["stability"]["reselect_CART"].columns if c.startswith("Re-")})
     S.table(R["stability"]["reselect_RF"], title=f"Table {label}6.4  Re-selection of the all-leaf RF features", fmts={c: PCT for c in R["stability"]["reselect_RF"].columns if c.startswith("Re-")})
     S.image(FIG / f"{figs['stab']}.png", 900)
@@ -814,54 +856,65 @@ S = S_("30_C7_Comparison", "Part C7 · Combined pool vs reflectance (Part A) vs 
 S.table(X["cross_wilcoxon"], title="Table C7.1  Paired Wilcoxon signed-rank tests (balanced accuracy, positive = first better)",
         fmts={"Mean difference (BA)": PCT, "SD": PCT}, widths={"A": 44, "B": 44})
 
-# ---- Part C′: the same four tiers on raw reflectance + K2 + K3 + K4
-S = part_c_sheets(CR, ["30a_CR0_Pool_Raw", "30b_CR1_Tier1", "30c_CR2_Tier2", "30d_CR3_Tier3_JM", "30e_CR4_Tier4_QDA",
-                       "30f_CR5_Validation", "30g_CR6_Stability"],
-                  "C′", "raw reflectance + K2 + K3 + K4",
-                  dict(tree="F32_CR_cart_tree", top="F33_CR_top_importance", comp="F34_CR_composition", inc="F35_CR_incremental",
-                       pipes="F36_CR_pipelines", stab="F37_CR_stability"),
-                  "35b_CR_AllFeatures", "all 2101 RAW reflectance bands, 400–2500 nm (exactly as in Part A; no smoothing, no splice correction, no guard zones)")
-for meth in ("CART", "RF"):
-    S.table(CR["stability"]["freq"][meth].head(25), title=f"Features most often selected by {meth}", fmts={"Share of training sets": PCT})
+if HAS_CR:
+    # ---- Part C′: the same four tiers on raw reflectance + K2 + K3 + K4
+    S = part_c_sheets(CR, ["30a_CR0_Pool_Raw", "30b_CR1_Tier1", "30c_CR2_Tier2", "30d_CR3_Tier3_JM", "30e_CR4_Tier4_QDA",
+                           "30f_CR5_Validation", "30g_CR6_Stability"],
+                      "C′", "raw reflectance + K2 + K3 + K4",
+                      dict(tree="F32_CR_cart_tree", top="F33_CR_top_importance", comp="F34_CR_composition", inc="F35_CR_incremental",
+                           pipes="F36_CR_pipelines", stab="F37_CR_stability"),
+                      "35b_CR_AllFeatures", "all 2101 RAW reflectance bands, 400–2500 nm (exactly as in Part A; no smoothing, no splice correction, no guard zones)")
+    for meth in ("CART", "RF"):
+        S.table(CR["stability"]["freq"][meth].head(25), title=f"Features most often selected by {meth}", fmts={"Share of training sets": PCT})
 
-S = S_("30h_C_vs_CRaw_Compare", "Part C vs Part C′ · Which reflectance should enter the combined pool — K1 or raw?",
-       "Same features K2 + K3 + K4 in both pools; only the reflectance part differs (K1 smoothed and splice-corrected vs raw). Identical folds.")
-S.para("Part C uses K1 reflectance (splice-corrected and Savitzky–Golay-smoothed, guard zones removed: 2039 bands); Part C′ uses the raw "
-       "reflectance exactly as measured (2101 bands, the input of Part A and of Das et al. 2020). Everything else — K2, K3, K4, the "
-       "four tiers, the settings, seeds and folds — is identical, so differences come only from the reflectance part of the pool.")
-S.table(XR["side_by_side"], title="Table CC.1  Side by side: pool, Tier 1, selected features, J–M, QDA (V1)", widths={"A": 46, "B": 60, "C": 60, "D": 30})
-S.table(XR["val_side"], title="Table CC.2  Balanced accuracy of the four pipelines in Part A, Part C′ and Part C",
-        fmts={c: PCT for c in XR["val_side"].columns if c.startswith(("Part", "Δ"))})
-S.image(FIG / "F38_A_CR_C_comparison.png", 900)
-S.table(XR["wilcoxon"], title="Table CC.3  Paired Wilcoxon tests on identical folds (positive = first better)",
-        fmts={"Mean difference (BA)": PCT, "SD": PCT}, widths={"A": 46, "B": 46})
-S.table(XR["comp_side"], title="Table CC.4  Feature types chosen by CART and RF in the 50 nested training sets", fmts={c: PCT for c in XR["comp_side"].columns if "share" in c.lower()})
-S.table(XR["overlap"], title="Table CC.5  Overlap of the selected features (a raw band R λ (raw) and a K1 band R λ count as the same wavelength)")
-S.table(XR["raw_bands"], title="Table CC.6  Where the raw bands chosen in the 50 nested training sets of Part C′ lie",
-        note="Raw bands inside a guard zone or at the noisy spectral ends are bands that K1 removes or smooths in Part C. "
-             "All-leaf selections that are raw bands: " + (", ".join(XR["raw_bands_allleaf"]) or "none") + ".")
-lo = XR["lodo"].pivot_table(index=["Feature set", "Pipeline"], columns="Held-out date", values="BA mean", sort=False).reset_index()
-S.table(lo, title="Table CC.7  V5 — balanced accuracy on each held-out date (new plots)", fmts={c: PCT for c in lo.columns[2:]})
-if TXT.get("cr"):
-    S.h2("Reading")
-    for t in TXT["cr"]:
-        S.para(t)
+    S = S_("30h_C_vs_CRaw_Compare", "Part C vs Part C′ · Which reflectance should enter the combined pool — K1 or raw?",
+           "Same features K2 + K3 + K4 in both pools; only the reflectance part differs (K1 smoothed and splice-corrected vs raw). Identical folds.")
+    S.para("Part C uses K1 reflectance (splice-corrected and Savitzky–Golay-smoothed, guard zones removed: 2039 bands); Part C′ uses the raw "
+           "reflectance exactly as measured (2101 bands, the input of Part A and of Das et al. 2020). Everything else — K2, K3, K4, the "
+           "four tiers, the settings, seeds and folds — is identical, so differences come only from the reflectance part of the pool.")
+    S.table(XR["side_by_side"], title="Table CC.1  Side by side: pool, Tier 1, selected features, J–M, QDA (V1)", widths={"A": 46, "B": 60, "C": 60, "D": 30})
+    S.table(XR["val_side"], title="Table CC.2  Balanced accuracy of the four pipelines in Part A, Part C′ and Part C",
+            fmts={c: PCT for c in XR["val_side"].columns if c.startswith(("Part", "Δ"))})
+    S.image(FIG / "F38_A_CR_C_comparison.png", 900)
+    S.table(XR["wilcoxon"], title="Table CC.3  Paired Wilcoxon tests on identical folds (positive = first better)",
+            fmts={"Mean difference (BA)": PCT, "SD": PCT}, widths={"A": 46, "B": 46})
+    S.table(XR["comp_side"], title="Table CC.4  Feature types chosen by CART and RF in the 50 nested training sets", fmts={c: PCT for c in XR["comp_side"].columns if "share" in c.lower()})
+    S.table(XR["overlap"], title="Table CC.5  Overlap of the selected features (a raw band R λ (raw) and a K1 band R λ count as the same wavelength)")
+    S.table(XR["raw_bands"], title="Table CC.6  Where the raw bands chosen in the 50 nested training sets of Part C′ lie",
+            note="Raw bands inside a guard zone or at the noisy spectral ends are bands that K1 removes or smooths in Part C. "
+                 "All-leaf selections that are raw bands: " + (", ".join(XR["raw_bands_allleaf"]) or "none") + ".")
+    lo = XR["lodo"].pivot_table(index=["Feature set", "Pipeline"], columns="Held-out date", values="BA mean", sort=False).reset_index()
+    S.table(lo, title="Table CC.7  V5 — balanced accuracy on each held-out date (new plots)", fmts={c: PCT for c in lo.columns[2:]})
+    if TXT.get("cr"):
+        S.h2("Reading")
+        for t in TXT["cr"]:
+            S.para(t)
+
 
 # =====================================================================================
 # 31 V5, 32 strata
-S = S_("31_V5_Date_Transfer", "Additional step · V5 — transfer to an unseen date in unseen plots",
-       "Train on three dates (training plots of a V4 split), test on the fourth date (test plots of the split); 10 splits × 4 dates.")
-S.para("Why: the data pool four dates and three growth stages. A model useful in practice must work on a new date. V5 holds out a "
-       "whole date and, at the same time, the plots of the V4 hold-out, so no leaf, plot or date of the test set is seen in training.")
+if V5BY == "Date":
+    S = S_("31_V5_Transfer", "Additional step · V5 — transfer to an unseen date in unseen plots",
+           f"Train on the other dates (training plots of a V4 split), test on the held-out date (test plots of the split); {NV4} splits × {len(F['V5_dates'])} dates.")
+    S.para(f"Why: this subset pools {len(PD)} dates ({DATES_TXT}). A model useful in practice must work on a new date. V5 holds out a "
+           "whole date and, at the same time, the plots of the V4 hold-out, so no leaf, plot or date of the test set is seen in training. "
+           "BA is computed only for units whose test leaves contain both classes."
+           + (f" {len(F['V5_dropped'])} split × date units were skipped because the held-out date had no leaves of the test plots or "
+              "the training set had fewer than 5 leaves of a class." if F.get("V5_dropped") else ""))
+else:
+    S = S_("31_V5_Transfer", "Additional step · V5 — transfer to an unseen variety",
+           "Single-date subset: a date cannot be held out, so V5 holds out one variety at a time (train on the other two varieties).")
+    S.para("Why: within one date, the strongest test of generality is whether bands and classifiers chosen on two varieties work on "
+           "the third. The held-out variety's plots are never seen in training, so the test is also on new plots.")
 lo = X["lodo"]
-S.table(lo, title="Table V5.1  Balanced accuracy by held-out date", fmts={"BA mean": PCT, "BA SD": PCT})
+S.table(lo, title=f"Table V5.1  Balanced accuracy by {v5_level(F).lower()}", fmts={"BA mean": PCT, "BA SD": PCT})
 S.image(FIG / "F30_V5_leave_one_date_out.png", 820)
 
 S = S_("32_Extra_Strata", "Additional step · Does the disease signal hold within each date, growth stage and variety?",
-       "The analysis pools dates, stages and varieties; these descriptive checks show whether the key features and classifiers work inside each stratum.")
+       "Descriptive checks inside each date, growth stage and variety present in this subset (strata with one class only are omitted).")
 S.table(X["strata_auc"], title="Table S.1  AUC of the key features within strata")
 S.table(X["strata_ba"], title="Table S.2  Classifier balanced accuracy within strata (V3 out-of-fold predictions)",
-        fmts={"BA (V3, mean of 5 repeats)": PCT})
+        fmts={"BA (V3, mean of 5 repeats)": PCT}, note=f"Out-of-fold predictions of V3 ({v3_label(F)}).")
 
 # =====================================================================================
 # 33 cross-checks
@@ -871,10 +924,12 @@ rows = [("Step 0", c[0], "data audit", str(c[1]), c[2]) for c in D["audit"]["che
 rows += [(c[0], c[1], c[2], c[3], c[4]) for c in cA]
 rows += [(c[0], c[1], c[2], c[3], c[4]) for c in cK]
 rows += [(f"Part C · {c[0]}", c[1], c[2], c[3], c[4]) for c in cC]
-rows += [(f"Part C′ · {c[0]}", c[1], c[2], c[3], c[4]) for c in CR["checks"]]
+rows += [(f"Part C′ · {c[0]}", c[1], c[2], c[3], c[4]) for c in (CR["checks"] if HAS_CR else [])]
 fa = F
 rows += [("Validation", "No plot in both training and test", "assertion on every V3, V4 and V5 fold", "passed for all folds", "PASS"),
-         ("Validation", "No date in both training and test (V5)", "assertion on every V5 unit", "passed", "PASS"),
+         ("Validation", f"No {V5BY.lower()} in both training and test (V5)", "assertion on every V5 unit", f"passed ({len(F['V5'])} units)", "PASS"),
+         ("Validation", "Every V3 and V4 test fold contains both classes", "assertion on every fold",
+          f"passed ({NSETS} V3 folds, k = {K3}; {NV4} V4 splits)", "PASS"),
          ("Validation", "Identical folds in every step", "folds built once (sheet 36) and reused by Parts A, K and C", "same objects", "PASS"),
          ("K5 / Part A", "K5 full spectrum reproduces Part A", "RF and CART on the raw spectrum (K5, no Tier 1) vs Part A classifiers (Tier-1 bands)",
           f"RF {100 * K['k5'].query('Group==\"G0\" and Classifier==\"RF\" and Scheme==\"CV\"')['BA'].iloc[0]:.1f} % vs {100 * vrow(A, 'RF classifier', 'V3')['BA']:.1f} %; "
@@ -923,13 +978,14 @@ ca.columns = ["Feature", "Type", "Wavelength (nm)", "Mean healthy", "SD healthy"
 ca = ca.merge(Cc["rf_importance"][["name", "importance"]].rename(columns={"name": "Feature", "importance": "RF importance"}), on="Feature", how="left")
 f, l, L = S.table(ca)
 S.ws.freeze_panes = S.ws.cell(row=f, column=2)
-S = S_("35b_CR_AllFeatures", "Part C′ — Tier 1 statistics of every feature of the raw-reflectance pool")
-ca = CR["tier1"][["name", "type", "position", "mean0", "sd0", "mean1", "sd1", "t", "df", "p", "q", "g", "auc", "mm_q", "icc", "sig"]].copy()
-ca.columns = ["Feature", "Type", "Wavelength (nm)", "Mean healthy", "SD healthy", "Mean diseased", "SD diseased", "Welch t", "df",
-              "p", "q (BH)", "Hedges g", "AUC", "Mixed-model q", "ICC plot", "Significant"]
-ca = ca.merge(CR["rf_importance"][["name", "importance"]].rename(columns={"name": "Feature", "importance": "RF importance"}), on="Feature", how="left")
-f, l, L = S.table(ca)
-S.ws.freeze_panes = S.ws.cell(row=f, column=2)
+if HAS_CR:
+    S = S_("35b_CR_AllFeatures", "Part C′ — Tier 1 statistics of every feature of the raw-reflectance pool")
+    ca = CR["tier1"][["name", "type", "position", "mean0", "sd0", "mean1", "sd1", "t", "df", "p", "q", "g", "auc", "mm_q", "icc", "sig"]].copy()
+    ca.columns = ["Feature", "Type", "Wavelength (nm)", "Mean healthy", "SD healthy", "Mean diseased", "SD diseased", "Welch t", "df",
+                  "p", "q (BH)", "Hedges g", "AUC", "Mixed-model q", "ICC plot", "Significant"]
+    ca = ca.merge(CR["rf_importance"][["name", "importance"]].rename(columns={"name": "Feature", "importance": "RF importance"}), on="Feature", how="left")
+    f, l, L = S.table(ca)
+    S.ws.freeze_panes = S.ws.cell(row=f, column=2)
 S = S_("36_Folds", "Fold assignments used by every step (identical everywhere)",
        "V1/V3: fold number of the leaf when it is in the test set; V4/V5: 1 = leaf is in the test plots of that split.")
 S.table(F["table"])
@@ -1005,15 +1061,25 @@ S.ws.add_chart(bc, "N105")
 # README sheet guide
 R = readme
 R.h2("Objective")
-R.para("Discriminate healthy and white-rust (Albugo candida) diseased mustard leaves from leaf reflectance spectra, irrespective "
-       "of date, growth stage and variety (all pooled), following the four-tier hierarchical method of Das et al. (2020) — Tier 1 "
+R.para("Discriminate healthy and white-rust (Albugo candida) diseased mustard leaves from leaf reflectance spectra"
+       + (f" for the subset '{SUBSET}' (one of nine separate analyses: 4 dates, 2 growth stages, 3 varieties)" if IS_SUB
+          else ", irrespective of date, growth stage and variety (all pooled)") + ", following the four-tier hierarchical method of Das et al. (2020) — Tier 1 "
        "statistical screening, Tier 2 CART band selection, Tier 3 Jeffries–Matusita separability, Tier 4 QDA classification — "
        "with corrections for class imbalance, multiple testing and pseudo-replication; then repeating Tier 2 with Random "
        "Forest, extracting disease-sensitive features (K1–K4) and applying the four tiers to the combined feature pool.")
 R.h2("Data analysed")
-R.para(f"asd__data_complete_labelled_110226 / 240226 / 030326 / 130326.xlsx — {len(y)} unique leaf spectra after removing 79 exact "
-       f"duplicates ({nH} healthy, {nD} diseased; 48 plots: 12 healthy control, 36 inoculated); 350–2500 nm at 1 nm; analysed "
-       "400–2500 nm (2101 bands). Plot-average columns were not used. Water-absorption bands were kept (contact probe).")
+R.para(f"asd__data_complete_labelled_110226 / 240226 / 030326 / 130326.xlsx — 79 exact duplicates removed from the four files"
+       + (f", then the subset '{SUBSET}' taken: {len(y)} unique leaf spectra" if IS_SUB else f": {len(y)} unique leaf spectra")
+       + f" ({nH} healthy, {nD} diseased; {NP0 + NP1} plots: {NP0} healthy control, {NP1} inoculated; date(s) {DATES_TXT}); 350–2500 nm at 1 nm; analysed "
+       f"400–2500 nm ({len(wl)} bands). Plot-average columns were not used. Water-absorption bands were kept (contact probe). "
+       "Leaf level and disease score were not used (healthy vs diseased only).")
+if IS_SUB:
+    R.h2("Scope of this workbook")
+    R.para("Included: Steps 0–6 (data audit, pre-processing, four tiers with CART, validation V1–V5), Part A1–A4 (Random Forest "
+           "instead of CART and comparison), Part K (K0–K6 disease-sensitive features, −log₁₀ p and correlation spectra) and Part C "
+           "(four tiers with CART and RF on reflectance K1 + K2 + K3 + K4). Not included, as instructed: the feature-selection "
+           "benchmark (filter / wrapper / embedded methods) and the Part C′ variant (raw + K2–K4), which were done for the "
+           "combined data set only.")
 R.h2("Software")
 R.para("Python 3.13 (NumPy, SciPy 1.18, pandas, statsmodels 0.15, scikit-learn 1.9, imbalanced-learn 0.14, matplotlib, openpyxl); "
        "R 4.3.3 (rpart 4.1.23, MASS, randomForest 4.7). Code: spectral_pipeline/ (reusable for other datasets).")
