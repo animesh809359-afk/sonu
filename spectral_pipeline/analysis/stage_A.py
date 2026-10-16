@@ -228,7 +228,7 @@ for sname in [A["cart_name"]] + one_se_name + [A["rf_name"]]:
         QTIES.extend(np.abs(prob_py[p_py != p_r] - 0.5).tolist())
 A["mass_check"] = qrows
 A["checks"].append(("Tier 4", "QDA in R", "MASS::qda on the same V1 folds (equal and sample priors)",
-                    "; ".join(f"{s} {p}: {100 * v:.2f} % identical" for s, p, v in qrows),
+                    "; ".join(f"{s} {p}: {100 * v:.2f} % identical" for s, p, v in qrows)
                     + f" — differing predictions have |P(diseased) − 0.5| ≤ {max(QTIES) if QTIES else 0:.4f} (ties at the boundary)",
                     "PASS" if min(v for *_, v in qrows) > 0.999 or (QTIES and max(QTIES) < 0.01) else "FLAG"))
 
