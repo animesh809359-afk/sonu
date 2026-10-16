@@ -63,14 +63,14 @@ def f01_workflow():
     fig, ax = plt.subplots(figsize=(10, 6.2))
     ax.axis("off")
     boxes = [
-        (0.5, 0.95, f"Leaf spectra ({SUBSET}): {len(PD)} date(s) × {NP0 + NP1} plots ({NP0} healthy, {NP1} white rust)\n{len(y)} unique leaves · ASD FieldSpec contact probe · 350–2500 nm", "#f0efec"),
+        (0.5, 0.95, f"Leaf spectra ({SUBSET}): {len(PD)} date{'s' if len(PD) > 1 else ''} × {NP0 + NP1} plots ({NP0} healthy, {NP1} white rust)\n{len(y)} unique leaves · ASD FieldSpec contact probe · 350–2500 nm", "#f0efec"),
         (0.5, 0.82, f"Step 0–1 · Data audit, duplicates removed, 400–2500 nm (water bands kept)\nimbalance 1 : {N1 / N0:.1f} → equal priors / balanced sampling throughout", "#f0efec"),
         (0.5, 0.69, "Tier 1 · Welch t-test + Benjamini–Hochberg FDR at every band\n(+ ANOVA, mixed model with plot, 1000 balanced subsets, −log10 p spectrum)", "#cde2fb"),
         (0.27, 0.54, "Tier 2a · CART (rpart)\nprior 0.5/0.5 · split variables", "#cde2fb"),
         (0.73, 0.54, "Tier 2b · Balanced Random Forest\nMDI importance peaks ≥ 10 nm apart", "#fde2c5"),
         (0.5, 0.415, "Tier 3 · Jeffries–Matusita distance on each selected band set (threshold 1.90 / 1.94)", "#cde2fb"),
         (0.5, 0.295, "Tier 4 · QDA with equal priors · error matrix, OA, BA, κ, PA, UA", "#cde2fb"),
-        (0.5, 0.175, f"Validation · V1 leaf 10-fold · V2 plot-grouped · V3 nested plot-grouped {v3_label(F)} · V4 30 % plot hold-out × {len(F['V4'])}\nV5 {v5_label(F)} · Wilcoxon tests · band stability", "#f0efec"),
+        (0.5, 0.175, f"Validation · V1 leaf 10-fold · V2 plot-grouped · V3 nested plot-grouped ({v3_label(F)})\nV4 30 % plot hold-out × {len(F['V4'])} · V5 {v5_label(F)} · Wilcoxon tests · stability", "#f0efec"),
         (0.5, 0.045, "Part K · K0 denoising → K1 reflectance · K2 continuum removal · K3 indices (+K3b)\nK4 derivatives / REIP · K6 correlation → K5 CART vs RF  |  Part C · four tiers on the combined K1–K4 pool", "#e3f4ec"),
     ]
     for x, y0, t, c in boxes:
@@ -149,10 +149,10 @@ def f05_log10p():
     ax.plot(wl, -np.log10(np.clip(t1["q"], 1e-300, 1)), color=CART_COL, label="Welch q (BH-FDR)")
     ax.plot(wl, -np.log10(np.clip(t1["mm_q"], 1e-300, 1)), color=D_COL, label="mixed-model q (plot effect)")
     ax.axhline(-np.log10(0.05), color=INK, lw=0.8, ls="--")
-    ax.text(1100, -np.log10(0.05) + 1.0, "p or q = 0.05 (dashed)", fontsize=8, color=INK, ha="center")
+    ax.text(1100, -np.log10(0.05), "p or q = 0.05 (dashed)", fontsize=8, color=INK, ha="center", va="bottom")
     ax.set(xlabel="Wavelength (nm)", ylabel="−log₁₀(p)", xlim=(400, 2500), ylim=(0, None))
     ax.set_title("Significance spectrum: −log₁₀(p) against wavelength (healthy vs diseased)")
-    ax.legend(loc="upper left")
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.14), ncol=3, fontsize=8)
     save(fig, "F05_minus_log10_p")
 
 
@@ -320,7 +320,7 @@ def pipelines_chart(R, name, title):
     ax.set_xticks(x, pipes)
     ax.set(ylabel="Balanced accuracy (%)", ylim=(40, 100))
     ax.set_title(title)
-    ax.legend(loc="upper left", fontsize=7.5, ncol=2)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.12), fontsize=7.5, ncol=4)
     save(fig, name)
 
 
@@ -455,18 +455,17 @@ def f21_reip():
     ax.set_xticks([3 * k + 0.5 for k in range(4)], names, fontsize=7.5)
     ax.set(ylabel="REIP (nm)", title="REIP by method (aqua healthy, orange diseased)")
     st = K["reip_strata"]
-    q = st[(st.Stratum == "Date") & (st.Method.str.contains("Lagrangian"))]
+    by = "Date" if len(PD) > 1 else "Variety"
+    q = st[(st.Stratum == by) & (st.Method.str.contains("Lagrangian"))]
     ax2 = axs[1]
+    order = PD if by == "Date" else sorted(q["Level"].unique())
+    q = q.set_index("Level").reindex(order).reset_index()
     x = np.arange(len(q))
     ax2.plot(x, q["Mean REIP healthy (nm)"], color=H_COL, marker="o", label="Healthy")
     ax2.plot(x, q["Mean REIP diseased (nm)"], color=D_COL, marker="o", label="Diseased")
-    order = PD
-    q = q.set_index("Level").reindex(order).reset_index()
-    ax2.cla()
-    ax2.plot(x, q["Mean REIP healthy (nm)"], color=H_COL, marker="o", label="Healthy")
-    ax2.plot(x, q["Mean REIP diseased (nm)"], color=D_COL, marker="o", label="Diseased")
     ax2.set_xticks(x, q["Level"])
-    ax2.set(ylabel="Mean REIP (nm), Lagrangian", title="REIP by measurement date")
+    ax2.set_xlim(-0.5, len(q) - 0.5)
+    ax2.set(ylabel="Mean REIP (nm), Lagrangian", title="REIP by measurement date" if by == "Date" else "REIP by variety (single date)")
     ax2.legend()
     save(fig, "F21_K4_REIP")
 
@@ -630,7 +629,7 @@ def f30_lodo():
     ax.set(ylabel="Balanced accuracy (%)", ylim=(40, 100))
     ax.set_title("V5: trained on the other dates, tested on the held-out date in new plots" if unit == "date"
                  else "V5: trained on the other varieties, tested on the held-out variety")
-    ax.legend(fontsize=7, ncol=2, loc="upper left")
+    ax.legend(fontsize=7, ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.2))
     save(fig, "F30_V5_leave_one_date_out")
     return o
 
@@ -674,7 +673,7 @@ if __name__ == "__main__":
         f29_synthesis()
         lodo = f30_lodo()
         lodo.to_pickle(WORK / "lodo_by_date.pkl")
-    if only in ("all", "CR"):
+    if only in ("all", "CR") and (WORK / "partCR.pkl").exists():
         CR = load("partCR")
         tree_diagram(CR["cart_full"]["frame"], "F32_CR_cart_tree", f"Part C′, Tier 2: CART tree on raw + K2 + K3 + K4 ({CR['cart_name']})")
         f25_c_top(CR, "F33_CR_top_importance", "Part C′: 30 most important features of raw + K2 + K3 + K4 (Balanced RF)")
