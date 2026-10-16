@@ -112,7 +112,10 @@ con = [
     f"{len(set(D['groups'][y == 0]))} healthy and {len(set(D['groups'][y == 1]))} diseased plots, {'dates' if len(PD) > 1 else 'date'} {', '.join(PD)}.",
     f"Tier 1: healthy and white-rust leaves differ significantly at {n_sig} of {nb} bands (Welch + BH-FDR); {n_mm} bands remain "
     f"significant with a random plot effect and {n_bal} in ≥ 95 % of 1000 balanced subsets. The most sensitive single band "
-    f"(smoothed reflectance) reaches AUC {s1['best_auc']:.2f} at {s1['best_wl']:.0f} nm.",
+    f"(smoothed reflectance) reaches AUC {s1['best_auc']:.2f} at {s1['best_wl']:.0f} nm."
+    + ("" if A.get("tier1_rule", "FDR") == "FDR" else
+       f" Because fewer than 2 bands passed the FDR correction, Tier 2 used the {len(A['sig_cols'])} bands with "
+       + ("uncorrected p < 0.05." if A["tier1_rule"] == "uncorrected p" else "the smallest p-values.")),
     f"Tier 2: CART (rpart, prior 0.5/0.5) selected {len(cart)} bands (root {str(root).replace('WV', '')} nm): {bands(cart)} nm. "
     f"The Balanced RF importance peaks ({A['rf_name']}) were {bands(A['sets'][A['rf_name']])} nm.",
     f"Tier 3: J–M = {jm_c:.2f} on the CART bands and {jm_r:.2f} on the RF bands; CART bands {sep_c}.",

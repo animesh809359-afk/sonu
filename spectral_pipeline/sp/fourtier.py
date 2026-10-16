@@ -98,6 +98,7 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
     out["tier1"] = t1
     out["n_sig"] = int(ft["sig"].sum())
     sig, out["tier1_rule"] = tier1_cols(ft, alpha)
+    out["sig_cols"] = sig
     if out["tier1_rule"] != "FDR":
         out["checks"].append(("Tier 1", "Fewer than 2 FDR-significant features on all leaves", "fallback rule for Tier 2 candidates",
                               f"{len(sig)} features by {out['tier1_rule']}", "FLAG"))

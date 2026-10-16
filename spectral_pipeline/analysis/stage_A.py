@@ -117,7 +117,7 @@ A["checks"] += [
 
 # =================================================================== Tier 2 extras (CART)
 fourtier.log("Tier 2 extras: 200 plot-level bootstrap trees, sklearn cross-check")
-sig = np.where(t1["sig"].to_numpy())[0]
+sig = np.asarray(A["sig_cols"])        # Tier-1 candidates passed to Tier 2 (FDR set, or the fallback when < 2 pass)
 rngb = np.random.default_rng(42)
 plots0, plots1 = np.unique(groups[y == 0]), np.unique(groups[y == 1])
 rows_by_plot = {p: np.where(groups == p)[0] for p in np.unique(groups)}

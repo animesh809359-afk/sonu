@@ -46,6 +46,12 @@ if V5BY == "Date":
 else:
     V5_TXT = f"V5 = leave-one-variety-out ({len(F['V5'])} units: train on the other varieties, test on all leaves of the held-out variety)"
 DATES_TXT = ", ".join(PD)
+NCAND = len(A.get("sig_cols", np.where(A["tier1"]["sig"])[0]))
+if A.get("tier1_rule", "FDR") == "FDR":
+    T2_IN = f"the {A['n_sig']} FDR-significant bands of Tier 1"
+else:
+    T2_IN = (f"the {NCAND} bands with {'p < 0.05 (uncorrected)' if A['tier1_rule'] == 'uncorrected p' else 'the smallest p-values'} — "
+             f"only {A['n_sig']} band(s) passed the FDR correction on all leaves, so the fallback rule of Tier 1 was applied")
 wb = Workbook()
 wb.remove(wb.active)
 SHEETS = []
@@ -337,7 +343,7 @@ cart_set = A["sets"][A["cart_name"]]
 S = S_("06_Tier2_CART", "Step 3 · Tier 2 — CART band selection with equal priors (rpart)",
        "Das et al. (2020): 'To apply this technique we used the method rpart from package rpart' — the split variables are the selected wavelengths.")
 S.h2("What was done")
-S.para(f"Input: the {A['n_sig']} FDR-significant bands of Tier 1 (raw reflectance). rpart (R 4.3.3, rpart 4.1.23) with method = "
+S.para(f"Input: {T2_IN} (raw reflectance). rpart (R 4.3.3, rpart 4.1.23) with method = "
        "'class', prior = c(0.5, 0.5) (imbalance correction), split = 'gini', minsplit 20, minbucket 7, cp 0.01, no competitor or "
        "surrogate splits. The wavelengths used as split variables form the CART band set. The complexity parameter was "
        "cross-validated with plot-grouped folds; the 1-SE tree gives a smaller alternative set. Stability: rpart refitted on 200 "
@@ -441,9 +447,9 @@ S.table(A["sensitivity_range"], title="Table 6.5  Sensitivity to the band set (f
 # =====================================================================================
 # 10 A1
 S = S_("10_A1_RF_Importance", "Part A1 · Random Forest as the Tier-2 band selector (instead of CART)",
-       f"Input: the {A['n_sig']} FDR-significant bands of Tier 1 (same as CART).")
+       f"Input: {T2_IN} (same as CART).")
 S.h2("What was done")
-S.para(f"A Balanced Random Forest (1000 trees, √{A['n_sig']} candidate bands per split, each tree grown on a balanced bootstrap "
+S.para(f"A Balanced Random Forest (1000 trees, √{NCAND} candidate bands per split, each tree grown on a balanced bootstrap "
        f"of {nH} + {nH} leaves) was fitted to all leaves; band importance = mean decrease in Gini impurity (MDI). Because "
        "neighbouring bands are almost identical, bands were picked as importance peaks: local maxima of the importance "
        "spectrum, at least 10 nm apart. The 17 highest peaks form the RF band set (the CART set of Das et al. had 17 bands); "
@@ -466,7 +472,7 @@ for c in sorted(cart_set, key=lambda s: float(s[2:])):
     near, dist = min(((b, abs(float(c[2:]) - float(b[2:]))) for b in A["sets"][A["rf_name"]]), key=lambda t: t[1])
     j = list(A["tier1"]["name"]).index(c)
     cr_rows.append({"CART band (nm)": float(c[2:]), "Region": A["tier1"].at[j, "region"],
-                    f"RF importance rank (of {A['n_sig']})": int(rank[c]), "RF importance × 1000": imp.at[c, "importance"] * 1000,
+                    f"RF importance rank (of {NCAND})": int(rank[c]), "RF importance × 1000": imp.at[c, "importance"] * 1000,
                     "Nearest RF-17 band": float(near[2:]), "Distance (nm)": dist})
 S.table(pd.DataFrame(cr_rows), title="Table A1.2  The CART bands seen through the RF importance")
 S.h2("Figure A1. RF importance spectrum with the RF peaks (orange) and the CART bands (blue triangles)")
