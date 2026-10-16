@@ -109,7 +109,7 @@ sep_c = "≥ 1.90 (separable)" if jm_c >= 1.9 else "< 1.90 (not separable by the
 # ---------------------------------------------------------------- conclusions
 con = [
     f"Subset: {SUB} — {len(y)} leaves ({nH} healthy, {nD} diseased; imbalance 1 : {nD / nH:.1f}), "
-    f"{len(set(D['groups'][y == 0]))} healthy and {len(set(D['groups'][y == 1]))} diseased plots, date(s) {', '.join(PD)}.",
+    f"{len(set(D['groups'][y == 0]))} healthy and {len(set(D['groups'][y == 1]))} diseased plots, {'dates' if len(PD) > 1 else 'date'} {', '.join(PD)}.",
     f"Tier 1: healthy and white-rust leaves differ significantly at {n_sig} of {nb} bands (Welch + BH-FDR); {n_mm} bands remain "
     f"significant with a random plot effect and {n_bal} in ≥ 95 % of 1000 balanced subsets. The most sensitive single band "
     f"(smoothed reflectance) reaches AUC {s1['best_auc']:.2f} at {s1['best_wl']:.0f} nm.",

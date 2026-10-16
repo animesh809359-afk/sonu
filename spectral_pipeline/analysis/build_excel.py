@@ -101,7 +101,7 @@ S = S_("01_Summary", "Summary — results of every step", "Balanced accuracy (BA
 S.h2("Key numbers")
 v3a = vrow(A, "QDA on CART features", "V3")
 key = [
-    ("Leaf spectra analysed (healthy / diseased)", f"{len(y)} ({nH} / {nD}); {NP0 + NP1} plots ({NP0} / {NP1}); {len(PD)} date(s): {DATES_TXT}; growth stage(s): {', '.join(sorted(meta['Growth stage'].unique()))}; variety(ies): {', '.join(sorted(meta['Variety'].unique()))}"),
+    ("Leaf spectra analysed (healthy / diseased)", f"{len(y)} ({nH} / {nD}); {NP0 + NP1} plots ({NP0} / {NP1}); {len(PD)} {'dates' if len(PD) > 1 else 'date'}: {DATES_TXT}; growth stages: {', '.join(sorted(meta['Growth stage'].unique()))}; varieties: {', '.join(sorted(meta['Variety'].unique()))}"),
     ("Tier 1 — bands significant (Welch + FDR)", f"{A['n_sig']} of {A['n_features']}"),
     ("Tier 2 — CART bands (rpart, prior 0.5/0.5)", f"{len(A['sets'][A['cart_name']])}: {bands_txt(A['sets'][A['cart_name']])} nm"),
     (f"Tier 2 — RF bands (top-{len(A['sets'][A['rf_name']])} MDI peaks)", f"{bands_txt(A['sets'][A['rf_name']])} nm"),
@@ -1084,7 +1084,7 @@ R.para("Discriminate healthy and white-rust (Albugo candida) diseased mustard le
 R.h2("Data analysed")
 R.para(f"asd__data_complete_labelled_110226 / 240226 / 030326 / 130326.xlsx — 79 exact duplicates removed from the four files"
        + (f", then the subset '{SUBSET}' taken: {len(y)} unique leaf spectra" if IS_SUB else f": {len(y)} unique leaf spectra")
-       + f" ({nH} healthy, {nD} diseased; {NP0 + NP1} plots: {NP0} healthy control, {NP1} inoculated; date(s) {DATES_TXT}); 350–2500 nm at 1 nm; analysed "
+       + f" ({nH} healthy, {nD} diseased; {NP0 + NP1} plots: {NP0} healthy control, {NP1} inoculated; {'dates' if len(PD) > 1 else 'date'} {DATES_TXT}); 350–2500 nm at 1 nm; analysed "
        f"400–2500 nm ({len(wl)} bands). Plot-average columns were not used. Water-absorption bands were kept (contact probe). "
        "Leaf level and disease score were not used (healthy vs diseased only).")
 if IS_SUB:
