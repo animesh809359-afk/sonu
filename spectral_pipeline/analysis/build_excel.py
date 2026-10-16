@@ -404,7 +404,10 @@ t4.columns = ["Band set", "Classifier", "Healthy → healthy", "Healthy → dise
               "OA", "BA", "PA healthy", "PA diseased", "UA healthy", "UA diseased", "κ", "AUC"]
 S.table(t4, title="Table 5.1  Effect of the imbalance correction", fmts={c: PCT for c in ["OA", "BA", "PA healthy", "PA diseased", "UA healthy", "UA diseased"]},
         note="Equal priors raise the recall of the minority (healthy) class at the cost of overall accuracy; sample priors do the reverse.")
-S.table(pd.DataFrame(A["mass_check"], columns=["Band set", "Priors", "Share of identical predictions (Python vs MASS::qda)"]),
+_mc = pd.DataFrame(A["mass_check"], columns=["Band set", "Priors", "Share of identical predictions (Python vs MASS::qda)"])
+if A.get("mass_refused"):
+    _mc["Leaves not classified by MASS::qda (rank-deficient fold)"] = [c for *_, c in A["mass_refused"]]
+S.table(_mc,
         title="Table 5.2  Cross-check of the QDA predictions in R", fmts={"Share of identical predictions (Python vs MASS::qda)": "0.00%"})
 checks_table(S, [c for c in cA if c[0] == "Tier 4"])
 

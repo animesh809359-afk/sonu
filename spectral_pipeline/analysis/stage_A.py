@@ -211,26 +211,32 @@ def mass_qda(cols, priors):
 suppressMessages(library(MASS)); d <- read.csv('{td}/d.csv'); d$y <- factor(d$y, levels=c(0,1))
 p <- numeric(nrow(d)); X <- d[, grep('^b', names(d))]
 for (k in sort(unique(d$fold))) {{ tr <- d$fold != k
-  m <- qda(X[tr, , drop=FALSE], d$y[tr], {pr} method='moment')
-  p[!tr] <- predict(m, X[!tr, , drop=FALSE])$posterior[, 2] }}
+  p[!tr] <- tryCatch({{ m <- qda(X[tr, , drop=FALSE], d$y[tr], {pr} method='moment')
+    predict(m, X[!tr, , drop=FALSE])$posterior[, 2] }}, error = function(e) NA) }}
 write.csv(data.frame(p=p), '{td}/p.csv', row.names=FALSE)""")
         subprocess.run(["Rscript", str(td / "q.R")], check=True, capture_output=True)
-        return (pd.read_csv(td / "p.csv")["p"].to_numpy() > 0.5).astype(int)
+        pr_ = pd.read_csv(td / "p.csv")["p"].to_numpy(float)
+        return np.where(np.isnan(pr_), -1, (pr_ > 0.5).astype(int))   # -1 = MASS::qda refused the fold (rank deficiency)
 
 
-qrows, QTIES = [], []
+qrows, QTIES, MASS_REFUSED = [], [], []
 for sname in [A["cart_name"]] + one_se_name + [A["rf_name"]]:
     cols = [name_to_col[v] for v in A["sets"][sname]]
     for pri in ("equal", "sample"):
         p_py, prob_py = fourtier._qda_cv(X[:, cols], y, F["V1"], pri)
         p_r = mass_qda(cols, pri)
-        qrows.append((sname, pri, float((p_py == p_r).mean())))
-        QTIES.extend(np.abs(prob_py[p_py != p_r] - 0.5).tolist())
+        ok = p_r >= 0
+        MASS_REFUSED.append((sname, pri, int((~ok).sum())))
+        qrows.append((sname, pri, float((p_py[ok] == p_r[ok]).mean()) if ok.any() else np.nan))
+        QTIES.extend(np.abs(prob_py[ok][p_py[ok] != p_r[ok]] - 0.5).tolist())
 A["mass_check"] = qrows
+A["mass_refused"] = MASS_REFUSED
 A["checks"].append(("Tier 4", "QDA in R", "MASS::qda on the same V1 folds (equal and sample priors)",
                     "; ".join(f"{s} {p}: {100 * v:.2f} % identical" for s, p, v in qrows)
-                    + f" — differing predictions have |P(diseased) − 0.5| ≤ {max(QTIES) if QTIES else 0:.4f} (ties at the boundary)",
-                    "PASS" if min(v for *_, v in qrows) > 0.999 or (QTIES and max(QTIES) < 0.01) else "FLAG"))
+                    + f" — differing predictions have |P(diseased) − 0.5| ≤ {max(QTIES) if QTIES else 0:.4f} (ties at the boundary)"
+                    + ("; MASS::qda refused (rank deficiency in a class) for " + ", ".join(f"{a} {b}: {c} leaves" for a, b, c in MASS_REFUSED if c)
+                       + " — compared on the remaining leaves" if any(c for *_, c in MASS_REFUSED) else ""),
+                    "PASS" if np.nanmin([v for *_, v in qrows]) > 0.999 or (QTIES and max(QTIES) < 0.01) else "FLAG"))
 
 # =================================================================== Validation extras (QDA on CART bands)
 fourtier.log("Validation extras: V2, sample priors, RUS")
