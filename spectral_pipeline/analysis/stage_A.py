@@ -232,7 +232,8 @@ for sname in [A["cart_name"]] + one_se_name + [A["rf_name"]]:
 A["mass_check"] = qrows
 A["mass_refused"] = MASS_REFUSED
 A["checks"].append(("Tier 4", "QDA in R", "MASS::qda on the same V1 folds (equal and sample priors)",
-                    "; ".join(f"{s} {p}: {100 * v:.2f} % identical" for s, p, v in qrows)
+                    "; ".join(f"{s} {p}: " + (f"{100 * v:.2f} % identical" if np.isfinite(v) else "not compared (MASS::qda refused every fold)")
+                              for s, p, v in qrows)
                     + f" — differing predictions have |P(diseased) − 0.5| ≤ {max(QTIES) if QTIES else 0:.4f} (ties at the boundary)"
                     + ("; MASS::qda refused (rank deficiency in a class) for " + ", ".join(f"{a} {b}: {c} leaves" for a, b, c in MASS_REFUSED if c)
                        + " — compared on the remaining leaves" if any(c for *_, c in MASS_REFUSED) else ""),

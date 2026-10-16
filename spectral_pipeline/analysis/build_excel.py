@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 
 import numpy as np
 import pandas as pd
@@ -83,9 +84,21 @@ def bands_txt(lst, prefix=("WV", "R")):
     return ", ".join(out)
 
 
+def fix_check_text(t):
+    """Wording fixes for check texts written by stage scripts that ran before the fix."""
+    t = str(t).replace("nan % identical", "not compared (MASS::qda refused every fold)")
+    m = re.search(r"max ([0-9.]+e[+-]\d+) \(well below the ~1e12 limit of double precision\)", t)
+    if m and float(m.group(1)) >= 1e8:
+        t = t.replace("(well below the ~1e12 limit of double precision)",
+                      "(ill-conditioned but below the ~1e12 limit of double precision: J–M and QDA are computable, "
+                      "yet sensitive to small changes in the data)")
+    return t
+
+
 def checks_table(S, rows, title="Cross-checks for this step"):
     if not rows:
         return
+    rows = [tuple(fix_check_text(x) if i == 3 else x for i, x in enumerate(r)) for r in rows]
     df = pd.DataFrame(rows, columns=["Step", "What was checked", "Method", "Result", "Status"])
     S.table(df, title=title, flag_col="Status", widths={"B": 30, "C": 34, "D": 44})
 
@@ -967,6 +980,7 @@ rows += [("Validation", "No plot in both training and test", "assertion on every
          ("Numerics", "QDA fits failing on singular covariances", "count of failures in Parts A and C",
           f"{len(A['qda_failures'])} (Part A), {len(Cc['qda_failures'])} (Part C)", "PASS" if not (A['qda_failures'] or Cc['qda_failures']) else "FLAG")]
 cc = pd.DataFrame(rows, columns=["Step", "What was checked", "Method", "Result", "Status"])
+cc["Result"] = cc["Result"].map(fix_check_text)
 cc.insert(0, "#", range(1, len(cc) + 1))
 f, l, L = S.table(cc, flag_col="Status", widths={"C": 40, "D": 46, "E": 60})
 S.cell(S.row, 1, "PASS (Excel count)", F_BOLD)

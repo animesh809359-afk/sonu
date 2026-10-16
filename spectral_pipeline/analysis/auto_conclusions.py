@@ -128,11 +128,17 @@ con = [
     f"plot-grouped) / {pc(qda_v4)} (V4 hold-out plots) on new plots.",
 ]
 if w_rc is not None:
-    con.append(f"CART vs RF: as classifiers RF {'beats' if w_rc['Mean difference'] > 0 else 'does not beat'} CART by "
-               f"{100 * w_rc['Mean difference']:+.1f} points (V3, {int(w_rc['First better'])} of {int(w_rc['n'])} folds, {pfmt(w_rc['Wilcoxon p'])}); "
-               f"as band selectors for QDA the RF bands are {100 * w_q['Mean difference']:+.1f} points vs the CART bands "
-               f"({pfmt(w_q['Wilcoxon p'])}). RF selection is {'more' if stab.loc['RF', 'Mean pairwise Jaccard (±10 nm)'] > stab.loc['CART', 'Mean pairwise Jaccard (±10 nm)'] else 'less'} "
-               f"stable (Jaccard ±10 nm {stab.loc['RF', 'Mean pairwise Jaccard (±10 nm)']:.2f} vs {stab.loc['CART', 'Mean pairwise Jaccard (±10 nm)']:.2f}).")
+    _d = float(w_rc["Mean difference"])
+    _fold = f"V3, RF better in {int(w_rc['First better'])} of {int(w_rc['n'])} folds, {pfmt(w_rc['Wilcoxon p'])}"
+    if abs(_d) < 0.01 or w_rc["Wilcoxon p"] >= 0.05:
+        _cls = f"as classifiers RF and CART perform alike ({100 * _d:+.1f} points; {_fold})"
+    else:
+        _cls = f"as classifiers RF {'beats' if _d > 0 else 'is worse than'} CART by {abs(100 * _d):.1f} points ({_fold})"
+    _js = stab.loc["RF", "Mean pairwise Jaccard (±10 nm)"], stab.loc["CART", "Mean pairwise Jaccard (±10 nm)"]
+    con.append(f"CART vs RF: {_cls}; as band selectors for QDA the RF bands give {100 * w_q['Mean difference']:+.1f} points "
+               f"vs the CART bands ({pfmt(w_q['Wilcoxon p'])}). RF selection is "
+               f"{'more' if _js[0] > _js[1] + 0.02 else 'less' if _js[0] < _js[1] - 0.02 else 'about as'} stable "
+               f"{'as' if abs(_js[0] - _js[1]) <= 0.02 else 'than'} CART selection (Jaccard ±10 nm {_js[0]:.2f} vs {_js[1]:.2f}).")
 con.append(f"Disease-sensitive features (Part K): the strongest group for RF is {groups[best_g]} (BA {pc(k5_rf[best_g])}, V3) vs "
            f"{pc(k5_rf['G1'])} for reflectance; best single features: first derivative at {d1['Wavelength (nm)']:.0f} nm (AUC {d1['AUC']:.2f}), "
            f"{k2b['name']} (AUC {k2b['AUC']:.2f}), {k3b_['name']} (AUC {k3b_['AUC']:.2f}), {k4b['name']} (AUC {k4b['AUC']:.2f}). "

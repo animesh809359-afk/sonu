@@ -205,7 +205,10 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
         inv.append(abs(models.jm(Z, y)[0] - out["tier3"].set_index("Set").loc[sname, "JM"]))
     out["checks"].append(("Tier 3", "Invertibility of the class covariances",
                           "condition number of the class correlation matrices of every selected set",
-                          f"max {cmax:.1e} (well below the ~1e12 limit of double precision)", "PASS" if cmax < 1e8 else "FLAG"))
+                          f"max {cmax:.1e} " + ("(well below the ~1e12 limit of double precision)" if cmax < 1e8 else
+                                               "(ill-conditioned but below the ~1e12 limit of double precision: J–M and QDA "
+                                               "are computable, yet sensitive to small changes in the data)"),
+                          "PASS" if cmax < 1e8 else "FLAG"))
     out["checks"].append(("Tier 3", "J–M is scale-invariant", "J–M on raw vs standardised features of every selected set",
                           f"max |ΔJ–M| = {max(inv):.1e}", "PASS" if max(inv) < 1e-8 else "FLAG"))
     out["tier4"] = pd.DataFrame(t4)
