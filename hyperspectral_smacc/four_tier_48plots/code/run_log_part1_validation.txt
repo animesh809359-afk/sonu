@@ -1,0 +1,86 @@
+[     4s] data 1417 spectra (358 healthy, 1059 diseased) x 483 bands; ratio 1:2.96
+[     4s] [PASS] Data: spectra and bands -> 1417 x 483
+[     4s] [PASS] Data: plots 1-12 healthy, 13-48 diseased -> 12 + 36
+[     4s] [PASS] Data: no missing values -> 0
+[     4s] [PASS] Data: every spectrum belongs to exactly one plot -> 1417
+[    75s] Tier 1: 411 / 483 bands p<0.05 (FDR 407, Bonferroni 132, Welch 409); plot-mean ANOVA 302
+[    75s] [PASS] Tier 1: manual F = scipy f_oneway -> 9.3e-14
+[    75s] [PASS] Tier 1: Tukey HSD decision = ANOVA decision (one pair) -> identical at all 483 bands: True
+[    78s] full data S0: CART 22 bands [399, 405, 428, 452, 466, 475, 478, 760, 846, 858, 885, 927, 945, 1996, 2008, 2044, 2050, 2326, 2344, 2356, 2380, 2398]  JM 0.737 | RF [2386, 2014, 920, 921, 401, 406, 890, 918, 498, 2284, 760, 456, 420, 505, 705, 939, 1485, 1467, 719, 2158, 1299, 1743] JM 0.935
+[    81s] full data S1: CART 17 bands [405, 443, 498, 760, 797, 846, 899, 920, 927, 1599, 1779, 1984, 2056, 2194, 2302, 2344, 2380]  JM 0.771 | RF [2386, 2014, 920, 921, 2302, 403, 498, 426, 760, 918, 412, 489, 939, 899, 705, 1473, 505] JM 0.617
+[    83s] full data S2: CART 14 bands [494, 498, 505, 711, 855, 885, 890, 920, 1497, 1725, 2008, 2344, 2374, 2380]  JM 0.484 | RF [2362, 2014, 920, 921, 918, 399, 897, 498, 408, 712, 512, 486, 2248, 939] JM 0.432
+[    88s] full data S3: CART 21 bands [470, 505, 577, 916, 920, 939, 951, 1143, 1155, 1233, 1293, 1317, 1329, 1461, 1635, 1990, 2272, 2326, 2368, 2380, 2392]  JM 1.147 | RF [2386, 2014, 920, 933, 921, 2278, 918, 758, 403, 897, 412, 426, 496, 707, 1461, 478, 505, 834, 1491, 1725, 721] JM 0.798
+[    88s] [PASS] Imbalance: under-sampling balances classes -> (358, 358)
+[    88s] [PASS] Imbalance: SMOTE balances classes -> (1059, 1059)
+[    88s] [PASS] Tier 3: single-band JM: 1-D closed form = matrix form -> 
+[    88s] [PASS] Validation: grouped folds: no plot in both training and test -> max shared = 0
+[    88s] [PASS] Validation: grouped folds: every test fold has both classes -> [(3, 9), (3, 9), (3, 9), (3, 9)]
+[    88s] [PASS] Validation: SMOTE applied to training part only (test spectra untouched) -> resampled train 1588 (794/794); test 355
+[    88s] V1 CART-S0: BA 0.588
+[    88s] V1 CART-S1: BA 0.614
+[    89s] V1 CART-S2: BA 0.627
+[    92s] V1 CART-S3: BA 0.762
+[    92s] V1 RF-S0: BA 0.682
+[    92s] V1 RF-S1: BA 0.624
+[    93s] V1 RF-S2: BA 0.619
+[    96s] V1 RF-S3: BA 0.615
+[   109s] V2 CART-S0: BA 0.579 ± 0.030; plot BA 0.543
+[   122s] V2 CART-S1: BA 0.615 ± 0.029; plot BA 0.737
+[   127s] V2 CART-S2: BA 0.611 ± 0.015; plot BA 0.751
+[   150s] V2 CART-S3: BA 0.600 ± 0.020; plot BA 0.707
+[   241s] V2 RF-S0: BA 0.585 ± 0.021; plot BA 0.556
+[   325s] V2 RF-S1: BA 0.604 ± 0.017; plot BA 0.732
+[   388s] V2 RF-S2: BA 0.614 ± 0.019; plot BA 0.760
+[   519s] V2 RF-S3: BA 0.588 ± 0.019; plot BA 0.683
+[   541s] V3 CART-S0: BA 0.552; plots correct 37/48
+[   563s] V3 CART-S1: BA 0.605; plots correct 30/48
+[   573s] V3 CART-S2: BA 0.612; plots correct 33/48
+[   615s] V3 CART-S3: BA 0.620; plots correct 34/48
+[   758s] V3 RF-S0: BA 0.579; plots correct 37/48
+[   891s] V3 RF-S1: BA 0.565; plots correct 25/48
+[   973s] V3 RF-S2: BA 0.608; plots correct 32/48
+[  1189s] V3 RF-S3: BA 0.562; plots correct 31/48
+[  1272s] RF benchmark (all bands, class-weighted) V2 BA 0.549
+[  1272s] best strategy per tier-2: {'CART': 'S1', 'RF': 'S2'}
+[  1272s] perm CART 0/100
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-sonu/de141fe5-c65b-5246-b45e-ac36bd178a4c/scratchpad/a48/analysis48.py", line 322, in <module>
+    null.append(v2(t2, s, yy=yy, reps=1)[0]["BA"])
+                ~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-sonu/de141fe5-c65b-5246-b45e-ac36bd178a4c/scratchpad/a48/analysis48.py", line 260, in v2
+    m, b, _ = fit_pipeline(X[tr], yy[tr], s, t2, SEED + r)
+              ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-sonu/de141fe5-c65b-5246-b45e-ac36bd178a4c/scratchpad/a48/analysis48.py", line 188, in fit_pipeline
+    cb, _, _ = cart_select(Xr, yr, w, sig_idx)
+               ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-sonu/de141fe5-c65b-5246-b45e-ac36bd178a4c/scratchpad/a48/analysis48.py", line 157, in cart_select
+    t = RpartTree().fit(Xr, yr, w, sig_idx); pr = t.pruned_at(0.01)
+  File "/tmp/claude-0/-home-user-sonu/de141fe5-c65b-5246-b45e-ac36bd178a4c/scratchpad/a48/analysis48.py", line 100, in fit
+    random_state=0).fit(Xm[:, self.feat_idx], ym, sample_weight=w)
+                    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-sonu/de141fe5-c65b-5246-b45e-ac36bd178a4c/scratchpad/venv/lib/python3.13/site-packages/sklearn/base.py", line 1403, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "/tmp/claude-0/-home-user-sonu/de141fe5-c65b-5246-b45e-ac36bd178a4c/scratchpad/venv/lib/python3.13/site-packages/sklearn/tree/_classes.py", line 1015, in fit
+    super()._fit(
+    ~~~~~~~~~~~~^
+        X,
+        ^^
+    ...<2 lines>...
+        check_input=check_input,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/tmp/claude-0/-home-user-sonu/de141fe5-c65b-5246-b45e-ac36bd178a4c/scratchpad/venv/lib/python3.13/site-packages/sklearn/tree/_classes.py", line 247, in _fit
+    X, y = validate_data(
+           ~~~~~~~~~~~~~^
+        self, X, y, validate_separately=(check_X_params, check_y_params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/tmp/claude-0/-home-user-sonu/de141fe5-c65b-5246-b45e-ac36bd178a4c/scratchpad/venv/lib/python3.13/site-packages/sklearn/utils/validation.py", line 3053, in validate_data
+    X = check_array(X, input_name="X", **check_X_params)
+  File "/tmp/claude-0/-home-user-sonu/de141fe5-c65b-5246-b45e-ac36bd178a4c/scratchpad/venv/lib/python3.13/site-packages/sklearn/utils/validation.py", line 1122, in check_array
+    raise ValueError(
+    ...<3 lines>...
+    )
+ValueError: Found array with 0 feature(s) (shape=(1063, 0)) while a minimum of 1 is required by DecisionTreeClassifier.

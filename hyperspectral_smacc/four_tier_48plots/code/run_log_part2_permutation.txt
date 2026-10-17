@@ -1,0 +1,55 @@
+[     4s] data 1417 spectra (358 healthy, 1059 diseased) x 483 bands; ratio 1:2.96
+[     4s] [PASS] Data: spectra and bands -> 1417 x 483
+[     4s] [PASS] Data: plots 1-12 healthy, 13-48 diseased -> 12 + 36
+[     4s] [PASS] Data: no missing values -> 0
+[     4s] [PASS] Data: every spectrum belongs to exactly one plot -> 1417
+[    75s] Tier 1: 411 / 483 bands p<0.05 (FDR 407, Bonferroni 132, Welch 409); plot-mean ANOVA 302
+[    75s] [PASS] Tier 1: manual F = scipy f_oneway -> 9.3e-14
+[    75s] [PASS] Tier 1: Tukey HSD decision = ANOVA decision (one pair) -> identical at all 483 bands: True
+[    79s] full data S0: CART 22 bands [399, 405, 428, 452, 466, 475, 478, 760, 846, 858, 885, 927, 945, 1996, 2008, 2044, 2050, 2326, 2344, 2356, 2380, 2398]  JM 0.737 | RF [2386, 2014, 920, 921, 401, 406, 890, 918, 498, 2284, 760, 456, 420, 505, 705, 939, 1485, 1467, 719, 2158, 1299, 1743] JM 0.935
+[    82s] full data S1: CART 17 bands [405, 443, 498, 760, 797, 846, 899, 920, 927, 1599, 1779, 1984, 2056, 2194, 2302, 2344, 2380]  JM 0.771 | RF [2386, 2014, 920, 921, 2302, 403, 498, 426, 760, 918, 412, 489, 939, 899, 705, 1473, 505] JM 0.617
+[    84s] full data S2: CART 14 bands [494, 498, 505, 711, 855, 885, 890, 920, 1497, 1725, 2008, 2344, 2374, 2380]  JM 0.484 | RF [2362, 2014, 920, 921, 918, 399, 897, 498, 408, 712, 512, 486, 2248, 939] JM 0.432
+[    89s] full data S3: CART 21 bands [470, 505, 577, 916, 920, 939, 951, 1143, 1155, 1233, 1293, 1317, 1329, 1461, 1635, 1990, 2272, 2326, 2368, 2380, 2392]  JM 1.147 | RF [2386, 2014, 920, 933, 921, 2278, 918, 758, 403, 897, 412, 426, 496, 707, 1461, 478, 505, 834, 1491, 1725, 721] JM 0.798
+[    89s] [PASS] Imbalance: under-sampling balances classes -> (358, 358)
+[    89s] [PASS] Imbalance: SMOTE balances classes -> (1059, 1059)
+[    89s] [PASS] Tier 3: single-band JM: 1-D closed form = matrix form -> 
+[    89s] [PASS] Validation: grouped folds: no plot in both training and test -> max shared = 0
+[    89s] [PASS] Validation: grouped folds: every test fold has both classes -> [(3, 9), (3, 9), (3, 9), (3, 9)]
+[    89s] [PASS] Validation: SMOTE applied to training part only (test spectra untouched) -> resampled train 1588 (794/794); test 355
+[    89s] resumed V1-V3 from results/r48_partial.pkl
+[    89s] folds without any significant/selected band (real labels): 0
+[   182s] RF benchmark (all bands, class-weighted) V2 BA 0.549
+[   182s] best strategy per tier-2: {'CART': 'S1', 'RF': 'S2'}
+[   182s] perm CART 0/100
+[   186s] perm CART 10/100
+[   190s] perm CART 20/100
+[   196s] perm CART 30/100
+[   201s] perm CART 40/100
+[   206s] perm CART 50/100
+[   210s] perm CART 60/100
+[   214s] perm CART 70/100
+[   219s] perm CART 80/100
+[   223s] perm CART 90/100
+[   228s] permutation CART-S1: observed BA 0.638, null mean 0.503 max 0.580, p = 0.0099
+[   228s] [PASS] Validation: permutation null (CART) centred near chance -> 0.503
+[   231s] perm RF 0/100
+[   280s] perm RF 10/100
+[   334s] perm RF 20/100
+[   379s] perm RF 30/100
+[   429s] perm RF 40/100
+[   472s] perm RF 50/100
+[   524s] perm RF 60/100
+[   572s] perm RF 70/100
+[   619s] perm RF 80/100
+[   667s] perm RF 90/100
+[   708s] permutation RF-S2: observed BA 0.651, null mean 0.506 max 0.623, p = 0.0099
+[   708s] [PASS] Validation: permutation null (RF) centred near chance -> 0.506
+[   708s] permutation folds without any significant/selected band (prior-only prediction): 80
+[   708s] [PASS] Tier 4: hand-coded QDA (equal priors) = sklearn QDA -> 100.0%
+[   708s] [PASS] Tier 4: balanced accuracy = mean of sensitivity and specificity -> 0.6382 vs 0.6382
+[   708s] [PASS] Tier 4: confusion matrix total = all spectra -> 1417
+[   708s] [PASS] Tier 2: weighted tree: root weighted counts equal (class weighting works) -> 708.5 vs 708.5
+[   708s] [PASS] Tier 2: unpruned custom tree reproduces sklearn predictions -> 100.0%
+[   708s] [PASS] Tier 2: all selected band sets are subsets of the ANOVA-significant bands -> yes
+[   708s] QDA fallbacks: 0
+[   708s] DONE; 20 / 20 checks pass
