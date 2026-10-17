@@ -1,0 +1,75 @@
+[     1s] data 2158 spectra (1078 healthy in 11 plots, 1080 diseased in 36 plots) x 483 bands
+[     1s] [PASS] Data: spectra and bands -> 2158 x 483
+[     1s] [PASS] Data: healthy plots 1-3, 5-12 (plot 4 absent); diseased plots 13-48 -> [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12] + 36 plots
+[     1s] [PASS] Data: 98 endmembers per healthy plot, 30 per diseased plot -> [98] / [30]
+[     1s] [PASS] Data: no missing values -> 0
+[     1s] [PASS] Data: no duplicated spectrum -> 0
+[     1s] [PASS] Design: ROI file has the 47 analysed plots (plot 4 absent) -> 47 ROIs; missing [4]
+[     1s] [PASS] Design: treatment sheet: block C = healthy plots, R1-R3 = diseased plots -> {'C': 11, 'R1': 12, 'R2': 12, 'R3': 12}
+[    69s] Tier 1: 240/483 bands p<0.05 (FDR 206, Bonferroni 98, Welch 240); plot means 2
+[    69s] [PASS] Tier 1: manual F = scipy f_oneway -> 1.8e-12
+[    69s] [PASS] Tier 1: Tukey HSD decision = ANOVA decision (one pair) -> identical at all 483 bands: True
+[    69s] [PASS] Tier 3: single-band JM: 1-D closed form = matrix form -> 0.005018
+[    72s] Tier 2 CART: 12 bands [2380, 863, 1665, 927, 1623, 1581, 886, 1659, 540, 762, 491, 403]; Tier 3 JM 0.612; max single-band JM 0.068
+[    72s] Tier 2 RF: 12 bands [2380, 933, 921, 401, 920, 2314, 1653, 408, 918, 529, 498, 718]; Tier 3 JM 0.497; max single-band JM 0.068
+[    72s] [PASS] Tier 2: CART and RF bands are ANOVA-significant -> yes
+[    72s] [PASS] Tier 2: RF keeps as many bands as CART -> 12
+[    72s] [PASS] Tier 3: cumulative JM of all bands = set JM -> 0.611626 vs 0.611626
+[    73s] CV1 (Das et al.) CART: OA 0.629 (rep 1), mean OA 0.631, BA 0.632
+[    74s] CV1 (Das et al.) RF: OA 0.630 (rep 1), mean OA 0.637, BA 0.637
+[    74s] [PASS] Validation: CV2 folds: no plot in both training and test -> max shared = 0
+[    74s] [PASS] Validation: CV2 folds: every test fold has healthy and diseased plots -> [(3, 9), (3, 9), (3, 9), (2, 9)]
+[    88s] CV2 CART: BA 0.620 ± 0.015; pooled OA 0.620 BA 0.620 [0.583, 0.659]; plot BA 0.672
+[   194s] CV2 RF: BA 0.622 ± 0.011; pooled OA 0.622 BA 0.622 [0.583, 0.662]; plot BA 0.686
+[   217s] CV3 CART: BA 0.602; plots correct 22/47; plot BA 0.653
+[   398s] CV3 RF: BA 0.605; plots correct 22/47; plot BA 0.653
+[   398s] [PASS] Validation: CV4 Leave-one-treatment-combination-out: every spectrum tested exactly once -> 12 folds; folds with one class only: ['V1×D3']
+[   398s] [PASS] Validation: CV5 Leave-one-variety-out: every spectrum tested exactly once -> 3 folds; folds with one class only: none
+[   398s] [PASS] Validation: CV6 Leave-one-inoculation-date-out: every spectrum tested exactly once -> 4 folds; folds with one class only: none
+[   403s] CV4 CART: BA 0.628; plot BA 0.694
+[   450s] CV4 RF: BA 0.631; plot BA 0.694
+[   451s] CV5 CART: BA 0.636; plot BA 0.708
+[   458s] CV5 RF: BA 0.627; plot BA 0.681
+[   460s] CV6 CART: BA 0.613; plot BA 0.639
+[   470s] CV6 RF: BA 0.629; plot BA 0.708
+[   472s] permutation CART 0/100
+[   493s] permutation CART 20/100
+[   514s] permutation CART 40/100
+[   538s] permutation CART 60/100
+[   559s] permutation CART 80/100
+[   581s] permutation CART: observed 0.604, null mean 0.501, max 0.640, p = 0.0198
+[   581s] [PASS] Validation: permutation null (CART) centred near chance -> 0.501
+[   592s] permutation RF 0/100
+[   751s] permutation RF 20/100
+[   923s] permutation RF 40/100
+[  1096s] permutation RF 60/100
+[  1262s] permutation RF 80/100
+[  1429s] permutation RF: observed 0.604, null mean 0.500, max 0.586, p = 0.0099
+[  1429s] [PASS] Validation: permutation null (RF) centred near chance -> 0.500
+[  1461s] block pair C vs R3 (13.0 m): Tier-1 bands 69 (plot means 0); BA CART 0.547 RF 0.540
+[  1494s] block pair C vs R2 (26.4 m): Tier-1 bands 40 (plot means 0); BA CART 0.613 RF 0.604
+[  1536s] block pair C vs R1 (39.7 m): Tier-1 bands 275 (plot means 160); BA CART 0.638 RF 0.626
+[  1554s] block pair R3 vs R2 (13.4 m): Tier-1 bands 0 (plot means 0); BA CART 0.468 RF 0.457
+[  1583s] block pair R2 vs R1 (13.3 m): Tier-1 bands 188 (plot means 122); BA CART 0.506 RF 0.513
+[  1613s] block pair R3 vs R1 (26.7 m): Tier-1 bands 256 (plot means 135); BA CART 0.544 RF 0.529
+[  1619s] restricted permutation CART: block C labelled healthy -> BA 0.617
+[  1622s] restricted permutation CART: block R3 labelled healthy -> BA 0.498
+[  1624s] restricted permutation CART: block R2 labelled healthy -> BA 0.510
+[  1632s] restricted permutation CART: block R1 labelled healthy -> BA 0.564
+[  1686s] restricted permutation RF: block C labelled healthy -> BA 0.621
+[  1722s] restricted permutation RF: block R3 labelled healthy -> BA 0.488
+[  1752s] restricted permutation RF: block R2 labelled healthy -> BA 0.485
+[  1801s] restricted permutation RF: block R1 labelled healthy -> BA 0.571
+[  1801s] detection CART by block: {'C': 0.158, 'R3': 0.363, 'R2': 0.399, 'R1': 0.432} KW date/variety (diseased): 0.8692526355932912 0.600403289229166
+[  1801s] detection RF by block: {'C': 0.166, 'R3': 0.38, 'R2': 0.404, 'R1': 0.448} KW date/variety (diseased): 0.9323808249999279 0.732381268345845
+[  1818s] sensitivity (no bands >= 2350 nm) CART: 9 bands, JM 0.408, CV1 OA 0.608, CV2 BA 0.604
+[  1923s] sensitivity (no bands >= 2350 nm) RF: 9 bands, JM 0.294, CV1 OA 0.632, CV2 BA 0.601
+[  1923s] [PASS] Tier 4: hand-coded QDA (empirical priors) = sklearn QDA -> 100.0%
+[  1923s] [PASS] Tier 4: balanced accuracy = mean of sensitivity and specificity -> 0.6040
+[  1923s] [PASS] Accuracy: pooled CV2 error matrix total = 10 x 2158 -> 21580
+[  1923s] [PASS] Accuracy: OA = 1 − quantity − allocation disagreement -> 0.6199
+[  1923s] [PASS] Accuracy: kappa of pooled matrix = sklearn cohen_kappa_score -> 0.240072
+[  1923s] [PASS] Accuracy: CV1 rep-1 OA from error matrix = sklearn accuracy -> 0.629286
+[  1924s] [PASS] Tier 2: unpruned custom tree reproduces sklearn predictions -> 100.0%
+[  1924s] QDA ridge fallbacks: 0
+[  1924s] DONE; 27 / 27 checks pass
