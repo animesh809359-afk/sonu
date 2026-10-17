@@ -9,7 +9,8 @@ from pathlib import Path
 from openpyxl import load_workbook
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = (ROOT / ".." / "deliverables" / "WhiteRust_Subsets").resolve()
+import os
+OUT = (ROOT / ".." / "deliverables" / os.environ.get("QA_DIR", "WhiteRust_Subsets")).resolve()
 ERRS = ("#REF!", "#DIV/0!", "#VALUE!", "#NAME?", "#N/A", "#NUM!", "#NULL!")
 rows = []
 for p in sorted(glob.glob(str(OUT / "*.xlsx"))):
