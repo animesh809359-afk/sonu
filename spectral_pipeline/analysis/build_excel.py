@@ -222,6 +222,8 @@ S.table(st_, widths={"B": 55, "C": 60})
 # =====================================================================================
 # 03 Data audit
 S = S_("03_Step0_Data_Audit", "Step 0 · Data audit — what was analysed",
+       "Leaf-level workbooks (one column per leaf spectrum, headed by its leaf level) matched exactly to the labelled ASD export workbooks for plot, variety and growth stage; exact duplicates removed."
+       if D["audit"].get("leaf") is not None else
        "Four ASD export workbooks (one column per leaf spectrum); plot-average columns ignored; exact duplicates removed.")
 S.h2("What was done")
 if LEAF is not None:

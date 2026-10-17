@@ -88,7 +88,7 @@ class Namer:
             (r"\bK-selected\b", "selected"),
             (r"\b(K3b|K4b|K\d)\s*[·:—–]\s*", lambda m: K[m.group(1)][0].upper() + K[m.group(1)][1:] + " — "),
             (r"\b(K3b|K4b|K\d)\b", lambda m: K[m.group(1)]),
-            (r"\b(A[1-4])\s*[·:]\s*", lambda m: PART[m.group(1)][0].upper() + PART[m.group(1)][1:] + ": "),
+            (r"\b(A[1-4])\s*[·:]\s*", ""),          # 'A3: CART and RF as ...' - the title is already descriptive
             # validation schemes: a code followed by its own description collapses to the full name
             (r"\b(BA|SD|AUC|κ|OA) V([1-5])(?: \([^)]*\))?", lambda m: f"{MET[m.group(1)]}, {v[m.group(2)]}"),
             (r"\bV([1-5])\s*·\s*", ""),

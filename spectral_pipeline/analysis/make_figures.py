@@ -95,10 +95,19 @@ def f01_workflow():
         (0.5, 0.175, f"Validation · V1 leaf 10-fold · V2 plot-grouped · V3 nested plot-grouped ({v3_label(F)})\nV4 30 % plot hold-out × {len(F['V4'])} · V5 {v5_label(F)} · Wilcoxon tests · stability", "#f0efec"),
         (0.5, 0.045, "Part K · K0 denoising → K1 reflectance · K2 continuum removal · K3 indices (+K3b)\nK4 derivatives / REIP · K6 correlation → K5 CART vs RF  |  Part C · four tiers on the combined K1–K4 pool", "#e3f4ec"),
     ]
+    if _NAMER is not None:          # full-name wording that fits the boxes
+        boxes[-2] = (0.5, 0.175, "Validation · leaf-level 10-fold cross-validation (optimistic) · plot-grouped cross-validation\n"
+                     f"nested plot-grouped cross-validation ({v3_label(F)}) · 30 % plot hold-out × {len(F['V4'])}\n"
+                     f"{v5_label(F)} · Wilcoxon tests · band stability", "#f0efec")
+        boxes[-1] = (0.5, 0.045, "Disease-sensitive features · smoothing and detector-join correction → band reflectance · continuum removal\n"
+                     "vegetation indices (+ optimised two-band index) · derivatives and red-edge inflection point · correlation spectra\n"
+                     "CART vs Random Forest on each feature group  |  four tiers on the combined feature pool", "#e3f4ec")
+        boxes[0] = (0.5, 0.95, boxes[0][2].replace(f"({SUBSET})", "").replace("Leaf spectra :", "Leaf spectra:") + f"\n{SUBSET}", boxes[0][3])
     for x, y0, t, c in boxes:
         w = 0.42 if x != 0.5 else 0.92
-        ax.add_patch(FancyBboxPatch((x - w / 2, y0 - 0.04), w, 0.08, boxstyle="round,pad=0.008,rounding_size=0.015",
-                                    fc=c, ec=INK2, lw=0.8, transform=ax.transAxes))
+        hb = 0.04 + 0.02 * max(0, t.count("\n") - 1)
+        ax.add_patch(FancyBboxPatch((x - w / 2, y0 - hb), w, 2 * hb, boxstyle="round,pad=0.008,rounding_size=0.015",
+                                    fc=c, ec=INK2, lw=0.8, transform=ax.transAxes, clip_on=False))
         ax.text(x, y0, t, ha="center", va="center", fontsize=8.6, color=INK, transform=ax.transAxes)
     arrows = [(0.5, 0.91, 0.5, 0.86), (0.5, 0.78, 0.5, 0.73), (0.45, 0.65, 0.3, 0.58), (0.55, 0.65, 0.7, 0.58),
               (0.3, 0.50, 0.45, 0.455), (0.7, 0.50, 0.55, 0.455), (0.5, 0.375, 0.5, 0.335), (0.5, 0.255, 0.5, 0.215),
