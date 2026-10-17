@@ -61,6 +61,11 @@ class Namer:
             (r"\bPart A · reflectance four-tier\b", "Raw reflectance · four tiers"),
             (r"\bPart C · combined-pool four-tier\b", "Combined feature pool · four tiers"),
             (r"\bK5 · ", "Feature group · "),
+            (r"\bK5\s*[·:—–]\s*CART vs (?:RF|Random Forest)", "CART vs Random Forest"),
+            (r"\bPlot-grouped CV \(V3\)", v["3"]), (r"\b30 % plot hold-out \(V4\)", v["4"]),
+            (r"\bV5 new date \+ (?:new )?plots\b", v["5"]),
+            (r"\bK4 \+ guard\b", "derivatives + guard bands"),
+            (r"\bK4\s+derivatives\b", "derivatives"),
             # feature-step phrases
             (r"\bK1\s*\+\s*K2\s*\+\s*K3\s*\+\s*K4\b", allk), (r"\bK1\s*\+\s*K2[–-]K4\b", allk),
             (r"\bK1[–-]K4 combined\b", "all disease-sensitive features combined"),
@@ -71,13 +76,15 @@ class Namer:
             (r"\bPart C′", "raw reflectance + other features"),
             (r"\bPart C\b", "combined feature pool"), (r"\bPart A\b", "raw-reflectance four tiers"),
             (r"\bTable (K3b|K4b|K\d|A\d|C′?\d|V5|S|Z|CC)\.(\d+)", lambda m: f"Table {TABNUM.get(m.group(1), m.group(1))}.{m.group(2)}"),
-            (r"\bK3b optimised\b", "optimised"), (r"\bK2 best single parameter\b", "best single continuum-removal parameter"),
-            (r"\bK3 best single index\b", "best single vegetation index"), (r"\bK4 best edge parameter\b", "best edge parameter"),
-            (r"\bK1 smoothed reflectance\b", "smoothed band reflectance"), (r"\bK4 first derivative\b", "first derivative"),
-            (r"\bK1 (?:band )?reflectance\b", "band reflectance"), (r"\bK2 continuum removal\b", "continuum removal"),
-            (r"\bK3 vegetation ind(ex|ices)\b", lambda m: "vegetation ind" + m.group(1)), (r"\bK3 indices\b", "vegetation indices"),
-            (r"\bK4 derivatives \+ edge(?: parameters)?\b", "derivatives + edge parameters"), (r"\bK4 edge parameter\b", "edge parameter"),
-            (r"\bK4 first-derivative band\b", "first-derivative band"), (r"\bK4 incl\. guard", "derivatives incl. guard"),
+            (r"\bFigure (K3b|K4b|K\d|A\d)\.", lambda m: f"Figure {TABNUM.get(m.group(1), m.group(1))}."),
+            (r"\bFigure (K3b|K4b|K\d|A\d)\b", lambda m: f"Figure {TABNUM.get(m.group(1), m.group(1))}"),
+            (r"\bK3b\s+optimised\b", "optimised"), (r"\bK2\s+best\s+single\s+parameter\b", "best single continuum-removal parameter"),
+            (r"\bK3\s+best\s+single\s+index\b", "best single vegetation index"), (r"\bK4\s+best\s+edge\s+parameter\b", "best edge parameter"),
+            (r"\bK1\s+smoothed\s+reflectance\b", "smoothed band reflectance"), (r"\bK4\s+first\s+derivative\b", "first derivative"),
+            (r"\bK1\s+(?:band\s+)?reflectance\b", "band reflectance"), (r"\bK2\s+continuum(?:\s+removal)?\b", "continuum removal"),
+            (r"\bK3\s+vegetation\s+ind(ex|ices)\b", lambda m: "vegetation ind" + m.group(1)), (r"\bK3\s+indices\b", "vegetation indices"),
+            (r"\bK4\s+derivatives\s+\+\s+edge(?:\s+parameters)?\b", "derivatives + edge parameters"), (r"\bK4\s+edge\s+parameter\b", "edge parameter"),
+            (r"\bK4\s+first-derivative\s+band\b", "first-derivative band"), (r"\bK4 incl\. guard", "derivatives incl. guard"),
             (r"\bK-selected\b", "selected"),
             (r"\b(K3b|K4b|K\d)\s*[·:—–]\s*", lambda m: K[m.group(1)][0].upper() + K[m.group(1)][1:] + " — "),
             (r"\b(K3b|K4b|K\d)\b", lambda m: K[m.group(1)]),
@@ -136,6 +143,14 @@ class Namer:
             return value
         if column is not None and any(str(column).startswith(c) for c in SCHEME_COLS) and re.fullmatch(r"V[1-5]", value.strip()):
             return self.v[value.strip()[1]]
+        if column is not None and str(column) == "Step":
+            code = value.strip()
+            for pre in ("Part C · ", ""):
+                c2 = code[len(pre):] if code.startswith(pre) else None
+                if c2 in KNAME:
+                    return (pre.replace("Part C · ", "Combined pool · ")) + KNAME[c2][0].upper() + KNAME[c2][1:]
+                if c2 in PART:
+                    return PART[c2][0].upper() + PART[c2][1:]
         return self.text(value)
 
     @staticmethod

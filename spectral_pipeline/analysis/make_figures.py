@@ -62,6 +62,14 @@ def save(fig, name):
             txt = t.get_text()
             if txt:
                 t.set_text(_NAMER.text(txt))
+        from matplotlib.ticker import FixedFormatter
+        fig.canvas.draw()                # tick labels exist only after drawing
+        for ax in fig.axes:
+            for axis in (ax.xaxis, ax.yaxis):
+                labs = [t.get_text() for t in axis.get_ticklabels()]
+                new = [_NAMER.text(t) for t in labs]
+                if new != labs:
+                    axis.set_major_formatter(FixedFormatter(new))
     fig.savefig(FIG / f"{name}.png")
     plt.close(fig)
     done.append(name)
