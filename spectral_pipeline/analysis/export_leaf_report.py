@@ -257,7 +257,7 @@ def bar4(ax, vals, names, cols, ylab):
 
 # X1: four pipelines, V3, Part A and Part C
 fig, axs = plt.subplots(2, 1, figsize=(10, 6.2), sharex=True)
-for ax, key, ttl in ((axs[0], "vA", "Part A · raw reflectance (four tiers on bands)"), (axs[1], "vC", "Part C · combined K1 + K2–K4 pool")):
+for ax, key, ttl in ((axs[0], "vA", "Four tiers on raw reflectance (2101 bands)"), (axs[1], "vC", "Four tiers on the combined feature pool")):
     vals = [[s[key][f"{p}|V3"]["BA"] for s in SUB] for p in PIPES]
     bar4(ax, vals, PIPES, [C1, C2, C3, C4], "Balanced accuracy (%)")
     ax.set_ylim(40, 100)
@@ -266,7 +266,7 @@ for ax, key, ttl in ((axs[0], "vA", "Part A · raw reflectance (four tiers on ba
         ax.axhline(100 * ref[key][f"QDA on RF features|V3"]["BA"] if key == "vC" else 100 * ref[key]["QDA on CART features|V3"]["BA"],
                    color=INK, lw=0.8, ls="--", zorder=4)
 axs[0].legend(ncol=4, loc="upper center", bbox_to_anchor=(0.5, 1.32), fontsize=8)
-fig.text(0.99, 0.005, "Dashed line: all dates pooled (Part A: QDA on CART bands; Part C: QDA on RF features). V3 = nested plot-grouped CV.",
+fig.text(0.99, 0.005, "Dashed line: all leaves pooled (raw reflectance: QDA on CART bands; combined pool: QDA on Random Forest features). Nested plot-grouped cross-validation.",
          ha="right", fontsize=7, color=INK2)
 _full(fig)
 fig.savefig(FIG / "X1_pipelines_by_subset.png")
@@ -276,10 +276,10 @@ plt.close(fig)
 fig, axs = plt.subplots(2, 1, figsize=(10, 6.4), sharex=True)
 for ax, p in zip(axs, ("QDA on RF features", "RF classifier")):
     vals = [[s["vC"][f"{p}|{sch}"]["BA"] for s in SUB] for sch in ("V1", "V3", "V4", "V5")]
-    bar4(ax, vals, ["V1 leaf 10-fold", "V3 nested plot-grouped", "V4 plot hold-out", "V5 transfer (date / variety)"],
+    bar4(ax, vals, ["Leaf-level 10-fold cross-validation", "Nested plot-grouped cross-validation", "30 % plot hold-out validation", "Leave-one-date-out validation on new plots"],
          ["#86b6ef", "#3987e5", "#1c5cab", "#0d366b"], "Balanced accuracy (%)")
     ax.set_ylim(40, 100)
-    ax.set_title(f"Part C · {p}", loc="left")
+    ax.set_title(f"Combined feature pool · {p}", loc="left")
     ax.tick_params(axis="x", labelsize=6.5)
 axs[0].legend(ncol=4, loc="upper center", bbox_to_anchor=(0.5, 1.3), fontsize=8)
 _full(fig)
@@ -336,8 +336,8 @@ for i in range(M.shape[0]):
     for j in range(M.shape[1]):
         ax.text(j, i, f"{100 * M[i, j]:.1f}", ha="center", va="center", fontsize=7.5, color="white" if M[i, j] > 0.8 else INK)
 cb = fig.colorbar(im, ax=ax, fraction=0.025)
-cb.set_label("BA (%), RF, V3")
-ax.set_title("K5 · Balanced RF on each disease-sensitive feature group (plot-grouped CV)", loc="left")
+cb.set_label("Balanced accuracy (%), Random Forest")
+ax.set_title("Balanced Random Forest on each feature group (nested plot-grouped cross-validation)", loc="left")
 _full(fig)
 fig.savefig(FIG / "X5_k5_heatmap.png")
 plt.close(fig)
@@ -355,7 +355,7 @@ ax.set_yticks(range(len(SUB)), labels, fontsize=8)
 ax.invert_yaxis()
 ax.set_xlim(400, 2500)
 ax.set_xlabel("Wavelength (nm)  (shaded: water bands I and II, kept for the contact probe)")
-ax.set_title("Tier 2 · bands selected by CART and by Random Forest in each subset (Part A)", loc="left")
+ax.set_title("Tier 2 · bands selected by CART and by Random Forest at each leaf level (raw reflectance)", loc="left")
 ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.17), ncol=2, fontsize=8)
 _full(fig)
 fig.savefig(FIG / "X6_selected_bands.png")
@@ -365,7 +365,7 @@ plt.close(fig)
 fig, ax = plt.subplots(figsize=(10, 3.4))
 vals = [[s["jm_c"] for s in SUB], [s["jm_r"] for s in SUB], [s["C_jm_c"] for s in SUB], [s["C_jm_r"] for s in SUB]]
 wdt = 0.2
-for k, (v, nm, c) in enumerate(zip(vals, ["Part A · CART bands", "Part A · RF-17 bands", "Part C · CART features", "Part C · RF-17 features"],
+for k, (v, nm, c) in enumerate(zip(vals, ["Raw reflectance · CART bands", "Raw reflectance · RF-17 bands", "Combined pool · CART features", "Combined pool · RF-17 features"],
                                    [C1, C2, C3, C4])):
     ax.bar(x + (k - 1.5) * wdt, v, wdt * 0.9, color=c, label=nm, zorder=3)
 ax.axhline(1.90, color=INK, lw=0.8, ls="--")
@@ -394,7 +394,7 @@ for ax, idx, ttl in ((axs[0], 3, "CART-selected features"), (axs[1], 4, "RF-sele
         ax.bar(x, v, 0.7, bottom=bottom, color=tcol.get(t, "#999"), label=t, edgecolor="white", linewidth=1, zorder=3)
         bottom += v
     ax.set_xticks(x, labels, fontsize=7, rotation=30, ha="right")
-    ax.set_title(f"Part C · {ttl}", loc="left")
+    ax.set_title(f"Combined feature pool · {ttl}", loc="left")
 axs[0].set_ylabel("Number of features")
 axs[0].legend(ncol=5, loc="upper center", bbox_to_anchor=(1.05, 1.28), fontsize=7.5)
 _full(fig)
@@ -408,17 +408,17 @@ axs[0].bar(x, sh, 0.6, color=[C2 if v < 0 else C1 for v in sh], zorder=3)
 axs[0].axhline(0, color=INK, lw=0.7)
 axs[0].set_xticks(x, labels, fontsize=7, rotation=30, ha="right")
 axs[0].set_ylabel("REIP shift, diseased − healthy (nm)")
-axs[0].set_title("K4b · red-edge inflection point (Lagrangian)", loc="left")
+axs[0].set_title("Red-edge inflection point shift (Lagrangian)", loc="left")
 v3 = [s["vC"]["RF classifier|V3"]["BA"] * 100 for s in SUB]
 v5 = [s["vC"]["RF classifier|V5"]["BA"] * 100 for s in SUB]
 for j in range(len(SUB)):
     axs[1].plot([j, j], [v5[j], v3[j]], color=GRID, lw=3, zorder=2)
-axs[1].scatter(x, v3, s=40, color=C1, label="V3 nested plot-grouped CV", zorder=3)
-axs[1].scatter(x, v5, s=40, color=C2, label="V5 transfer (new date or variety)", zorder=3)
+axs[1].scatter(x, v3, s=40, color=C1, label="Nested plot-grouped cross-validation (new plots)", zorder=3)
+axs[1].scatter(x, v5, s=40, color=C2, label="Leave-one-date-out validation on new plots", zorder=3)
 axs[1].set_xticks(x, labels, fontsize=7, rotation=30, ha="right")
 axs[1].set_ylim(40, 100)
 axs[1].set_ylabel("Balanced accuracy (%)")
-axs[1].set_title("Part C · RF classifier: within vs transfer", loc="left")
+axs[1].set_title("Combined pool · Random Forest classifier: new plots vs new date", loc="left")
 axs[1].legend(fontsize=7.5, loc="lower left")
 _full(fig)
 fig.savefig(FIG / "X9_reip_transfer.png")

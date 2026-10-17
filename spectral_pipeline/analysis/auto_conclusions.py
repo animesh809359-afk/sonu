@@ -165,7 +165,7 @@ if ref:
     con.append(f"Compared with all dates, stages and varieties pooled (V3: reflectance QDA-CART {pc(ref['a'])}, combined-pool QDA-RF "
                f"{pc(ref['c'])}; J–M {ref['jm']:.2f}), this subset gives {pc(qda_v3)} and {pc(c_v3)} (J–M {jm_c:.2f}): "
                + ("analysing it separately improves discrimination." if c_v3 > ref["c"] + 0.02 else
-                  "discrimination is lower than in the pooled analysis (fewer leaves and plots)." if c_v3 < ref["c"] - 0.02 else
+                  ("discrimination is lower than in the pooled analysis (same plots, but only one leaf level, i.e. fewer leaves per plot)." if "Leaf level" in (C["data"].get("subset") or {}) else "discrimination is lower than in the pooled analysis (fewer leaves and plots).") if c_v3 < ref["c"] - 0.02 else
                   "discrimination is similar to the pooled analysis."))
 
 rec = [
