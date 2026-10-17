@@ -47,6 +47,8 @@ if V5BY == "Date":
 else:
     V5_TXT = f"V5 = leave-one-variety-out ({len(F['V5'])} units: train on the other varieties, test on all leaves of the held-out variety)"
 DATES_TXT = ", ".join(PD)
+LEAF = D["audit"].get("leaf")
+FAMILY = C["data"].get("subset_family") or "one of nine separate analyses: 4 dates, 2 growth stages, 3 varieties"
 NCAND = len(A.get("sig_cols", np.where(A["tier1"]["sig"])[0]))
 if A.get("tier1_rule", "FDR") == "FDR":
     T2_IN = f"the {A['n_sig']} FDR-significant bands of Tier 1"
@@ -56,12 +58,21 @@ else:
 wb = Workbook()
 wb.remove(wb.active)
 SHEETS = []
+FULL = C.get("naming") == "full"
+if FULL:
+    from naming import Namer
+    NAMER = Namer(F.get("V5_by", "Date"))
+    xl.TEXT, xl.CELL = NAMER.text, NAMER.cell
 PCT = "0.0%"
 
 
 def S_(name, title, sub="", **kw):
+    key = name
+    if FULL:
+        name, title = NAMER.sheet(name), NAMER.text(title)
     s = Sheet(wb, name, title, sub, **kw)
     SHEETS.append((name, title))
+    name = key
     if TXT.get("readings", {}).get(name):
         s.h2("Result in brief")
         for t in TXT["readings"][name]:
@@ -180,7 +191,8 @@ corr = pd.DataFrame([
      + (f"; {NBLOCK2 + NDUP_UNNAMED} of them belong to this subset ({NBLOCK2} block-2, {NDUP_UNNAMED} unnamed)" if IS_SUB else "")
      + ("; sensitivity run with the unnamed copies kept" if A.get("sensitivity_dups_applicable", True) else ""), "a duplicate in both training and test inflates V1"),
     *([("Subset", f"{SUBSET}: {len(y)} of {D['audit']['subset']['n_all']} leaf spectra; folds, Tier 1–4, Part K and Part C rebuilt for this subset only",
-        "each date, stage and variety analysed separately as requested")] if IS_SUB else []),
+        ("each leaf level analysed separately, all dates, growth stages and varieties combined, as requested" if LEAF is not None
+         else "each date, stage and variety analysed separately as requested"))] if IS_SUB else []),
 ], columns=["Issue", "Correction", "Why"])
 S.table(corr, widths={"A": 34, "B": 70, "C": 50})
 S.h2("Table 2.2  Validation design (identical folds in every step; sheet 36_Folds)")
@@ -212,7 +224,36 @@ S.table(st_, widths={"B": 55, "C": 60})
 S = S_("03_Step0_Data_Audit", "Step 0 · Data audit — what was analysed",
        "Four ASD export workbooks (one column per leaf spectrum); plot-average columns ignored; exact duplicates removed.")
 S.h2("What was done")
-S.para("The four files (11-02-2026, 24-02-2026, 03-03-2026, 13-03-2026) were read; each spectrum column carries plot number, "
+if LEAF is not None:
+    _inv = LEAF["inventory"]
+    _um = LEAF["unmatched"][~LEAF["unmatched"]["Unnamed"]]
+    S.para(f"Leaf-level data: {_inv['File'].nunique()} workbooks supplied for this analysis ({', '.join(dict.fromkeys(_inv['File']))}), one sheet per "
+           f"date and class, one column per leaf spectrum headed by its leaf level (L3, L5, LL), 350–2500 nm at 1 nm; {LEAF['n_files']} "
+           "spectra in all. The sheets carry no plot numbers, which the plot-grouped validation needs, so every spectrum was matched "
+           "exactly (all 2151 bands identical) to the labelled ASD export workbooks (asd__data_complete_labelled_110226 / 240226 / "
+           "030326 / 130326.xlsx), which give plot, variety and growth stage. All spectra matched, and the healthy/diseased label and "
+           "the date of every sheet agreed with the labelled files (Table 0.6). "
+           f"{len(LEAF['dups'])} spectra of plot 27 (11-02-2026) occur twice in the leaf-level sheet (exact copies) — one copy was kept, as in "
+           "the earlier analyses. "
+           + (f"{len(_um)} labelled spectrum ({'; '.join(f'{r.File}, plot {r.Plot}, {r.Date}' for r in _um.itertuples())}) is not in the "
+              "leaf-level files and was not used. " if len(_um) else "")
+           + f"Only leaves of the level of this workbook were then kept: '{SUBSET}', {len(y)} unique leaf spectra ({nH} healthy, "
+           f"{nD} diseased). Plot-average columns were not used (leaf level only); disease score was not used (healthy vs diseased only).")
+    S.table(_inv, title="Table 0.0a  The leaf-level workbooks: sheets, dates, classes and number of spectra per leaf level")
+    _bl = D["audit"]["by_level"].reset_index()
+    _bl = _bl.assign(_d=pd.to_datetime(_bl["Date"], format="%d-%m-%Y")).sort_values(["Leaf level", "_d"]).drop(columns="_d")
+    f0, l0, L0 = S.table(_bl[["Leaf level", "Date", "Healthy", "Diseased"]],
+                         title="Table 0.0b  Unique leaf spectra by leaf level, date and class (all three leaf levels; this workbook uses one level)")
+    S.cell(S.row - 1, 2, "Total", F_BOLD)
+    S.cell(S.row - 1, 3, f"=SUM(C{f0}:C{l0})")
+    S.cell(S.row - 1, 4, f"=SUM(D{f0}:D{l0})")
+    S.row += 1
+    if len(LEAF["dups"]):
+        S.table(LEAF["dups"], title="Table 0.0c  Identical spectra inside the leaf-level files (one copy of each pair kept)")
+    if len(_um):
+        S.table(_um.drop(columns=["Unnamed"]), title="Table 0.0d  Spectra of the labelled files that are not in the leaf-level files (not used)")
+else:
+  S.para("The four files (11-02-2026, 24-02-2026, 03-03-2026, 13-03-2026) were read; each spectrum column carries plot number, "
        "variety, growth stage and the healthy/diseased label. The 48+ numbered columns per file are =AVERAGE() plot means and were "
        "ignored (leaf level only). On 13-03-2026 a second data block (75 columns) repeats plots 13, 34, 38, 41 and 42 exactly; "
        "on 11-02-2026 four unnamed columns of plot 27 are exact copies of Mustard00215–00218. These 79 copies were removed. "
@@ -1092,17 +1133,63 @@ for k, s in enumerate(bc.series):
 S.ws.add_chart(bc, "N105")
 
 # =====================================================================================
+# Glossary (full-name workbooks)
+if FULL:
+    G = S_("00b_Glossary", "Glossary — names and abbreviations used in this workbook",
+           "Validation schemes and feature steps are written out in full; the remaining standard abbreviations are listed here.")
+    G.table(pd.DataFrame([
+        ("Leaf-level 10-fold cross-validation", "Bands chosen once on all leaves; leaves split at random into 10 folds (the protocol of Das et al. 2020). Optimistic, because leaves of one plot are in training and test."),
+        ("Plot-grouped cross-validation", "Bands fixed; folds formed from whole plots, so no plot is in training and test."),
+        ("Nested plot-grouped cross-validation", f"Tier 1, band selection and classifier refitted inside every training set; plot-grouped {F['v3_k']}-fold × 5 repeats ({len(F['V3'])} training sets). The honest estimate for new plots."),
+        ("30 % plot hold-out validation", f"30 % of the plots of each class held out, everything refitted on the rest; {len(F['V4'])} random splits."),
+        (NAMER.v["5"][0].upper() + NAMER.v["5"][1:], "Transfer test: train on the other dates (training plots of a hold-out split), test on the held-out date (test plots); no leaf, plot or date of the test set is seen in training."),
+        ("Nested plot-grouped cross-validation with random under-sampling", "As nested plot-grouped cross-validation, but diseased leaves are randomly under-sampled to the number of healthy leaves in every training set instead of using equal priors."),
+        ("Band reflectance", "Splice-corrected, Savitzky–Golay-smoothed reflectance at each 1 nm band (disease-sensitive feature step 1)."),
+        ("Continuum-removal features", "Depth, position, area, width and symmetry of six absorption features after division by the upper convex hull (step 2)."),
+        ("Vegetation indices", "31 published indices of the flowering-stage workbook, plus the optimised two-band index (step 3)."),
+        ("Derivative and edge features", "First- and second-derivative bands, 20 edge parameters and the red-edge inflection point (step 4)."),
+        ("Combined feature pool", "Band reflectance + continuum-removal features + vegetation indices + derivative and edge features, analysed with the same four tiers."),
+        ("CART", "Classification and regression tree (R rpart), prior 0.5/0.5."),
+        ("RF / Balanced RF", "Random Forest; each tree grown on a bootstrap sample with equal numbers of healthy and diseased leaves."),
+        ("RF-17, CART-n", "The 17 highest Random Forest importance peaks; the n bands used as split variables by CART."),
+        ("QDA / LDA", "Quadratic / linear discriminant analysis (equal priors unless stated)."),
+        ("J–M", "Jeffries–Matusita distance (0–2); separable at ≥ 1.90 (Das et al. used 1.94)."),
+        ("BA", "Balanced accuracy = mean of the healthy and diseased recall (headline metric under class imbalance)."),
+        ("OA, PA, UA", "Overall accuracy; producer's accuracy (recall); user's accuracy (precision)."),
+        ("κ", "Cohen's kappa."),
+        ("AUC", "Area under the ROC curve; for single features direction-free (0.5 = no separation, 1 = perfect)."),
+        ("BH-FDR, q", "Benjamini–Hochberg false-discovery rate; q = adjusted p-value."),
+        ("Mixed model", "Linear mixed model with a random plot intercept (R nlme), to account for leaves nested in plots."),
+        ("Hedges g", "Bias-corrected standardised mean difference."),
+        ("MDI", "Mean decrease in Gini impurity (Random Forest importance)."),
+        ("D1_λ, R λ", "First derivative at λ nm; reflectance at λ nm."),
+        ("CR1–CR6", "Continuum-removal windows: blue 400–548, red 548–765, water 970 (914–1069), water 1200 (1069–1258), water 1450 (1258–1721), water 1940 (1721–2304) nm."),
+        ("REIP / REP", "Red-edge inflection point / red-edge position."),
+        ("NDSI, DI", "Normalised difference spectral index (Ri − Rj)/(Ri + Rj); difference index Ri − Rj."),
+        ("SD, SE", "Standard deviation; standard error."),
+        ("Guard zone", "Bands next to the ASD detector joins (1000/1001 and 1800/1801 nm) excluded from rankings."),
+    ], columns=["Name", "Meaning"]), widths={"A": 44, "B": 120})
+    wb.move_sheet("00b_Glossary", offset=-wb.index(wb["00b_Glossary"]) + 1)
+
+# =====================================================================================
 # README sheet guide
 R = readme
 R.h2("Objective")
 R.para("Discriminate healthy and white-rust (Albugo candida) diseased mustard leaves from leaf reflectance spectra"
-       + (f" for the subset '{SUBSET}' (one of nine separate analyses: 4 dates, 2 growth stages, 3 varieties)" if IS_SUB
+       + (f" for the subset '{SUBSET}' ({FAMILY})" if IS_SUB
           else ", irrespective of date, growth stage and variety (all pooled)") + ", following the four-tier hierarchical method of Das et al. (2020) — Tier 1 "
        "statistical screening, Tier 2 CART band selection, Tier 3 Jeffries–Matusita separability, Tier 4 QDA classification — "
        "with corrections for class imbalance, multiple testing and pseudo-replication; then repeating Tier 2 with Random "
        "Forest, extracting disease-sensitive features (K1–K4) and applying the four tiers to the combined feature pool.")
 R.h2("Data analysed")
-R.para(f"asd__data_complete_labelled_110226 / 240226 / 030326 / 130326.xlsx — 79 exact duplicates removed from the four files"
+if LEAF is not None:
+    R.para(f"Leaf-level workbooks {', '.join(dict.fromkeys(LEAF['inventory']['File']))} ({LEAF['n_files']} leaf spectra, one sheet per date and class, "
+           "column headers = leaf level L3 / L5 / LL), matched exactly to the labelled ASD workbooks for plot, variety and growth stage; "
+           f"duplicate copies removed; this workbook: {SUBSET} — {len(y)} unique leaf spectra ({nH} healthy, {nD} diseased; {NP0 + NP1} plots: "
+           f"{NP0} healthy control, {NP1} inoculated; dates {DATES_TXT}); 350–2500 nm at 1 nm; analysed 400–2500 nm ({len(wl)} bands). "
+           "Plot-average columns were not used. Water-absorption bands were kept (contact probe). Disease score was not used (healthy vs diseased only).")
+else:
+  R.para(f"asd__data_complete_labelled_110226 / 240226 / 030326 / 130326.xlsx — 79 exact duplicates removed from the four files"
        + (f", then the subset '{SUBSET}' taken: {len(y)} unique leaf spectra" if IS_SUB else f": {len(y)} unique leaf spectra")
        + f" ({nH} healthy, {nD} diseased; {NP0 + NP1} plots: {NP0} healthy control, {NP1} inoculated; {'dates' if len(PD) > 1 else 'date'} {DATES_TXT}); 350–2500 nm at 1 nm; analysed "
        f"400–2500 nm ({len(wl)} bands). Plot-average columns were not used. Water-absorption bands were kept (contact probe). "
@@ -1126,6 +1213,8 @@ R.para("Reflectance in units of 0–1. Error matrices follow Das et al. Table 2:
        "AUC = area under the ROC curve (direction-free for single features). Blue numbers in error matrices are counts "
        "(inputs); every total and accuracy beside them is an Excel formula. Columns marked (Excel) are formulas.")
 wb.move_sheet("00_README", offset=-wb.index(wb["00_README"]))
+if FULL:
+    wb.move_sheet("00b_Glossary", offset=-wb.index(wb["00b_Glossary"]) + 1)
 path = OUT / f"{C['output']['stem']}_FourTier_CART_RF_K_Combined.xlsx"
 wb.save(path)
 ALLCHECKS.to_pickle(WORK / "allchecks.pkl")

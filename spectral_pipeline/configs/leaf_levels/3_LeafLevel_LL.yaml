@@ -1,0 +1,44 @@
+# Leaf level LL: all four dates, growth stages and varieties combined.
+# Leaf levels come from the leaf-level workbooks (raw_data/leaf_level: uploaded as 2_date.xlsx, 2_more_date.xlsx and
+# lased_date_diseased.xlsx); plot, variety and growth stage from the labelled ASD files by exact spectral match.
+title: Healthy vs white-rust-diseased mustard leaves - leaf level LL, all dates, stages
+  and varieties combined
+subtitle: Four-tier hierarchical analysis (Das et al., 2020) with imbalance correction,
+  CART vs Random Forest, disease-sensitive features (K) and the four-tier analysis
+  of the combined feature pool
+author: Animesh Panda · Division of Agricultural Physics, ICAR-IARI, New Delhi
+data:
+  files:
+  - - asd__data_complete_labelled_110226.xlsx
+    - 11-02-2026
+  - - asd__data_complete_labelled_240226.xlsx
+    - 24-02-2026
+  - - asd__data_complete_labelled_030326.xlsx
+    - 03-03-2026
+  - - asd__data_complete_labelled_130326.xlsx
+    - 13-03-2026
+  plot_col: Plot
+  class_col: Class
+  date_col: Date
+  drop_exact_duplicates: true
+  leaf_level_files:
+  - leaf_level/2_date.xlsx
+  - leaf_level/2_more_date.xlsx
+  - leaf_level/lased_date_diseased.xlsx
+  subset:
+    Leaf level: LL
+  subset_label: leaf level LL (all dates, growth stages and varieties combined)
+  subset_family: 'one of three analyses: leaf levels L3, L5 and LL, each with all
+    dates, growth stages and varieties combined'
+classes:
+  negative: Healthy
+  positive: Diseased
+spectra:
+  keep_range:
+  - 400
+  - 2500
+  canopy: false
+output:
+  dir: ../../../deliverables/WhiteRust_LeafLevels
+  stem: 3_WhiteRust_Mustard_LeafLevel_LL
+naming: full

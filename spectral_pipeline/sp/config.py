@@ -27,6 +27,8 @@ DEFAULTS = {
         "id_cols": [],           # extra descriptor columns copied to the fold sheet
         "subset": None,          # optional {column: value} filter applied after cleaning (e.g. {Date: 11-02-2026})
         "subset_label": None,    # human-readable name of the subset
+        "subset_family": None,   # sentence describing the set of subset analyses (README)
+        "leaf_level_files": None,  # optional workbooks with leaf-level columns (L3, L5, LL), matched to the labelled files
         "wavelength_regex": r"^\D{0,3}(\d{3,4}(?:\.0+)?)$",
     },
     "classes": {"negative": "Healthy", "positive": "Diseased"},
@@ -73,6 +75,7 @@ DEFAULTS = {
     "k5": {"top_n": 15, "max_abs_r": 0.9},
     "combined": {"dedupe_abs_r": 0.99999, "collinear_abs_r": 0.999},
     "output": {"dir": "output", "stem": "analysis"},
+    "naming": "short",   # "full" = no codes (V1-V5, K1-K4) in workbook text, sheet names and figures
     "fast": False,   # True = reduced repeats / trees (for smoke tests only)
 }
 

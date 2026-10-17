@@ -94,6 +94,10 @@ def run(fs, y, groups, folds, cfg, label, collinear_guard=False, mixed=True):
         mm = stats.mixed_models(X, y, groups, cfg["tier1"]["mixed_model_jobs"])
         t1["mm_effect"], t1["mm_p"], t1["mm_q"], t1["icc"] = mm["effect"], mm["p"], mm["q"], mm["icc"]
         t1["mm_sig"] = t1["mm_q"] < alpha
+        _nna = int(np.isnan(np.asarray(mm["p"], float)).sum())
+        out["checks"].append(("Tier 1", "Mixed model converged for every feature", "R nlme::lme (REML) per feature",
+                              f"{X.shape[1] - _nna} of {X.shape[1]} converged" + (f"; {_nna} returned NA → counted as not significant" if _nna else ""),
+                              "PASS" if _nna == 0 else "FLAG"))
         t1["mm_boundary"] = mm["boundary"]
     out["tier1"] = t1
     out["n_sig"] = int(ft["sig"].sum())

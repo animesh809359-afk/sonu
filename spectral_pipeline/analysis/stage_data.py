@@ -14,6 +14,11 @@ from sp.data import Dataset
 C = cfg()
 files = [(RAW_DIR / f, d) for f, d in C["data"]["files"]]
 meta_all, R_all, wl, logs = load_asd.load_all(files)
+LEAF = None
+if C["data"].get("leaf_level_files"):
+    # leaf-level sheets (no plot numbers): exact spectral match to the labelled files gives plot, variety, stage
+    from sp import leaf_level
+    meta_all, R_all, LEAF = leaf_level.attach(meta_all, R_all, wl, [RAW_DIR / f for f in C["data"]["leaf_level_files"]])
 
 # ---- exact duplicates among the kept spectra (first occurrence kept)
 dup_mask = pd.DataFrame(R_all).duplicated(keep="first").to_numpy()
@@ -36,7 +41,9 @@ R_full = R_full[smask]
 subset_info = {"filter": C["data"].get("subset"), "label": C["data"].get("subset_label"),
                "n_all": n_before_subset, "n_subset": len(meta)}
 if C["data"].get("subset"):
-    dup_rows = [d for d in dup_rows if ((meta["Date"] == d["Date"]) & (meta["Plot"] == d["Plot"])).any()]
+    _dm = subset_mask(meta_all, C)
+    dup_rows = [d for d in dup_rows
+                if _dm[((meta_all["Date"] == d["Date"]) & (meta_all["Source column"] == d["Source column"])).to_numpy()].any()]
 present_dates = [d for _, d in C["data"]["files"] if d in set(meta["Date"])]
 
 y = (meta["Class"].values == "Diseased").astype(int)
@@ -121,6 +128,9 @@ checks = [
      if meta.duplicated(['Date', 'File']).any() else "none in this data set",
      "PASS"),
 ]
+if LEAF is not None:
+    for c_ in reversed(LEAF["checks"]):
+        checks.insert(0, c_)
 if C["data"].get("subset"):
     checks.insert(0, ("Subset selected after duplicate removal on all four files",
                       f"{C['data']['subset_label']}: {len(meta)} of {n_before_subset} leaf spectra", "PASS"))
@@ -155,7 +165,9 @@ save({"meta": meta, "meta_all": meta_all, "R_full": R_full, "R_all": R_all, "dup
       "logs": logs, "dup_rows": dup_rows,
       "audit": {"counts": counts, "by_date": by_date, "by_stage": by_stage, "by_stage_total": by_stage_total,
                 "by_variety": by_variety, "per_plot": per_plot, "stage_by_plot_date": stage_by_plot_date,
-                "checks": checks, "noise": noise, "sam": sam_tab, "top_dev": top_dev, "subset": subset_info,
+                "checks": checks, "noise": noise, "sam": sam_tab, "top_dev": top_dev, "subset": subset_info, "leaf": LEAF,
+                "by_level": (pd.crosstab([meta_all.loc[~dup_mask, "Leaf level"], meta_all.loc[~dup_mask, "Date"]],
+                                         meta_all.loc[~dup_mask, "Class"]) if LEAF is not None else None),
                 "present_dates": present_dates}},
      "data")
 print(counts, "\n", by_date, "\n", by_stage_total, "\n", by_variety)

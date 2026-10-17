@@ -152,7 +152,8 @@ def mixed_models(X, y, groups, n_jobs=4):
             _, err = pr.communicate()
             if pr.returncode != 0:
                 raise RuntimeError("nlme failed: " + err.decode()[-2000:])
-            res[idx] = np.loadtxt(jd / "out.txt", ndmin=2)
+            # nlme returns NA for a feature whose model does not converge -> NaN (not significant, counted in the checks)
+            res[idx] = np.atleast_2d(np.genfromtxt(jd / "out.txt", missing_values="NA", filling_values=np.nan))
     eff, pv, icc, df = res.T
     q = np.full_like(pv, np.nan)
     ok = np.isfinite(pv)

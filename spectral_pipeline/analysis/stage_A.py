@@ -76,7 +76,7 @@ A["tier1_tests"] = pd.DataFrame([
 ], columns=["Test", "Significant bands"])
 _cols = list(range(0, X.shape[1], 50))
 _sm = stats.mixed_models_statsmodels(X[:, _cols], y, groups, 4)
-_rho = st.spearmanr(_sm["p"], t1["mm_p"].to_numpy()[_cols]).correlation
+_rho = st.spearmanr(_sm["p"], t1["mm_p"].to_numpy()[_cols], nan_policy="omit").correlation
 A["checks"].append(("Tier 1", "Mixed model implementation", "R nlme::lme vs Python statsmodels MixedLM (Powell), every 50th band",
                     f"Spearman ρ of p-values {_rho:.3f} (statsmodels uses a Wald z-test, nlme a t-test with {len(set(groups)) - 2} df, so nlme p-values are larger)",
                     "PASS" if _rho > 0.95 else "FLAG"))

@@ -30,6 +30,10 @@ WRAP = Alignment(wrap_text=True, vertical="top")
 CENTER = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
 
+TEXT = None   # optional hook applied to every text cell (full names instead of codes)
+CELL = None   # optional column-aware hook for table cells: CELL(value, column_name)
+
+
 class Sheet:
     """Writes top-to-bottom; keeps the current row."""
 
@@ -50,7 +54,9 @@ class Sheet:
             self.para(subtitle, font=F_SUB)
         self.row += 1
 
-    def cell(self, r, c, v, font=F_BODY, fmt=None, fill=None, align=None, border=False):
+    def cell(self, r, c, v, font=F_BODY, fmt=None, fill=None, align=None, border=False, raw=False):
+        if TEXT is not None and not raw and isinstance(v, str):
+            v = TEXT(v)
         if isinstance(v, (np.floating,)):
             v = float(v)
         if isinstance(v, (np.integer,)):
@@ -120,7 +126,9 @@ class Sheet:
                     fill = FILL_FLAG
                 if isinstance(v, (list, tuple, dict)):
                     v = str(v)
-                self.cell(r, col + j, v, F_BODY, fmt=f, fill=fill, border=True,
+                if CELL is not None and isinstance(v, str):
+                    v = CELL(v, cn)
+                self.cell(r, col + j, v, F_BODY, fmt=f, fill=fill, border=True, raw=CELL is not None,
                           align=Alignment(wrap_text=isinstance(v, str) and len(v) > 18, vertical="top"))
             r += 1
         letters = {cn: get_column_letter(col + j) for j, cn in enumerate(cols)}

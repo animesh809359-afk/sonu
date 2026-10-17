@@ -47,7 +47,21 @@ CFG_GUARD = {"R": [[990, 1010], [1795, 1835]], "D1": [[988, 1012], [1793, 1837]]
 done = []
 
 
+_CFG = cfg()
+if _CFG.get("naming") == "full":
+    from naming import Namer  # noqa: E402
+    _NAMER = Namer(D["folds"].get("V5_by", "Date"))
+else:
+    _NAMER = None
+
+
 def save(fig, name):
+    if _NAMER is not None:          # full names instead of V1-V5 / K1-K4 codes in all figure text
+        import matplotlib.text as mtext
+        for t in fig.findobj(mtext.Text):
+            txt = t.get_text()
+            if txt:
+                t.set_text(_NAMER.text(txt))
     fig.savefig(FIG / f"{name}.png")
     plt.close(fig)
     done.append(name)
