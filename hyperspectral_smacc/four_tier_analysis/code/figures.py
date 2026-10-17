@@ -142,8 +142,8 @@ for S, c, name in ((H, CH, "Healthy"), (D, CD, "Diseased")):
 ymax = max(H.mean(0).max(), D.mean(0).max())
 for k, b in enumerate(sorted(SEL)):
     ax.axvline(wl[b], color=INK, lw=1, ls="--")
-    ax.text(wl[b], ymax * (1.04 + 0.07 * (k % 2)), f"{wl[b]:.0f}", ha="center", fontsize=9, color=INK)
-ax.set_ylim(0, ymax * 1.22); ax.set_xlabel("Wavelength (nm)"); ax.set_ylabel("Mean reflectance"); ax.legend(loc="center right")
+    ax.text(wl[b], ymax * 1.03, f"{wl[b]:.0f}", ha="center", va="bottom", rotation=90, fontsize=8.5, color=INK)
+ax.set_ylim(0, ymax * 1.28); ax.set_xlabel("Wavelength (nm)"); ax.set_ylabel("Mean reflectance"); ax.legend(loc="center right")
 ax.set_title(f"Tier 2 — {len(SEL)} bands selected by CART")
 fig.tight_layout(); fig.savefig("results/fig08_selected_bands.png"); plt.close(fig)
 
@@ -209,3 +209,34 @@ ax.legend(loc="upper left", bbox_to_anchor=(1.01, 1.0), fontsize=9, title="spati
 ax.set_title("Spatial blocks for block cross-validation")
 fig.tight_layout(); fig.savefig("results/fig12_blocks.png"); plt.close(fig)
 print("figures written")
+
+# ---- 13 RF band selection (tier 2 alternative)
+rf2 = R["rf2"]
+impA = rf2["RF-A"]["importance"].sort_values("wavelength_nm")
+fig, ax = plt.subplots(figsize=(11, 4.4))
+ax.plot(*gapped(impA.wavelength_nm.values, impA.MDI_importance.values), color="#eda100", lw=1.6, label="RF importance (ANOVA-significant bands)")
+iw = dict(zip(impA.wavelength_nm.round(2), impA.MDI_importance))
+for key, mk, col, lab in (("RF-A", "o", "#6250d6", f"RF-A: top {R['rf2_K']}"), ("RF-B", "D", "#2a78d6", f"RF-B: top {R['rf2_K']}, |r| < 0.95")):
+    ws_ = rf2[key]["wl"]
+    ax.scatter(ws_, [iw[round(w, 2)] for w in ws_], marker=mk, s=46 if key == "RF-B" else 34, color=col, edgecolors="white", linewidths=0.6, zorder=3, label=lab)
+for b in SEL:
+    ax.axvline(wl[b], color=INK2, lw=0.9, ls=":")
+ax.plot([], [], color=INK2, lw=0.9, ls=":", label="CART bands")
+ax.set_xlabel("Wavelength (nm)"); ax.set_ylabel("Mean decrease in Gini"); ax.legend(loc="upper left", fontsize=9.5)
+ax.set_title(f"Tier 2 alternative — Random Forest band ranking and the {R['rf2_K']} bands kept")
+fig.tight_layout(); fig.savefig("results/fig13_rf_selection.png"); plt.close(fig)
+print("fig13 written")
+
+# ---- 14 single-band J-M of every selected band
+sb = R["rf2_selected_bands"]; jb = R["jm_band"]
+fig, ax = plt.subplots(figsize=(11, 4.3))
+ax.plot(*gapped(jb.wavelength_nm.values, jb.JM_0to2.values), color="#b0b0b0", lw=1.4, label="all 463 bands")
+for col_, mk, c, lab, off in (("CART", "o", CD, "CART", 0), ("RF_A", "s", "#6250d6", "RF-A (top by importance)", 0), ("RF_B", "D", "#2a78d6", "RF-B (with |r| < 0.95 filter)", 0)):
+    m = sb[col_] == "yes"
+    ax.scatter(sb.wavelength_nm[m], sb.JM_0to2[m], marker=mk, s=48 if mk != "s" else 40, facecolors="none" if mk == "s" else c,
+               edgecolors=c, linewidths=1.4, zorder=3, label=f"{lab} ({m.sum()} bands)")
+ax.axhline(1.94, color=INK, ls="--", lw=1); ax.text(wl.min(), 1.94, " separability threshold 1.94", va="bottom", fontsize=9)
+ax.set_ylim(0, 2.05); ax.set_xlabel("Wavelength (nm)"); ax.set_ylabel("Single-band JM (0–2)")
+ax.legend(loc="center left", fontsize=9.5); ax.set_title("J–M distance of every band selected by CART or Random Forest")
+fig.tight_layout(); fig.savefig("results/fig14_jm_selected.png"); plt.close(fig)
+print("fig14 written")

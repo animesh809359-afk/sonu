@@ -79,12 +79,15 @@ ws.column_dimensions["A"].width = 6; ws.column_dimensions["B"].width = 22; ws.co
 header(ws, 4, 1, ["Step", "Sheet", "What it contains"])
 steps = [
     ("0", S_RAW, "The input file exactly as received (600 spectra × 483 bands + class, SMACC order, pixel row/column, lon/lat)."),
-    ("1", S_DQ, "Data-quality screening: vegetation rules per spectrum (NDVI, R800/R670, NDWI, R800), negative-reflectance counts, bands used. 3 non-vegetation spectra removed; noisy detector edges (<420 nm, >2350 nm) excluded."),
-    ("2", S_AD, "The analysis data set: 597 spectra (298 healthy, 299 diseased) × 463 bands (420–2350 nm), sorted healthy first. All Excel formulas in later sheets read from here."),
+    ("1", S_DQ, "Data check: no spectra removed (all 600 analysed); value ranges and negative-reflectance counts per spectrum and band; noisy detector edges (<420 nm, >2350 nm) excluded."),
+    ("2", S_AD, "The analysis data set: 600 spectra (300 healthy, 300 diseased) × 463 bands (420–2350 nm), sorted healthy first. All Excel formulas in later sheets read from here."),
     ("3", S_T1, "TIER 1 — one-way ANOVA at every band, computed with live Excel formulas (means, SDs, sums of squares, F, p = FDIST), plus Tukey HSD, Welch, Levene, FDR, Cohen's d and single-band JM; Python values alongside for cross-checking."),
     ("4", S_T2, "TIER 2 — CART (rpart settings: Gini, minsplit 20, minbucket 7, cp 0.01) on the ANOVA-significant bands: cp table, tree nodes, selected bands, importance."),
+    ("4b", "5b_Tier2_RF", "TIER 2 alternative — Random Forest band selection instead of CART (11 bands; variant A by importance only, variant B with a redundancy filter |r| < 0.95)."),
     ("5", S_T3, "TIER 3 — Jeffries–Matusita distance on the CART bands, rebuilt in Excel from COVAR / MINVERSE / MMULT / MDETERM; single-band and cumulative JM."),
+    ("5b", "6b_JM_Selected_Bands", "J–M distance of every band selected by CART or RF (live), multi-band J–M of each set, live matrix J–M for RF variant B."),
     ("6", S_T4, "TIER 4 — Quadratic Discriminant Analysis with 10-fold cross-validation (as in the paper): fold accuracies, confusion matrix, OA / PA / UA / kappa as formulas, 10× repeated CV."),
+    ("6b", "7b_Tier4_QDA_RFbands", "TIER 4 on the RF-selected bands: QDA confusion matrices, repeated, nested and spatial-block accuracy."),
     ("7", S_RF, "Random Forest comparison (500 trees, mtry = √p) on three band sets, same folds: confusion matrices, OOB accuracy, band importance."),
     ("8", S_CMP, "Side-by-side comparison of QDA and RF under every validation scheme."),
     ("9", S_VAL, "Validation cross-checks: nested CV (band selection inside folds), spatial-block CV, location-only control, permutation test, sensitivity analyses."),
@@ -116,28 +119,24 @@ for i, row in enumerate(raw.itertuples(index=False)):
 ws.freeze_panes = "G5"
 
 # ================================================================ 2 DATA QUALITY
-ws = sheet(S_DQ, "Step 1 — Data-quality screening", "Rules applied to every spectrum; a spectrum failing any REMOVE rule is excluded from the analysis. Index values computed from band means (Python).")
+ws = sheet(S_DQ, "Step 1 — Data check", "No spectra are removed: all 600 SMACC endmembers are analysed. This sheet only documents value ranges, negative reflectance and the bands used.")
 fl = R["flags"]
-hdr = ["class", "endmember_no", "row_0based", "col_0based", "NDVI", "R800/R670", "NDWI", "R800", "Mean VIS", "Bands < 0", "Min reflectance", "Remove reason", "Kept"]
-header(ws, 12, 1, hdr, [10, 11, 10, 10, 9, 10, 9, 9, 9, 9, 11, 26, 7])
+hdr = ["class", "endmember_no", "row_0based", "col_0based", "Bands < 0", "Min reflectance", "Max reflectance"]
+header(ws, 12, 1, hdr, [10, 11, 10, 10, 9, 13, 13])
 for i, r_ in enumerate(fl.itertuples(index=False)):
     rr = 13 + i
-    vals = [r_[0], r_[1], r_[2], r_[3], r_[4], r_[5], r_[6], r_[7], r_[8], int(r_[9]), r_[10], r_[11]]
+    vals = [r_[0], int(r_[1]), int(r_[2]), int(r_[3]), int(r_[4]), float(r_[5]), float(r_[6])]
     for j, v in enumerate(vals):
-        c = put(ws, rr, 1 + j, v, font=F_IN, fmt="0.000" if 4 <= j <= 10 and j != 9 else None)
-    put(ws, rr, 13, f'=IF(L{rr}="","yes","no")')
+        put(ws, rr, 1 + j, v, font=F_IN, fmt="0.000" if j >= 5 else None)
 last = 12 + len(fl)
-put(ws, 4, 1, "Rules (REMOVE): NDVI < 0.30; R800/R670 < 2; NDWI = (R560 − R860)/(R560 + R860) > 0; R800 < 0.10.", font=F_B)
 header(ws, 6, 1, ["", "Healthy", "Diseased", "Total"])
 put(ws, 7, 1, "Spectra in file", bold=True)
 put(ws, 7, 2, f'=COUNTIF(A13:A{last},"healthy")'); put(ws, 7, 3, f'=COUNTIF(A13:A{last},"diseased")'); put(ws, 7, 4, "=B7+C7")
-put(ws, 8, 1, "Removed (non-vegetation)", bold=True)
-put(ws, 8, 2, f'=COUNTIFS(A13:A{last},"healthy",M13:M{last},"no")'); put(ws, 8, 3, f'=COUNTIFS(A13:A{last},"diseased",M13:M{last},"no")'); put(ws, 8, 4, "=B8+C8")
-put(ws, 9, 1, "Kept for analysis", bold=True)
+put(ws, 8, 1, "Spectra analysed (none removed)", bold=True)
 for c in "BCD":
-    put(ws, 9, " BCD".index(c) + 1, f"={c}7-{c}8", fill=FILL_K)
-put(ws, 10, 1, "Spectra with any negative reflectance", bold=True)
-put(ws, 10, 2, f'=COUNTIFS(A13:A{last},"healthy",J13:J{last},">0")'); put(ws, 10, 3, f'=COUNTIFS(A13:A{last},"diseased",J13:J{last},">0")'); put(ws, 10, 4, "=B10+C10")
+    put(ws, 8, " BCD".index(c) + 1, f"={c}7", fill=FILL_K)
+put(ws, 9, 1, "Spectra with any negative reflectance", bold=True)
+put(ws, 9, 2, f'=COUNTIFS(A13:A{last},"healthy",E13:E{last},">0")'); put(ws, 9, 3, f'=COUNTIFS(A13:A{last},"diseased",E13:E{last},">0")'); put(ws, 9, 4, "=B9+C9")
 # negatives by band + band usage
 nb = R["neg_by_band"]; bt = R["band_table"]
 c0 = 16
@@ -488,6 +487,145 @@ for i, r_ in enumerate(sens.itertuples(index=False)):
     put(ws, rr, 6, float(r_.RF_all_OA), font=F_IN, fmt="0.0%"); put(ws, rr, 7, r_.bands, font=F_IN)
 ws.column_dimensions["A"].width = 40
 
+# ================================================================ 5b / 6b / 7b  — RF instead of CART in tier 2
+S_T2RF, S_JMSEL, S_T4RF = "5b_Tier2_RF", "6b_JM_Selected_Bands", "7b_Tier4_QDA_RFbands"
+rf2, K2, RTHR = R["rf2"], R["rf2_K"], R["rf2_rthr"]
+def colrange(j): return rngA(j)
+ws = sheet(S_T2RF, "Tier 2 (alternative) — Random Forest band selection instead of CART",
+           f"Input: the {int(R['sig'].sum())} ANOVA-significant bands (sheet 4). Random Forest (500 trees, mtry = √p, Gini, seed 42) ranks the bands by mean decrease in Gini; {K2} bands are kept — the same number as CART, for a fair comparison.")
+for c, w in zip("ABCDEFGHIJKLMN", [8, 13, 11, 14, 12, 4, 8, 13, 11, 14, 16, 4, 30, 12]):
+    ws.column_dimensions[c].width = w
+put(ws, 4, 1, f"Variant A — top {K2} bands by importance only", font=F_B)
+header(ws, 5, 1, ["Order", "Band (nm)", "Region", "Importance", "Importance rank"])
+impA = rf2["RF-A"]["importance"]; rank_of = {round(float(w), 2): int(r) for w, r in zip(impA.wavelength_nm, impA["rank"])}
+imp_of = {round(float(w), 2): float(v) for w, v in zip(impA.wavelength_nm, impA.MDI_importance)}
+for i, w in enumerate(rf2["RF-A"]["wl"]):
+    r = 6 + i
+    put(ws, r, 1, i + 1, font=F_IN); put(ws, r, 2, w, font=F_IN, fmt="0.0"); put(ws, r, 3, region_of(w))
+    put(ws, r, 4, imp_of[round(w, 2)], font=F_IN, fmt="0.0000"); put(ws, r, 5, rank_of[round(w, 2)], font=F_IN)
+put(ws, 4, 7, f"Variant B — top {K2} with redundancy filter (skip a band if |r| ≥ {RTHR} with a band already kept)", font=F_B)
+header(ws, 5, 7, ["Order", "Band (nm)", "Region", "Importance rank", "Max |r| with earlier kept bands (live CORREL)"])
+bandsB = rf2["RF-B"]["bands"]
+for i, b in enumerate(bandsB):
+    r = 6 + i; w = float(wl[b])
+    put(ws, r, 7, i + 1, font=F_IN); put(ws, r, 8, w, font=F_IN, fmt="0.0"); put(ws, r, 9, region_of(w)); put(ws, r, 10, rank_of[round(w, 2)], font=F_IN)
+    if i == 0:
+        put(ws, r, 11, "–")
+    else:
+        terms = ",".join(f"ABS(CORREL({colrange(b)},{colrange(c)}))" for c in bandsB[:i])
+        put(ws, r, 11, f"=MAX({terms})", fmt="0.000")
+put(ws, 6 + K2, 7, "Largest |r| among kept bands"); put(ws, 6 + K2, 11, f"=MAX(K7:K{5+K2})", fmt="0.000", fill=FILL_K); RB_MAXR = f"K{6+K2}"
+note(ws, 7 + K2, 7, "Why variant B: the top-ranked bands are neighbours in SWIR-2 that are almost identical (|r| up to 0.999 in variant A). Keeping all of them adds little new information and makes the covariance matrices nearly singular.", 5)
+# importance ranking with decisions
+RS = 10 + K2
+put(ws, RS, 1, "Importance ranking (top 40 of the significant bands) and the selection decisions", font=F_B)
+header(ws, RS + 1, 1, ["Rank", "Band (nm)", "Region", "Importance", "In variant A", "", "In variant B", "Reason skipped in B"])
+orderB = list(impA.wavelength_nm.round(2))
+chosen = []
+idx_of = {round(float(wl[j]), 2): j for j in range(P)}
+Xc = X
+for i, r_ in enumerate(impA.head(40).itertuples(index=False)):
+    rr = RS + 2 + i; w = round(float(r_.wavelength_nm), 2); j = idx_of[w]
+    put(ws, rr, 1, int(r_.rank), font=F_IN); put(ws, rr, 2, w, font=F_IN, fmt="0.0"); put(ws, rr, 3, region_of(w))
+    put(ws, rr, 4, float(r_.MDI_importance), font=F_IN, fmt="0.0000"); put(ws, rr, 5, "yes" if j in rf2["RF-A"]["bands"] else "")
+    if j in bandsB:
+        put(ws, rr, 7, "yes"); chosen.append(j)
+    elif len(chosen) < K2:
+        rs = [abs(np.corrcoef(Xc[:, j], Xc[:, c])[0, 1]) for c in chosen]
+        k_ = int(np.argmax(rs)); put(ws, rr, 8, f"|r| = {rs[k_]:.3f} with {wl[chosen[k_]]:.1f} nm", font=F_IN)
+put(ws, RS, 13, "Bands chosen most often by nested RF selection (variant B, 10 folds)", font=F_B)
+header(ws, RS + 1, 13, ["Band (nm)", "Folds"])
+for i, (w, n) in enumerate(rf2["RF-B"]["nested_freq"].head(15).items()):
+    put(ws, RS + 2 + i, 13, float(w), font=F_IN, fmt="0.0"); put(ws, RS + 2 + i, 14, int(n), font=F_IN)
+
+# ---------------------------------------------------------------- 6b  J-M of every selected band + RF-B matrix JM
+ws = sheet(S_JMSEL, "J–M distance of every band selected by CART or Random Forest",
+           "Single-band J–M is a live formula (column R of sheet 4, found by wavelength). Multi-band J–M of each selected set below; for RF variant B the matrix calculation is rebuilt live in Excel.")
+for c, w in zip("ABCDEFGHIJKLM", [12, 11, 7, 7, 7, 14, 14, 12, 11, 11, 4, 12, 12]):
+    ws.column_dimensions[c].width = w
+sb = R["rf2_selected_bands"]
+header(ws, 4, 1, ["Band (nm)", "Region", "CART", "RF-A", "RF-B", "JM 0–2 (Excel, live)", "JM 0–2 (Python)", "|difference|", "√JM", "F (ANOVA)"])
+T1B, T1R, T1M = f"{q(S_T1)}!$B${TR0+1}:$B${TL}", f"{q(S_T1)}!$R${TR0+1}:$R${TL}", f"{q(S_T1)}!$M${TR0+1}:$M${TL}"
+for i, r_ in enumerate(sb.itertuples(index=False)):
+    r = 5 + i
+    put(ws, r, 1, float(r_.wavelength_nm), font=F_IN, fmt="0.0"); put(ws, r, 2, r_.region)
+    put(ws, r, 3, r_.CART); put(ws, r, 4, r_.RF_A); put(ws, r, 5, r_.RF_B)
+    put(ws, r, 6, f"=INDEX({T1R},MATCH(A{r},{T1B},0))", fmt="0.0000")
+    put(ws, r, 7, float(r_.JM_0to2), font=F_IN, fmt="0.0000"); put(ws, r, 8, f"=ABS(F{r}-G{r})", fmt="0.0E+00")
+    put(ws, r, 9, f"=SQRT(F{r})", fmt="0.0000"); put(ws, r, 10, f"=INDEX({T1M},MATCH(A{r},{T1B},0))", fmt="0.0")
+last_sb = 4 + len(sb)
+put(ws, last_sb + 1, 1, "Maximum", bold=True); put(ws, last_sb + 1, 6, f"=MAX(F5:F{last_sb})", fmt="0.0000", fill=FILL_K)
+put(ws, last_sb + 2, 1, "Mean", bold=True); put(ws, last_sb + 2, 6, f"=AVERAGE(F5:F{last_sb})", fmt="0.0000")
+REF["jm_single_maxdiff"] = f"MAX({q(S_JMSEL)}!H5:H{last_sb})"
+r0 = last_sb + 4
+put(ws, r0, 1, f"Multi-band J–M of each selected set ({K2} bands each)", font=F_B)
+header(ws, r0 + 1, 1, ["Selection", "", "", "", "", "JM 0–2", "√JM", "Separable (≥ 1.94)?"])
+sets = R["rf2_sets"]
+for i, r_ in enumerate(sets.itertuples(index=False)):
+    rr = r0 + 2 + i
+    put(ws, rr, 1, r_.selection); put(ws, rr, 6, float(r_.JM_0to2), font=F_IN, fmt="0.0000"); put(ws, rr, 7, f"=SQRT(F{rr})", fmt="0.0000")
+    put(ws, rr, 8, f'=IF(F{rr}>=1.94,"yes","no")')
+put(ws, r0 + 2, 6, f"={q(S_T3)}!C{rR+5}", fmt="0.0000")
+# live matrix JM for RF-B
+selB = sorted(bandsB); kB = len(selB)
+rL = r0 + 7
+put(ws, rL, 1, "Live matrix calculation for RF variant B (same formulas as sheet 6)", font=F_B)
+put(ws, rL + 1, 1, "d = μD − μH", bold=True)
+for i, j in enumerate(selB):
+    put(ws, rL + 1, 2 + i, f"=AVERAGE({rngD(j)})-AVERAGE({rngH(j)})", fmt="0.00000")
+    put(ws, rL, 2 + i, float(wl[j]), font=F_IN, fmt="0.0")
+dB = f"$B${rL+1}:${CL(1+kB)}${rL+1}"
+def covB(rs, which, label):
+    put(ws, rs, 1, label, bold=True)
+    for a in range(kB):
+        put(ws, rs + 1 + a, 1, float(wl[selB[a]]), font=F_IN, fmt="0.0")
+        for b_ in range(kB):
+            ja, jb_ = selB[a], selB[b_]
+            if which == "H": f = f"=COVAR({rngH(ja)},{rngH(jb_)})*{nH}/{nH-1}"
+            elif which == "D": f = f"=COVAR({rngD(ja)},{rngD(jb_)})*{nD}/{nD-1}"
+            else: f = f"=({CL(2+b_)}{rH_+1+a}+{CL(2+b_)}{rD_+1+a})/2"
+            put(ws, rs + 1 + a, 2 + b_, f, fmt="0.00E+00")
+    return f"$B${rs+1}:${CL(1+kB)}${rs+kB}"
+rH_ = rL + 3; CHB = covB(rH_, "H", "Covariance healthy")
+rD_ = rH_ + kB + 2; CDB = covB(rD_, "D", "Covariance diseased")
+rM_ = rD_ + kB + 2; CMB = covB(rM_, "M", "Average covariance")
+rr = rM_ + kB + 2
+header(ws, rr, 1, ["Quantity", "", "", "", "", "Excel (live)", "Python", "|difference|"])
+vB = rf2["RF-B"]
+items = [("Bhattacharyya B", f"=SUMPRODUCT(MMULT({dB},MINVERSE({CMB})),{dB})/8+0.5*LN(MDETERM({CMB})/SQRT(MDETERM({CHB})*MDETERM({CDB})))", vB["B"]),
+         ("JM (0–2)", f"=2*(1-EXP(-F{rr+1}))", vB["JM_0to2"])]
+for i, (a, f, v) in enumerate(items):
+    put(ws, rr + 1 + i, 1, a); put(ws, rr + 1 + i, 6, f, fmt="0.0000"); put(ws, rr + 1 + i, 7, float(v), font=F_IN, fmt="0.0000")
+    put(ws, rr + 1 + i, 8, f"=ABS(F{rr+1+i}-G{rr+1+i})", fmt="0.0E+00")
+REF["jmB_diff"] = f"{q(S_JMSEL)}!H{rr+2}"; rr_jmB = rr + 2
+# cumulative tables
+rc = rr + 5
+for k_, key in enumerate(("RF-A", "RF-B")):
+    c0 = 1 + 5 * k_
+    put(ws, rc, c0, f"Cumulative JM — {key}", font=F_B)
+    header(ws, rc + 1, c0, ["Bands", "Band added (nm)", "JM 0–2"])
+    for i, r_ in enumerate(rf2[key]["cum"].itertuples(index=False)):
+        put(ws, rc + 2 + i, c0, int(r_.n_bands), font=F_IN); put(ws, rc + 2 + i, c0 + 1, float(r_.added_band_nm), font=F_IN, fmt="0.0")
+        put(ws, rc + 2 + i, c0 + 2, float(r_.JM_0to2), font=F_IN, fmt="0.0000")
+
+# ---------------------------------------------------------------- 7b  QDA on RF-selected bands
+ws = sheet(S_T4RF, "Tier 4 — QDA on the Random-Forest-selected bands (10-fold CV, same settings as sheet 7)",
+           "Paper-style: bands chosen on all data, then 10-fold CV. Nested and spatial-block: RF selection repeated inside every training fold.")
+for c, w in zip("ABCDEFGHIJKL", [24, 11, 11, 9, 15, 3, 24, 11, 11, 9, 15, 3]):
+    ws.column_dimensions[c].width = w
+for k_, key in enumerate(("RF-A", "RF-B")):
+    c0 = 1 + 6 * k_; v = rf2[key]
+    put(ws, 4, c0, v["label"], font=F_B)
+    put(ws, 5, c0, "Bands (nm)"); put(ws, 5, c0 + 1, ", ".join(f"{w:.1f}" for w in sorted(v["wl"])), font=F_IN)
+    REF[f"q_{key}"] = cm_block(ws, 7, c0, "QDA confusion matrix (paper-style, rep. 1)", v["qda_paper"]["cm"])
+    put(ws, 17, c0, "QDA 10× repeated CV mean"); put(ws, 17, c0 + 1, float(v["qda_rep"].mean()), font=F_IN, fmt="0.00%")
+    put(ws, 18, c0, "QDA 10× repeated CV SD"); put(ws, 18, c0 + 1, float(v["qda_rep"].std(ddof=1)), font=F_IN, fmt="0.00%")
+    put(ws, 19, c0, "QDA nested 10-fold"); put(ws, 19, c0 + 1, float(v["qda_nested"]["OA"]), font=F_IN, fmt="0.00%")
+    put(ws, 20, c0, "QDA spatial-block (nested)"); put(ws, 20, c0 + 1, float(v["qda_spatial"]["OA"]), font=F_IN, fmt="0.00%")
+    put(ws, 21, c0, "RF classifier, paper-style"); put(ws, 21, c0 + 1, float(v["rf_paper"]["OA"]), font=F_IN, fmt="0.00%")
+    put(ws, 22, c0, "Python check: QDA OA"); put(ws, 22, c0 + 1, float(v["qda_paper"]["OA"]), font=F_IN, fmt="0.00%")
+    REF[f"q_{key}_py"] = f"{q(S_T4RF)}!{CL(c0+1)}22"
+
 # ================================================================ 9 COMPARISON (links)
 ws = sheet(S_CMP, "Comparison — QDA (four-tier) vs Random Forest",
            "Every number links to the sheet where it is computed (green). Paper-style = bands chosen on all data, random 10-fold CV.")
@@ -515,6 +653,18 @@ put(ws, 17, 1, "RF out-of-bag accuracy (CART / significant / all bands)", bold=T
 for j in range(3):
     put(ws, 17, 3 + j, f"={REF[f'rf_{j}_oob']}", fmt="0.0%")
 put(ws, 18, 1, "JM distance, CART bands (0–2)", bold=True); put(ws, 18, 3, f"={q(S_T3)}!C{rR+5}", fmt="0.000")
+put(ws, 21, 1, f"Tier 2 comparison — CART vs Random Forest band selection ({K2} bands each; tier 3 J–M and tier 4 QDA)", font=F_B)
+header(ws, 22, 1, ["Tier 2 selection", "Bands (nm)", "JM (0–2)", "QDA paper-style", "QDA 10× mean", "QDA nested", "QDA spatial", "RF classifier (paper-style)", "Kappa (QDA paper)"])
+for i, r_ in enumerate(R["rf2_sets"].itertuples(index=False)):
+    rr = 23 + i
+    put(ws, rr, 1, r_.selection); put(ws, rr, 2, r_.bands, font=F_IN)
+    vals = [r_.JM_0to2, r_.QDA_paper, r_.QDA_rep_mean, r_.QDA_nested, r_.QDA_spatial, r_.RF_paper, r_.kappa_paper]
+    for j, v in enumerate(vals):
+        put(ws, rr, 3 + j, float(v), font=F_IN, fmt="0.000" if j in (0, 6) else "0.0%")
+put(ws, 23, 3, f"={q(S_T3)}!C{rR+5}", fmt="0.000"); put(ws, 23, 4, f"={REF['qda_paper']['OA']}", fmt="0.0%")
+put(ws, 24, 4, f"={REF['q_RF-A']['OA']}", fmt="0.0%"); put(ws, 25, 4, f"={REF['q_RF-B']['OA']}", fmt="0.0%")
+put(ws, 25, 3, f"={q(S_JMSEL)}!F{rr_jmB}", fmt="0.000")
+ws.column_dimensions["B"].width = 44
 
 # ================================================================ 11 CROSS CHECKS
 ws = sheet(S_CHK, "Cross-checks of every step", "Part A: checks run in Python during the analysis. Part B: live Excel checks comparing workbook formulas with the Python results.")
@@ -538,7 +688,12 @@ live = [("Tier 1", "Max relative |F(Excel) − F(Python)| over all bands", f"=MA
         ("Tier 4", "|QDA kappa (Excel formula) − kappa (Python)|", f"=ABS({REF['qda_paper']['kappa']}-{q(S_T4)}!B18)", 1e-9),
         ("Tier 4", "Confusion-matrix total − analysis spectra", f"=ABS({REF['qda_paper']['N']}-{N})", 0.5),
         ("RF", "|RF OA (Excel, all bands) − OA (Python)|", f"=ABS({REF['rf_2']['OA']}-{float(R['rf']['All 463 bands']['metrics']['OA'])})", 1e-9),
-        ("Data", "Kept spectra (sheet 2) − rows in analysis data", f"=ABS({q(S_DQ)}!D9-{N})", 0.5)]
+        ("Data", "Spectra analysed (sheet 2) − rows in analysis data", f"=ABS({q(S_DQ)}!D8-{N})", 0.5),
+        ("Tier 2 (RF)", "Max |single-band JM (Excel) − Python| over all selected bands", f"={REF['jm_single_maxdiff']}", 1e-9),
+        ("Tier 3 (RF)", "|JM of RF-B set (Excel matrix formulas) − Python|", f"={REF['jmB_diff']}", 1e-6),
+        ("Tier 4 (RF)", "|QDA OA on RF-A bands (Excel) − Python|", f"=ABS({REF['q_RF-A']['OA']}-{REF['q_RF-A_py']})", 1e-9),
+        ("Tier 4 (RF)", "|QDA OA on RF-B bands (Excel) − Python|", f"=ABS({REF['q_RF-B']['OA']}-{REF['q_RF-B_py']})", 1e-9),
+        ("Tier 2 (RF)", "RF-B: largest |r| between kept bands (live CORREL) below 0.95", f"=MAX(0,{q(S_T2RF)}!{RB_MAXR}-0.95+1E-12)", 1e-9)]
 for i, (a, b, f, tol) in enumerate(live):
     rr = rb + 2 + i
     put(ws, rr, 1, a); put(ws, rr, 2, b); put(ws, rr, 3, f, fmt="0.0E+00"); put(ws, rr, 4, tol, font=F_IN, fmt="0.0E+00")
@@ -547,7 +702,7 @@ put(ws, rb + 3 + len(live), 1, "All checks", font=F_B)
 put(ws, rb + 3 + len(live), 5, f'=IF(AND(COUNTIF(E5:E{4+len(ck)},"FAIL")=0,COUNTIF(E{rb+2}:E{rb+1+len(live)},"FAIL")=0),"ALL PASS","CHECK")', fill=FILL_K,
     font=Font(name=FONT, size=10, bold=True))
 
-order = ["README", S_RAW, S_DQ, S_AD, S_T1, S_T2, S_T3, S_T4, S_RF, S_CMP, S_VAL, S_CHK]
+order = ["README", S_RAW, S_DQ, S_AD, S_T1, S_T2, S_T2RF, S_T3, S_JMSEL, S_T4, S_T4RF, S_RF, S_CMP, S_VAL, S_CHK]
 wb._sheets = [wb[n] for n in order]
 wb.save(OUT)
 print("saved", OUT)

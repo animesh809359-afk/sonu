@@ -41,41 +41,22 @@ check("0 Data", "duplicate pixel locations", 0, int(raw.duplicated(["row_0based"
 check("0 Data", "wavelengths strictly increasing", True, bool(np.all(np.diff(wl_all) > 0)), np.all(np.diff(wl_all) > 0))
 
 # =====================================================================
-# STEP 1  Data-quality screening
+# STEP 1  Data check (no spectra are removed: every SMACC endmember is analysed)
 # =====================================================================
-def bandmean(X, wl, lo, hi):
-    m = (wl >= lo) & (wl <= hi)
-    return X[:, m].mean(1)
-red, nir = bandmean(X_all, wl_all, 660, 680), bandmean(X_all, wl_all, 790, 810)
-green, n860 = bandmean(X_all, wl_all, 545, 555), bandmean(X_all, wl_all, 850, 870)
-vis = bandmean(X_all, wl_all, 400, 700)
-ndvi, sr, ndwi = (nir - red) / (nir + red), nir / red, (green - n860) / (green + n860)
 flags = pd.DataFrame({"class": y_all, "endmember_no": raw["endmember_no"], "row_0based": raw["row_0based"],
-                      "col_0based": raw["col_0based"], "NDVI": ndvi, "SR_800_670": sr, "NDWI": ndwi, "R800": nir,
-                      "VIS_mean": vis, "n_negative_bands": (X_all < 0).sum(1),
-                      "min_reflectance": X_all.min(1)})
-reasons = []
-for i in range(len(flags)):
-    r = []
-    if ndvi[i] < 0.30: r.append("NDVI<0.30")
-    if sr[i] < 2.0: r.append("R800/R670<2")
-    if ndwi[i] > 0: r.append("NDWI>0 (water)")
-    if nir[i] < 0.10: r.append("R800<0.10")
-    reasons.append("; ".join(r))
-flags["remove_reason"] = reasons
-flags["kept_for_analysis"] = flags["remove_reason"] == ""
+                      "col_0based": raw["col_0based"], "n_negative_bands": (X_all < 0).sum(1),
+                      "min_reflectance": X_all.min(1), "max_reflectance": X_all.max(1)})
 R["flags"] = flags
 neg_by_band = pd.DataFrame({"wavelength_nm": wl_all,
                             "neg_healthy": (X_all[y_all == "healthy"] < 0).sum(0),
                             "neg_diseased": (X_all[y_all == "diseased"] < 0).sum(0)})
 R["neg_by_band"] = neg_by_band
-print("STEP 1 removed:", (~flags.kept_for_analysis).sum(), flags.loc[~flags.kept_for_analysis, ["class", "endmember_no", "remove_reason"]].values.tolist())
+print("STEP 1: all", len(flags), "spectra kept; spectra with negative values:", int((flags.n_negative_bands > 0).sum()))
 
 # Band set for analysis: noisy detector edges removed (same rule as the SMACC search)
 band_keep = (wl_all >= 420) & (wl_all <= 2350)
 R["band_table"] = pd.DataFrame({"wavelength_nm": wl_all, "used": np.where(band_keep, "yes", "no (noisy detector edge)")})
-keep = flags["kept_for_analysis"].to_numpy()
-data = raw.loc[keep].reset_index(drop=True)
+data = raw.reset_index(drop=True)
 bcols = [c for c, k in zip(band_cols_all, band_keep) if k]
 wl = wl_all[band_keep]
 X = data[bcols].to_numpy(float)
@@ -84,7 +65,7 @@ yb = (y == "diseased").astype(int)          # 1 = diseased, 0 = healthy
 N, P = X.shape
 nH, nD = (yb == 0).sum(), (yb == 1).sum()
 print(f"Analysis set: {N} spectra ({nH} H, {nD} D) x {P} bands")
-check("1 Screening", "analysis set size", "597 spectra x 463 bands", f"{N} x {P}", (N, P) == (597, 463))
+check("1 Data check", "analysis set size (all spectra, noisy edge bands excluded)", "600 spectra x 463 bands", f"{N} x {P}", (N, P) == (600, 463))
 R["analysis_set"] = dict(N=int(N), P=int(P), nH=int(nH), nD=int(nD), wl_min=float(wl.min()), wl_max=float(wl.max()))
 
 def fmt(w): return f"{w:.1f}"
@@ -568,15 +549,13 @@ def paper_pipeline(Xm, ym, wlm):
         rfp[te] = rf().fit(Xm[tr], ym[tr]).predict(Xm[te])
     return dict(n_sig=len(si), bands=", ".join(fmt(wlm[i]) for i in b), n_sel=len(b), JM=jm2(B_), QDA_OA=(pr == ym).mean(), RF_all_OA=(rfp == ym).mean())
 sens = []
-s = paper_pipeline(X, yb, wl); s.update(case="Main analysis: 597 spectra, 420-2350 nm (463 bands)"); sens.append(s)
+s = paper_pipeline(X, yb, wl); s.update(case="Main analysis: 600 spectra, 420-2350 nm (463 bands)"); sens.append(s)
 yb_all = (y_all == "diseased").astype(int)
-Xa = X_all[:, band_keep]
-s = paper_pipeline(Xa, yb_all, wl); s.update(case="All 600 spectra (3 non-vegetation spectra kept)"); sens.append(s)
 m_ns2 = wl < 1900
 s = paper_pipeline(X[:, m_ns2], yb, wl[m_ns2]); s.update(case="SWIR-2 excluded (420-1780 nm, 399 bands)"); sens.append(s)
 m_vnir = wl < 1000
 s = paper_pipeline(X[:, m_vnir], yb, wl[m_vnir]); s.update(case="VNIR only (420-1000 nm)"); sens.append(s)
-s = paper_pipeline(X_all, yb_all, wl_all); s.update(case="All 483 bands incl. noisy edges, 600 spectra"); sens.append(s)
+s = paper_pipeline(X_all, yb_all, wl_all); s.update(case="All 483 bands incl. noisy edges (399-2398 nm)"); sens.append(s)
 R["sensitivity"] = pd.DataFrame(sens)[["case", "n_sig", "n_sel", "bands", "JM", "QDA_OA", "RF_all_OA"]]
 print(R["sensitivity"])
 

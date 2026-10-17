@@ -117,6 +117,13 @@ for (const f of fs.readdirSync(RES).filter((f) => f.endsWith(".png"))) {
 const q = D.qda, rfC = D.rf["CART bands (tiers 2-3)"], rfS = D.rf["All ANOVA-significant bands"], rfA = D.rf["All 463 bands"];
 const t1 = D.tier1, t3 = D.tier3, cart = D.cart;
 const selTxt = cart.bandsA.map((b) => b.toFixed(1)).join(", ");
+const regionOf = (w) => w < 700 ? "VIS" : w < 750 ? "red-edge" : w < 1330 ? "NIR" : w < 1800 ? "SWIR-1" : "SWIR-2";
+const nSW2 = cart.bandsA.filter((b) => b >= 1970).length;
+const nonSW2 = cart.bandsA.filter((b) => b < 1970).map((b) => `${b.toFixed(0)} (${regionOf(b)})`).join(", ");
+const sens = (k) => D.sens.find((r) => r.case.startsWith(k));
+const sNoSW2 = sens("SWIR-2 excluded"), sVNIR = sens("VNIR only"), sAll483 = sens("All 483");
+const S2 = D.rf2_sets, rfA2 = D.rf2["RF-A"], rfB2 = D.rf2["RF-B"];
+const locH = D.location[0], locD = D.location[1];
 
 // ================================================================== 1 TITLE
 newSection("Introduction");
@@ -127,9 +134,9 @@ slide("TITLE", "Discriminating healthy and diseased canopy from SMACC endmembers
 {
   const s = slide("CONTENT", "Workflow at a glance");
   const blocks = [
-    ["A", "Before the analysis", ["Hyperspectral image (483 bands)", "ROIs: healthy & diseased", "Pixel extraction + NDVI filter", "SMACC: 300 endmembers / class", "Quality screening"], HX.accent6],
+    ["A", "Before the analysis", ["Hyperspectral image (483 bands)", "ROIs: healthy & diseased", "Pixel extraction + NDVI filter", "SMACC: 300 endmembers / class", "Data check (no spectra removed)"], HX.accent6],
     ["B", "Four-tier analysis", ["Tier 1: one-way ANOVA per band", "Tier 2: CART band selection", "Tier 3: J–M distance", "Tier 4: QDA, 10-fold CV"], HX.dk2],
-    ["C", "Comparison", ["Random Forest, 500 trees", "Three band sets", "Same folds as QDA", "Band importance"], HX.accent4],
+    ["C", "Comparison", ["RF instead of CART (Tier 2)", "RF instead of QDA (Tier 4)", "Same folds as QDA", "Band importance"], HX.accent4],
     ["D", "Cross-checks", ["Nested & spatial-block CV", "Permutation test", "Location-only control", "Sensitivity analyses", "Excel ↔ Python checks"], HX.accent3],
   ];
   const bw = 2.85, gap = 0.243;
@@ -148,7 +155,7 @@ slide("TITLE", "Discriminating healthy and diseased canopy from SMACC endmembers
 
 // ================================================================== PART A
 newSection("A. Before the analysis");
-slide("SECTION", "A · Steps before the analysis", "From the hyperspectral image to 300 healthy and 300 diseased SMACC endmembers, and the quality screening of those spectra");
+slide("SECTION", "A · Steps before the analysis", "From the hyperspectral image to 300 healthy and 300 diseased SMACC endmembers, and a check of those spectra");
 
 {
   const s = slide("CONTENT", "Input hyperspectral image");
@@ -235,20 +242,17 @@ slide("SECTION", "A · Steps before the analysis", "From the hyperspectral image
 }
 
 {
-  const s = slide("CONTENT", "Quality screening of the endmembers");
-  table(s, [
-    ["Class", "EM no.", "NDVI", "R800/R670", "NDWI", "Reason removed"],
-    ...D.removed.map((r) => [r.class, r.endmember_no, f2(r.NDVI, 3), f2(r.SR_800_670, 2), f2(r.NDWI, 3), r.remove_reason]),
-  ], MX, 1.55, 6.6, [1.0, 0.8, 0.75, 1.05, 0.8, 2.2], { fontSize: 12, rowH: 0.42 });
+  const s = slide("CONTENT", "Data check: all 600 spectra are analysed");
+  stat(s, MX, 1.5, 2.8, "600", "spectra analysed — none removed");
+  stat(s, MX + 3.0, 1.5, 2.8, "463", "of 483 bands used (420–2,350 nm)");
   body(s, [
-    "Rules: NDVI < 0.30, R800/R670 < 2, NDWI > 0, R800 < 0.10 → not vegetation → removed (3 of 600)",
-    "Noisy detector edges (< 420 nm, > 2,350 nm) excluded: 20 of 483 bands",
-    [{ text: `Negative (impossible) reflectance in ${D.neg_spectra.diseased} diseased vs ${D.neg_spectra.healthy} healthy spectra`, options: { bold: true } },
-     { text: ", almost all in SWIR-2 (1,970–2,400 nm): a radiometric-quality warning for that region" }],
-  ], MX, 3.5, 6.6, 3.2, 15);
-  img(s, "fig04_negatives.png", 7.45, 1.5, 5.28, 2.95, "Negative reflectance by band");
-  stat(s, 7.6, 4.85, 2.4, String(D.neg_spectra.diseased), "diseased spectra with values < 0", HX.accent2);
-  stat(s, 10.2, 4.85, 2.4, String(D.neg_spectra.healthy), "healthy spectra with values < 0", HX.accent1);
+    "No spectrum is removed: every SMACC endmember (300 healthy, 300 diseased) enters the analysis",
+    "Only the noisy detector edges (< 420 nm and > 2,350 nm, 20 bands) are excluded",
+    `Negative (physically impossible) reflectance occurs in ${D.neg_spectra.diseased} diseased and ${D.neg_spectra.healthy} healthy spectra, almost all in SWIR-2 (1,970–2,400 nm) — a radiometric-quality warning for that region, tested in the sensitivity analysis`,
+  ], MX, 3.0, 6.2, 3.6, 15);
+  img(s, "fig04_negatives.png", 7.0, 1.45, 5.73, 3.3, "Negative reflectance by band");
+  stat(s, 7.2, 5.0, 2.6, String(D.neg_spectra.diseased), "diseased spectra with values < 0", HX.accent2);
+  stat(s, 10.0, 5.0, 2.6, String(D.neg_spectra.healthy), "healthy spectra with values < 0", HX.accent1);
 }
 
 {
@@ -275,7 +279,7 @@ slide("SECTION", "B · Four-tier hierarchical analysis", "Tier 1 ANOVA → Tier 
     ["3 · J–M", "J–M per genotype pair on CART bands; threshold 1.94 (of 2)", "J–M healthy vs diseased on CART bands; threshold 1.94 (0–2 scale)"],
     ["4 · QDA", "QDA, 10-fold CV; confusion matrix, OA, PA, UA → 98%", "QDA, 10-fold CV (+ 10× repeated); plus nested and spatial-block CV"],
   ], MX, 1.5, CW, [1.6, 4.9, 5.63], { fontSize: 13, rowH: [0.45, 0.55, 0.85, 0.7, 0.7, 0.7] });
-  caption(s, "J–M is reported on the 0–2 scale, JM = 2(1 − e^(−B)); the paper prints the √ form but uses the 0–2 threshold.", MX, 6.2, CW);
+  caption(s, "J–M is reported on the 0–2 scale, JM = 2(1 − e^(−B)); the paper prints the √ form but uses the 0–2 threshold. Tier 2 is also repeated with Random Forest instead of CART (Part C).", MX, 6.2, CW);
 }
 
 {
@@ -298,7 +302,7 @@ slide("SECTION", "B · Four-tier hierarchical analysis", "Tier 1 ANOVA → Tier 
   ], MX, 1.55, CW, [2.4, 1.0, 1.15, 1.45, 1.35, 1.75, 1.2, 1.83], { fontSize: 13, rowH: 0.46 });
   body(s, [
     "With two classes Tukey HSD tests one pair, so it gives exactly the same decision as the ANOVA at every band (checked)",
-    "Diseased is lower in VIS, red-edge, SWIR-1 and SWIR-2; only a NIR shoulder (1,047–1,101 nm) is slightly higher. A darker visible signal is opposite to the usual chlorosis response",
+    "Diseased is lower in VIS, red-edge, SWIR-1 and SWIR-2; only a NIR shoulder (≈1,040–1,110 nm) is slightly higher. A darker visible signal is opposite to the usual chlorosis response",
     "Many tests (463): the FDR column is the safer list of differing bands",
   ], MX, 5.0, CW, 1.8, 15);
 }
@@ -314,30 +318,46 @@ slide("SECTION", "B · Four-tier hierarchical analysis", "Tier 1 ANOVA → Tier 
     `1-SE tree: ${cart.nsplitB} splits, ${cart.bandsB.length} bands (${cart.bandsB.map((b) => b.toFixed(0)).join(", ")} nm)`,
   ], HX.lt2, 14);
   img(s, "fig06_cp.png", 5.9, 1.45, 6.83, 4.9, "CART complexity plot");
-  caption(s, `CV error is flat from 3 to 12 splits; the cp = 0.01 tree (used, as in the paper) is within about 1 SE of the minimum.`, 5.9, 6.4, 6.83);
+  caption(s, `CV error is lowest at about 8 splits; the cp = 0.01 tree used by the paper (${cart.nsplitA} splits) lies just above the 1-SE line, i.e. slightly over-fitted.`, 5.9, 6.4, 6.83);
 }
 
 {
   const s = slide("CONTENT", "Tier 2 · The CART tree");
   img(s, "fig07_tree.png", MX, 1.3, CW, 5.4, "CART tree diagram");
-  caption(s, `First split R2350 ≤ 0.015 sends 149 spectra (138 diseased) left; CV accuracy of the tree itself as a classifier: ${pct(cart.cv_acc_cart_A)}.`, MX, 6.62, CW);
+  caption(s, `First split R2349.5 ≤ 0.0145 sends 149 spectra (138 diseased) left; CV accuracy of the tree itself as a classifier: ${pct(cart.cv_acc_cart_A)}.`, MX, 6.62, CW);
 }
 
 {
   const s = slide("CONTENT", `Tier 2 · ${cart.bandsA.length} bands selected by CART`);
   img(s, "fig08_selected_bands.png", MX, 1.4, 7.6, 3.6, "Selected bands on the mean spectra");
   table(s, [["Band (nm)", "Importance"], ...D.cart_imp.map((r) => [r.wavelength_nm, r.importance_pct.toFixed(1) + "%"])],
-    8.5, 1.45, 4.23, [2.1, 2.13], { fontSize: 12, rowH: 0.33 });
+    8.5, 1.45, 4.23, [2.1, 2.13], { fontSize: 12, rowH: 0.32 });
   body(s, [
-    "7 of 11 bands lie in SWIR-2; 2,349.5 nm alone carries 48% of the tree's importance",
-    "One band each in blue (480), red (675), NIR (1,059) and SWIR-1 (1,629)",
-  ], MX, 5.25, 7.6, 1.5, 15);
+    `${nSW2} of ${cart.bandsA.length} bands lie in SWIR-2; ${D.cart_imp[0].wavelength_nm} nm alone carries ${D.cart_imp[0].importance_pct.toFixed(0)}% of the tree's importance`,
+    `Outside SWIR-2: ${nonSW2}`,
+  ], MX, 5.2, 7.6, 1.6, 14);
+}
+{
+  const s = slide("CONTENT", "Tier 2 alternative · Random Forest selects the bands");
+  img(s, "fig13_rf_selection.png", MX, 1.4, 7.9, 3.2, "Random Forest band ranking");
+  card(s, 8.75, 1.45, 3.98, 5.25, "How RF replaces CART", [
+    `Input: the same ${t1.sig} ANOVA-significant bands`,
+    "Random Forest, 500 trees, mtry = √p, seed 42; bands ranked by mean decrease in Gini",
+    `Keep ${cart.bandsA.length} bands — as many as CART — for a fair comparison`,
+    "RF-A: the top bands by importance only",
+    "RF-B: the same ranking, but a band is skipped if |r| ≥ 0.95 with a band already kept",
+  ], HX.lt2, 13.5);
+  table(s, [["Selection", "Bands (nm)"],
+    ["CART", cart.bandsA.map((b) => b.toFixed(0)).join(", ")],
+    ["RF-A", [...rfA2.wl].sort((a, b) => a - b).map((b) => b.toFixed(0)).join(", ")],
+    ["RF-B", [...rfB2.wl].sort((a, b) => a - b).map((b) => b.toFixed(0)).join(", ")]],
+    MX, 4.75, 7.9, [1.0, 6.9], { fontSize: 12, rowH: [0.34, 0.5, 0.5, 0.5] });
 }
 
 {
   const s = slide("CONTENT", `Tier 3 · J–M distance ${f2(t3.JM_0to2, 3)}: below the 1.94 threshold`);
   table(s, [
-    ["Quantity (11 CART bands)", "Value"],
+    [`Quantity (${cart.bandsA.length} CART bands)`, "Value"],
     ["Mahalanobis term ⅛ dᵀC⁻¹d", f2(t3.mahalanobis_term, 4)],
     ["Covariance term ½ ln(|C| / √|CH||CD|)", f2(t3.covariance_term, 4)],
     ["Bhattacharyya distance B", f2(t3.B, 4)],
@@ -351,6 +371,23 @@ slide("SECTION", "B · Four-tier hierarchical analysis", "Tier 1 ANOVA → Tier 
   ], MX, 4.65, 5.6, 2.1, 14);
   img(s, "fig09_jm.png", 6.45, 1.4, 6.28, 5.05, "J-M distance plots");
   caption(s, `Best single band: ${D.jm_band_max.wl.toFixed(1)} nm (JM ${f2(D.jm_band_max.jm, 3)}). Separability rises with each band but stays far below 1.94.`, 6.45, 6.5, 6.28);
+}
+{
+  const s = slide("CONTENT", "J–M distance of every band selected by CART or RF");
+  img(s, "fig14_jm_selected.png", MX, 1.4, 7.9, 3.1, "Single-band J-M of selected bands");
+  table(s, [["Band set", "Bands", "Multi-band JM (0–2)", "√JM", "≥ 1.94?"],
+    ...S2.map((r) => [r.selection, cart.bandsA.length, f2(r.JM_0to2, 3), f2(r.JM_sqrt, 3), "no"])],
+    MX, 4.7, 7.9, [3.9, 0.8, 1.35, 0.85, 1.0], { fontSize: 12, rowH: 0.42 });
+  const jmB = D.rf2_bands;
+  const mx = jmB.reduce((a, r) => (r.JM_0to2 > a.JM_0to2 ? r : a));
+  const mn = jmB.reduce((a, r) => (r.JM_0to2 < a.JM_0to2 ? r : a));
+  card(s, 8.75, 1.45, 3.98, 5.25, "What it shows", [
+    `${jmB.length} different bands were selected by CART, RF-A or RF-B`,
+    `Single-band JM ranges from ${f2(mn.JM_0to2, 3)} (${mn.wavelength_nm.toFixed(0)} nm) to ${f2(mx.JM_0to2, 3)} (${mx.wavelength_nm.toFixed(0)} nm) — every band is far below 1.94`,
+    "No single band separates the classes; separability only grows when bands are combined",
+    `Even combined, the best set (CART, JM ${f2(S2[0].JM_0to2, 2)}) stays below the threshold`,
+    "Full per-band list: sheet 6b_JM_Selected_Bands",
+  ], HX.lt2, 13.5);
 }
 
 {
@@ -375,19 +412,18 @@ slide("SECTION", "B · Four-tier hierarchical analysis", "Tier 1 ANOVA → Tier 
 
 // ================================================================== PART C
 newSection("C. Random Forest comparison");
-slide("SECTION", "C · Random Forest comparison", "Same data, same 10 folds; 500 trees, mtry = √(number of bands), three band sets");
+slide("SECTION", "C · Random Forest comparison", "Random Forest in place of QDA (Tier 4) and in place of CART (Tier 2); same data, same 10 folds, 500 trees, mtry = √(number of bands)");
 
 {
-  const s = slide("CONTENT", "Random Forest on three band sets");
+  const s = slide("CONTENT", "Random Forest as the Tier-4 classifier");
   const row = (name, r) => [name, r.n_bands, pct(r.OA), f2(r.kappa, 2), pct(r.oob), pct(r.PA_H), pct(r.PA_D)];
   table(s, [
     ["Model / bands", "Bands", "CV OA", "Kappa", "OOB OA", "PA healthy", "PA diseased"],
     ["QDA · CART bands (four-tier)", cart.bandsA.length, pct(q.OA), f2(q.kappa, 2), "–", pct(q.PA_H), pct(q.PA_D)],
-    row("RF · CART bands", rfC), row("RF · all ANOVA-significant bands", rfS),
-    [{ text: "RF · all 463 bands", options: { bold: true } }, rfA.n_bands, { text: pct(rfA.OA), options: { bold: true } }, f2(rfA.kappa, 2), pct(rfA.oob), pct(rfA.PA_H), pct(rfA.PA_D)],
+    row("RF · CART bands", rfC), row("RF · all ANOVA-significant bands", rfS), row("RF · all 463 bands", rfA),
   ], MX, 1.55, CW, [3.9, 1.0, 1.25, 1.1, 1.3, 1.75, 1.83], { fontSize: 14, rowH: 0.5 });
-  card(s, MX, 4.35, 5.9, 2.35, "Settings", ["500 trees, Gini, bootstrap samples", "mtry = √p (3, 17 or 21 bands per split)", "Same stratified folds as QDA; seed 42"], HX.lt2, 14);
-  card(s, 6.83, 4.35, 5.9, 2.35, "Reading the table", ["On the same 11 bands RF ≈ QDA", "RF on all bands is best and needs no band selection", "OOB agrees with CV within 1.5 points"], HX.lt2, 14);
+  card(s, MX, 4.35, 5.9, 2.35, "Settings", ["500 trees, Gini, bootstrap samples", `mtry = √p (${Math.floor(Math.sqrt(cart.bandsA.length))}, ${Math.floor(Math.sqrt(t1.sig))} or ${Math.floor(Math.sqrt(463))} bands per split)`, "Same stratified folds as QDA; seed 42"], HX.lt2, 14);
+  card(s, 6.83, 4.35, 5.9, 2.35, "Reading the table", [`On the same ${cart.bandsA.length} bands QDA (${pct(q.OA)}) is ahead of RF (${pct(rfC.OA)}) in paper-style CV`, `RF on all bands: ${pct(rfA.OA)}, with no band selection`, "OOB agrees with CV within 1.5 points"], HX.lt2, 14);
 }
 
 {
@@ -403,19 +439,50 @@ slide("SECTION", "C · Random Forest comparison", "Same data, same 10 folds; 500
   const s = slide("CONTENT", "QDA vs Random Forest (paper-style validation)");
   s.addChart(pres.charts.BAR, [{ name: "Overall accuracy", labels: ["QDA · CART bands", "RF · CART bands", "RF · significant bands", "RF · all bands"],
     values: [q.OA, rfC.OA, rfS.OA, rfA.OA] }], {
-    x: MX, y: 1.45, w: 7.6, h: 5.2, barDir: "col", chartColors: [HX.accent3, HX.accent4, HX.accent4, HX.accent4],
+    x: MX, y: 1.45, w: 7.0, h: 5.2, barDir: "col", chartColors: [HX.accent3, HX.accent4, HX.accent4, HX.accent4],
     showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0.0%", dataLabelFontSize: 13, dataLabelColor: HX.dk1, dataLabelFontFace: "+mn-lt",
     valAxisMinVal: 0, valAxisMaxVal: 1, valAxisLabelFormatCode: "0%", valAxisLabelColor: HX.accent6, catAxisLabelColor: HX.dk1,
     valAxisLabelFontFace: "+mn-lt", catAxisLabelFontFace: "+mn-lt", catAxisLabelFontSize: 12, valAxisLabelFontSize: 11,
     valGridLine: { color: "E4E3DF", size: 0.75 }, catGridLine: { style: "none" }, showLegend: false,
     showTitle: true, title: "Overall accuracy, 10-fold CV (same folds)", titleFontSize: 14, titleColor: HX.dk1, titleFontFace: "+mn-lt", barGapWidthPct: 60,
   });
-  card(s, 8.5, 1.5, 4.23, 5.15, "Comparison", [
-    `QDA ${pct(q.OA)} and RF ${pct(rfC.OA)} on the same 11 bands: no real difference`,
-    `RF on all 463 bands: ${pct(rfA.OA)} (kappa ${f2(rfA.kappa, 2)}) — the best result`,
-    "All four are moderate: about one spectrum in four is misclassified",
-    "Blue = four-tier QDA, yellow = Random Forest",
-  ], HX.lt2, 14);
+  table(s, [["Bar", "What it is"],
+    ["QDA · CART bands", `The four-tier pipeline of the paper: ${cart.bandsA.length} CART bands → QDA`],
+    ["RF · CART bands", "RF replaces QDA in Tier 4, same bands"],
+    ["RF · significant bands", `RF on all ${t1.sig} Tier-1 bands (no CART)`],
+    ["RF · all bands", "RF on all 463 bands (no Tier 1, no Tier 2)"]],
+    7.85, 1.5, 4.88, [1.85, 3.03], { fontSize: 12, rowH: [0.34, 0.6, 0.5, 0.5, 0.5] });
+  card(s, 7.85, 4.2, 4.88, 2.5, "What the figure tells", [
+    `All four lie between ${pct(Math.min(q.OA, rfC.OA, rfS.OA, rfA.OA), 0)} and ${pct(Math.max(q.OA, rfC.OA, rfS.OA, rfA.OA), 0)}: about one spectrum in four or five is misclassified`,
+    "The classifier matters less than the information in the bands",
+    "These are paper-style (optimistic) numbers; Part D shows stricter validation",
+  ], HX.lt2, 13);
+}
+{
+  const s = slide("CONTENT", "Tier 2 comparison · CART vs Random Forest band selection");
+  table(s, [["Tier 2 selection", "JM (0–2)", "QDA paper-style", "QDA 10× mean", "QDA nested", "QDA spatial", "RF classifier"],
+    ...S2.map((r, i) => [{ text: ["CART (as in the paper)", "RF-A: top by importance", "RF-B: importance + |r| < 0.95"][i], options: { bold: true } },
+      f2(r.JM_0to2, 3), pct(r.QDA_paper), pct(r.QDA_rep_mean), pct(r.QDA_nested), pct(r.QDA_spatial), pct(r.RF_paper)])],
+    MX, 1.5, CW, [3.4, 1.2, 1.6, 1.5, 1.4, 1.45, 1.58], { fontSize: 13, rowH: 0.5 });
+  const lab = ["Paper-style", "Nested", "Spatial blocks"];
+  s.addChart(pres.charts.BAR, [
+    { name: "CART bands", labels: lab, values: [S2[0].QDA_paper, S2[0].QDA_nested, S2[0].QDA_spatial] },
+    { name: "RF-A bands", labels: lab, values: [S2[1].QDA_paper, S2[1].QDA_nested, S2[1].QDA_spatial] },
+    { name: "RF-B bands", labels: lab, values: [S2[2].QDA_paper, S2[2].QDA_nested, S2[2].QDA_spatial] },
+  ], {
+    x: MX, y: 3.65, w: 7.2, h: 3.1, barDir: "col", barGrouping: "clustered", chartColors: [HX.accent2, HX.accent5, HX.accent3],
+    showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0%", dataLabelFontSize: 11, dataLabelColor: HX.dk1, dataLabelFontFace: "+mn-lt",
+    valAxisMinVal: 0, valAxisMaxVal: 1, valAxisLabelFormatCode: "0%", valAxisLabelColor: HX.accent6, catAxisLabelColor: HX.dk1,
+    valAxisLabelFontFace: "+mn-lt", catAxisLabelFontFace: "+mn-lt", catAxisLabelFontSize: 11, valAxisLabelFontSize: 10,
+    valGridLine: { color: "E4E3DF", size: 0.75 }, catGridLine: { style: "none" },
+    showLegend: true, legendPos: "r", legendFontSize: 11, legendFontFace: "+mn-lt", legendColor: HX.dk1,
+    showTitle: true, title: "Tier-4 QDA accuracy by Tier-2 method", titleFontSize: 12, titleColor: HX.dk1, titleFontFace: "+mn-lt", barGapWidthPct: 50,
+  });
+  card(s, 8.05, 3.7, 4.68, 3.0, "Result", [
+    `CART gives the highest JM (${f2(S2[0].JM_0to2, 2)}) and paper-style accuracy (${pct(S2[0].QDA_paper)})`,
+    `RF-B holds up better when selection is validated: nested ${pct(S2[2].QDA_nested)} vs ${pct(S2[0].QDA_nested)}, spatial ${pct(S2[2].QDA_spatial)} vs ${pct(S2[0].QDA_spatial)}`,
+    `RF-A picks near-identical SWIR-2 neighbours (r ≈ ${f2(rfA2.max_abs_r, 3)}) and is worst (${pct(S2[1].QDA_paper)})`,
+  ], HX.lt2, 13);
 }
 
 // ================================================================== PART D
@@ -471,9 +538,9 @@ slide("SECTION", "D · Cross-checks and validation", "Is the accuracy real, and 
     ...D.location.map((r) => [r.control, r.n, pct(r.paper_style_QDA_OA), pct(r.nested_QDA_OA)])],
     6.8, 1.5, 5.93, [2.75, 1.05, 1.1, 1.03], { fontSize: 12, rowH: 0.5 });
   card(s, 6.8, 3.35, 5.93, 3.3, "Interpretation", [
-    "Two halves of the healthy region separate at ≈ 63–64% although both are healthy: part of the spectral difference is position in the field",
-    "The diseased halves are near chance (≈ 52%)",
-    "Healthy vs diseased (72–76%) exceeds the healthy-halves control, so disease adds signal, but location effects are not small",
+    `Two halves of the healthy region separate at ≈ ${pct(locH.paper_style_QDA_OA, 0)} although both are healthy: part of the spectral difference is position in the field`,
+    `The diseased halves are near chance (${pct(locD.nested_QDA_OA, 0)}–${pct(locD.paper_style_QDA_OA, 0)})`,
+    `Healthy vs diseased (${pct(D.nested.qda.OA, 0)}–${pct(q.OA, 0)}) exceeds the healthy-halves control, so disease adds signal, but location effects are not small`,
   ], HX.lt2, 13.5);
 }
 
@@ -483,10 +550,10 @@ slide("SECTION", "D · Cross-checks and validation", "Is the accuracy real, and 
     ...D.sens.map((r) => [r.case, r.n_sig, r.n_sel, f2(r.JM, 3), pct(r.QDA_OA), pct(r.RF_all_OA)])],
     MX, 1.5, CW, [5.3, 1.45, 1.2, 1.15, 1.35, 1.68], { fontSize: 13, rowH: 0.5 });
   body(s, [
-    [{ text: "Removing SWIR-2 ", options: { bold: true } }, { text: `lowers QDA to ${pct(D.sens[2].QDA_OA)} and RF to ${pct(D.sens[2].RF_all_OA)}; VNIR alone gives ≈ 60–62%. The discrimination leans on the noisiest region.` }],
-    [{ text: "Keeping the 3 non-vegetation spectra ", options: { bold: true } }, { text: `inflates JM to ${f2(D.sens[1].JM, 2)} and QDA to ${pct(D.sens[1].QDA_OA)}: screening matters.` }],
+    `Removing SWIR-2 lowers JM to ${f2(sNoSW2.JM, 2)}, QDA to ${pct(sNoSW2.QDA_OA)} and RF to ${pct(sNoSW2.RF_all_OA)}; VNIR alone gives ${pct(sVNIR.QDA_OA, 0)}–${pct(sVNIR.RF_all_OA, 0)}. The discrimination leans on the noisiest region`,
+    `Keeping the noisy edge bands changes little (QDA ${pct(sAll483.QDA_OA)}, RF ${pct(sAll483.RF_all_OA)})`,
     "The selected CART bands change with every data variant, so individual bands should not be over-interpreted",
-  ], MX, 4.75, CW, 2.0, 14.5);
+  ], MX, 4.3, CW, 2.4, 15);
 }
 
 {
@@ -496,7 +563,8 @@ slide("SECTION", "D · Cross-checks and validation", "Is the accuracy real, and 
   const rows = [["Step", "Checks", "Examples", "Result"]];
   const ex = {
     "Data": "600 × 489, 300/300, no missing values, no duplicate pixels",
-    "Screening": "597 spectra × 463 bands after screening",
+    "Data check": "600 spectra × 463 bands, no spectra removed",
+    "Tier 2 (RF)": "RF bands ⊂ significant set; |r| filter; reproducible ranking; full-rank covariance",
     "Tier 1": "manual F = scipy; t² = F; Tukey = ANOVA at all bands",
     "Tier 2": "custom pruning reproduces sklearn tree; rel error = 1 − accuracy",
     "Tier 3": "log-det = direct det; 1-D closed form; covariance full rank",
@@ -505,9 +573,9 @@ slide("SECTION", "D · Cross-checks and validation", "Is the accuracy real, and 
     "Validation": "permutation null centred at 50%",
   };
   for (const [k, v] of Object.entries(groups)) rows.push([k, v.length, ex[k] || "", { text: v.every((c) => c.result === "PASS") ? "PASS" : "FAIL", options: { bold: true, color: "008000" } }]);
-  rows.push(["Excel ↔ Python", 10, "F, p, JM, B, OA, kappa recomputed by live Excel formulas", { text: "PASS", options: { bold: true, color: "008000" } }]);
+  rows.push(["Excel ↔ Python", 15, "F, p, JM, B, OA, kappa (CART and RF bands) recomputed by live Excel formulas", { text: "PASS", options: { bold: true, color: "008000" } }]);
   table(s, rows, MX, 1.5, CW, [2.2, 1.0, 7.73, 1.2], { fontSize: 13, rowH: 0.44 });
-  caption(s, `${D.checks.length} Python checks + 10 live Excel checks, all PASS. Details: sheet 11_Cross_Checks of Four_Tier_Analysis.xlsx.`, MX, 6.45, CW);
+  caption(s, `${D.checks.length} Python checks + 15 live Excel checks, all PASS. Details: sheet 11_Cross_Checks of Four_Tier_Analysis.xlsx.`, MX, 6.45, CW);
 }
 
 // ================================================================== DISCUSSION / SUMMARY / CONCLUSION
@@ -515,12 +583,12 @@ newSection("Discussion and conclusion");
 {
   const s = slide("CONTENT", "Discussion");
   const pts = [
-    ["Moderate, not near-perfect, separation", `JM ${f2(t3.JM_0to2, 2)} (threshold 1.94) and 72–76% accuracy vs 98% in Das et al. Their samples were 50-scan field spectra of uniform plots; here they are 2 cm image pixels with mixed leaves, lesions and shadow.`],
-    ["SWIR-2 drives the result — with a caveat", `The strongest bands (≈2,330–2,350 nm) sit in the noisiest region; ${D.neg_spectra.diseased} diseased spectra have negative reflectance there. Without SWIR-2 accuracy drops by 5–8 points.`],
+    ["Moderate, not near-perfect, separation", `JM ${f2(t3.JM_0to2, 2)} (threshold 1.94) and ${pct(D.spatial.rf_sel.OA, 0)}–${pct(q.OA, 0)} accuracy vs 98% in Das et al. Their samples were 50-scan field spectra of uniform plots; here they are 2 cm image pixels with mixed leaves, lesions and shadow.`],
+    ["SWIR-2 drives the result — with a caveat", `The strongest bands (≈2,300–2,350 nm) sit in the noisiest region; ${D.neg_spectra.diseased} diseased spectra have negative reflectance there. Without SWIR-2, QDA falls to ${pct(sNoSW2.QDA_OA, 0)} and RF to ${pct(sNoSW2.RF_all_OA, 0)}.`],
     ["Unexpected visible signal", "Diseased canopy is darker in the visible, not brighter as chlorosis would cause; canopy structure, illumination or region effects are plausible and should be checked in the field."],
-    ["Location and validation", "Halves of the healthy region separate at ≈ 64%; spatial-block CV lowers QDA to 65%. Paper-style CV overstates accuracy."],
-    ["QDA vs Random Forest", "On the same bands they are equal; RF on all bands is the most accurate and most robust, needing no band selection."],
-    ["SMACC endmembers as samples", "SMACC picks extreme spectra; statistics from them describe the extremes, not the typical canopy."],
+    ["Location and validation", `Halves of the healthy region separate at ≈ ${pct(locH.paper_style_QDA_OA, 0)}; spatial-block CV lowers QDA to ${pct(D.spatial.qda.OA, 0)}. Paper-style CV overstates accuracy by 5–10 points.`],
+    ["CART vs RF in Tier 2", `CART bands give the best JM and paper-style accuracy; redundancy-filtered RF bands generalise better (spatial ${pct(rfB2.spatial, 0)} vs ${pct(D.spatial.qda.OA, 0)}). Raw RF importance picks redundant neighbours.`],
+    ["QDA vs RF in Tier 4", `QDA wins in paper-style CV (${pct(q.OA, 0)} vs ${pct(rfA.OA, 0)}), but RF on all bands is best under nested (${pct(D.nested.rf_all.OA, 0)}) and spatial (${pct(D.spatial.rf_all.OA, 0)}) validation.`],
   ];
   pts.forEach(([t, d], i) => {
     const col = i % 2, row = Math.floor(i / 2);
@@ -534,12 +602,12 @@ newSection("Discussion and conclusion");
 {
   const s = slide("CONTENT", "Summary");
   const items = [
-    ["597", "endmembers analysed (298 H / 299 D) on 463 reflectance bands after screening"],
+    [String(D.analysis.N), `endmembers analysed (${D.analysis.nH} H / ${D.analysis.nD} D), none removed, on ${D.analysis.P} reflectance bands`],
     [`${t1.sig}`, "bands differ significantly (Tier 1); all VIS, SWIR-1 and SWIR-2"],
-    [`${cart.bandsA.length}`, "bands kept by CART (Tier 2); 7 in SWIR-2, 2,349.5 nm most important"],
-    [f2(t3.JM_0to2, 2), "J–M distance (Tier 3), below the 1.94 separability threshold"],
+    [`${cart.bandsA.length}`, `bands kept by CART (Tier 2); ${nSW2} in SWIR-2, ${D.cart_imp[0].wavelength_nm} nm most important`],
+    [f2(t3.JM_0to2, 2), `J–M distance (Tier 3), below 1.94; no single band exceeds ${f2(D.jm_band_max.jm, 2)}`],
     [pct(q.OA), `QDA accuracy (Tier 4), kappa ${f2(q.kappa, 2)}; ${pct(D.nested.qda.OA)} nested, ${pct(D.spatial.qda.OA)} spatial`],
-    [pct(rfA.OA), `Random Forest on all bands; ${pct(D.spatial.rf_all.OA)} under spatial-block CV`],
+    [pct(D.spatial.rf_all.OA), `best spatial-block accuracy: RF on all bands (RF-B bands + QDA: ${pct(rfB2.spatial)})`],
   ];
   items.forEach(([v, l], i) => {
     const col = i % 3, row = Math.floor(i / 3);
@@ -553,11 +621,25 @@ newSection("Discussion and conclusion");
 {
   const s = slide("CLOSING", "Conclusion");
   s.addText([
-    { text: "The four-tier method of Das et al. (2020) was applied step by step to the SMACC endmembers and every step was cross-checked.", options: { bullet: true, breakLine: true, paraSpaceAfter: 10 } },
-    { text: `Healthy and diseased spectra differ significantly (permutation p = ${f2(D.perm.p, 3)}), but separation is moderate: JM ${f2(t3.JM_0to2, 2)} < 1.94 and realistic accuracy 65–76%.`, options: { bullet: true, breakLine: true, paraSpaceAfter: 10 } },
-    { text: "Random Forest on all bands matches or beats the four-tier QDA under every validation scheme.", options: { bullet: true, breakLine: true, paraSpaceAfter: 10 } },
+    { text: `The four-tier method of Das et al. (2020) was applied to all ${D.analysis.N} SMACC endmembers, with Random Forest tested both in place of CART (Tier 2) and of QDA (Tier 4); every step was cross-checked.`, options: { bullet: true, breakLine: true, paraSpaceAfter: 10 } },
+    { text: `Healthy and diseased spectra differ significantly (permutation p = ${f2(D.perm.p, 3)}), but separation is moderate: JM ${f2(t3.JM_0to2, 2)} < 1.94 and realistic accuracy ${pct(D.spatial.rf_sel.OA, 0)}–${pct(D.nested.rf_all.OA, 0)}.`, options: { bullet: true, breakLine: true, paraSpaceAfter: 10 } },
+    { text: "CART + QDA scores highest only under the paper's optimistic validation; RF band selection (with a redundancy filter) and RF classification on all bands are more robust.", options: { bullet: true, breakLine: true, paraSpaceAfter: 10 } },
     { text: "Before relying on the SWIR-2 bands: verify radiometric calibration, sample random pixels or plot means instead of SMACC extremes, add plot-level ground truth and an independent date.", options: { bullet: true } },
-  ], { x: MX, y: 1.6, w: CW, h: 5.0, fontSize: 20, color: HX.lt1, margin: 0, isTextBox: true, valign: "middle" });
+  ], { x: MX, y: 1.6, w: CW, h: 5.0, fontSize: 19, color: HX.lt1, margin: 0, isTextBox: true, valign: "middle" });
+}
+{
+  const s = slide("CONTENT", "References");
+  const refs = [
+    "Das B, Sahoo RN, Biswas A, Pargal S, Krishna G, Verma R, Chinnusamy V, Sehgal VK, Gupta VK (2020) Discrimination of rice genotypes using field spectroradiometry. Geocarto International 35(1):64–77. doi:10.1080/10106049.2018.1506507",
+    "Gruninger JH, Ratkowski AJ, Hoke ML (2004) The sequential maximum angle convex cone (SMACC) endmember model. Proc. SPIE 5425. doi:10.1117/12.543794",
+    "Breiman L, Friedman JH, Olshen RA, Stone CJ (1984) Classification and Regression Trees. Wadsworth, Belmont, CA",
+    "Breiman L (2001) Random forests. Machine Learning 45:5–32",
+    "Richards JA (2013) Remote Sensing Digital Image Analysis, 5th ed. Springer, Berlin (Jeffries–Matusita distance)",
+    "Benjamini Y, Hochberg Y (1995) Controlling the false discovery rate. Journal of the Royal Statistical Society B 57:289–300",
+    "Roberts DR et al. (2017) Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. Ecography 40:913–929",
+  ];
+  s.addText(refs.map((t, i) => ({ text: t, options: { bullet: true, breakLine: i < refs.length - 1, paraSpaceAfter: 8 } })),
+    { x: MX, y: 1.5, w: CW, h: 5.2, fontSize: 14, color: C.text1, margin: 0, isTextBox: true, valign: "top" });
 }
 
 pres.writeFile({ fileName: OUT }).then(async () => {

@@ -5,7 +5,6 @@ def m(d): return {k: (v.tolist() if hasattr(v, "tolist") else v) for k, v in d.i
 fl = R["flags"]
 out = dict(
     analysis=R["analysis_set"],
-    removed=fl.loc[~fl.kept_for_analysis, ["class", "endmember_no", "NDVI", "SR_800_670", "NDWI", "remove_reason"]].round(3).to_dict("records"),
     neg_spectra={c: int(((fl["class"] == c) & (fl.n_negative_bands > 0)).sum()) for c in ("healthy", "diseased")},
     tier1_regions=R["tier1_regions"].to_dict("records"),
     tier1=dict(n=int(len(R["tier1"])), sig=int(R["sig"].sum()), fdr=int((R["tier1"].FDR_q_BH < 0.05).sum()),
@@ -29,6 +28,11 @@ out = dict(
               null_mean=float(R["permutation"]["acc"].mean()), null_max=float(R["permutation"]["acc"].max())),
     sens=R["sensitivity"].to_dict("records"),
     checks=R["checks"].to_dict("records"),
+    rf2_sets=R["rf2_sets"].to_dict("records"),
+    rf2_bands=R["rf2_selected_bands"].to_dict("records"),
+    rf2={k: dict(wl=v["wl"], JM=v["JM_0to2"], max_abs_r=v["max_abs_r"], cond=v["cov_cond"],
+                 qda=m(v["qda_paper"]), rep_mean=float(v["qda_rep"].mean()), rep_sd=float(v["qda_rep"].std(ddof=1)),
+                 nested=float(v["qda_nested"]["OA"]), spatial=float(v["qda_spatial"]["OA"]), rf=float(v["rf_paper"]["OA"])) for k, v in R["rf2"].items()},
 )
 json.dump(out, open("results/deck_data.json", "w"), indent=1, default=float)
 print("ok")
