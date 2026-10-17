@@ -106,7 +106,7 @@ function table(s, rows, x, y, w, colW, opts = {}) {
       : { color: HX.dk1, fill: { color: i % 2 === 0 ? HX.lt2 : HX.lt1 }, fontSize: fs_, valign: "middle" };
     return { text: cell.text, options: { ...base, ...(cell.options || {}) } };
   }));
-  s.addTable(out, { x, y, w, colW, border: { type: "solid", pt: 0.5, color: "C9D3CC" }, margin: [3, 6, 3, 6], fontFace: THEME.bodyFontFace, autoPage: false, rowH: opts.rowH, objectName: opts.name || "table" });
+  s.addTable(out, { x, y, w, colW, border: { type: "solid", pt: 0.5, color: "C9D3CC" }, margin: opts.margin || [3, 6, 3, 6], fontFace: THEME.bodyFontFace, autoPage: false, rowH: opts.rowH, objectName: opts.name || "table" });
 }
 function caption(s, text, x, y, w, h = 0.35) {
   s.addText(text, { x, y, w, h, fontSize: 11, italic: true, color: HX.accent6, margin: 0, isTextBox: true, valign: "top" });
@@ -135,11 +135,33 @@ const jmMax = Math.max(...allCfg.map((c) => c.JM)), jmBest = allCfg.find((c) => 
 const edge = (b) => b < 420 || b > 2350;
 const nEdge = (c) => c.bands.filter(edge).length;
 const lab = (c) => `${c.t2}-${c.s}`;
+const ACC = D.acc, DV = D.dv, NC = D.nc, RP = D.rp, DET = D.det, DES = D.design;
+const ci = (a, d = 2) => `${f2(a[0], d)}–${f2(a[1], d)}`;
+const pc1 = (v) => (v === null || v === undefined ? "—" : pct(v, 1));
+const ncCtrl = NC.filter((r) => r.pair.startsWith("C ")), ncNeg = NC.filter((r) => !r.pair.startsWith("C "));
+const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const ncMean = (arr, t2) => mean(arr.map((r) => r[t2].BA[0]));
+const ncPair = (nm) => NC.find((r) => r.pair === nm);
 
 // ================================================================== 1 TITLE
 newSection("Introduction");
 slide("TITLE", "Healthy vs diseased plots from SMACC endmembers: four-tier analysis with imbalance handling",
   `Four-tier method of Das et al. (2020): ANOVA → CART → J–M distance → QDA, with Random Forest in place of CART in Tier 2 for comparison\n48 plots (1–12 healthy, 13–48 diseased) · ${D.N} endmember spectra kept separately · all ${D.P} reflectance bands`);
+
+// ================================================================== ABBREVIATIONS
+{
+  const per = 28, nsl = Math.ceil(D.abbr.length / per);
+  for (let k = 0; k < nsl; k++) {
+    const s = slide("CONTENT", `Abbreviations (${k + 1}/${nsl})`);
+    const part = D.abbr.slice(k * per, (k + 1) * per);
+    [part.slice(0, 14), part.slice(14)].forEach((col, j) => {
+      if (!col.length) return;
+      table(s, [["Abbreviation", "Meaning"], ...col.map((r) => [{ text: r[0], options: { bold: true } }, r[1]])],
+        MX + j * 6.13, 1.3, 5.95, [1.45, 4.5], { fontSize: 9.5, rowH: 0.34 });
+    });
+    if (k === 0) caption(s, "V1–V3 are varieties; validation schemes are CV1–CV6. 'D' alone = diseased, D1–D4 = inoculation dates; 'R' + wavelength = reflectance, R1–R3 = inoculated blocks.", MX, 6.55, CW, 0.35);
+  }
+}
 
 // ================================================================== 2 WORKFLOW
 {
@@ -148,7 +170,7 @@ slide("TITLE", "Healthy vs diseased plots from SMACC endmembers: four-tier analy
     ["A", "Data", ["48 plot ROIs", "SMACC: 30 endmembers / plot", `${D.N} spectra kept separately`, `All ${D.P} bands, reflectance only`, "Data check"], HX.accent6],
     ["B", "Four-tier analysis", ["Tier 1: ANOVA + Tukey per band", "Tier 2: CART or RF band selection", "Tier 3: J–M distance", "Tier 4: QDA"], HX.dk2],
     ["C", "Class imbalance", [`Healthy : diseased = 1 : ${f2(D.nD / D.nH, 2)}`, "S0 no correction", "S1 class weighting", "S2 random under-sampling", "S3 SMOTE"], HX.accent4],
-    ["D", "Validation & checks", ["Paper-style random 10-fold", "Plot-grouped nested CV (main)", "Leave-one-plot-out", "Permutation test", "Python ↔ Excel checks"], HX.accent3],
+    ["D", "Validation & checks", ["Paper-style 10-fold; plot-grouped (main); leave-one-plot-out", "Leave-one-treatment / variety / date-out", "Block-vs-block negative control", "Permutation tests", "Error matrices + CIs; Excel checks"], HX.accent3],
   ];
   const bw = 2.85, gap = 0.243;
   blocks.forEach(([k, t, items, col], i) => {
@@ -182,6 +204,23 @@ slide("SECTION", "A · Data", "48 plot ROIs, 30 SMACC endmembers per plot, every
     "Endmembers are not averaged: each is one sample, labelled by its plot's class",
     "Healthy plots 1–12 lie together at the west end of the field: class and position are partly confounded",
   ], 7.0, 4.3, 5.73, 2.5, 13.5);
+}
+
+{
+  const s = slide("CONTENT", "Treatment design (treatment_detail.xlsx)");
+  img(s, "f13_design.png", MX, 1.3, 6.6, 5.55, "Treatment design map");
+  table(s, [
+    ["Block", "Plots", "Treatment", "Class"],
+    ["C", "1–12", "Control (not inoculated)", "Healthy"],
+    ["R3", "13–24", "Inoculated, replication 3", "Diseased"],
+    ["R2", "25–36", "Inoculated, replication 2", "Diseased"],
+    ["R1", "37–48", "Inoculated, replication 1", "Diseased"],
+  ], 7.4, 1.45, 5.33, [0.8, 0.9, 2.53, 1.1], { fontSize: 12, rowH: 0.36 });
+  body(s, [
+    `Every block contains all ${DES.varieties.length} varieties (${DES.varieties.join(", ")}) × ${DES.dates.length} inoculation dates (${DES.dates.join(", ")}, days after sowing), once each (checked)`,
+    "Blocks run west → east: C, R3, R2, R1; block centres are ≈ 13 m apart",
+    "All healthy plots form one block, so healthy vs diseased is confounded with block/location (Hurlbert 1984). The validation is extended to measure this (Part D of the methods)",
+  ], 7.4, 3.45, 5.33, 3.4, 13.5);
 }
 
 {
@@ -270,12 +309,25 @@ slide("SECTION", "B · Methods and why they are used", "Four-tier method, imbala
 {
   const s = slide("CONTENT", "Validation design and why");
   steps(s, [
-    ["V1 · Paper-style random 10-fold (× 5)", "As in Das et al.: bands chosen once on all data, then QDA cross-validated on randomly split spectra. Reported for comparison only: it is optimistic because spectra of the same plot fall in training and test, and the bands were chosen with the test spectra."],
-    ["V2 · Plot-grouped nested 4-fold (× 10) — main result", "Whole plots are held out (3 healthy + 9 diseased per test fold). Tier 1, Tier 2, re-sampling and QDA are all redone inside each training fold. Repeated 10 times with different plot splits."],
-    ["V3 · Leave-one-plot-out (48 folds)", "Each plot predicted by a model built on the other 47 plots; a plot is called diseased if > 50% of its spectra are. Shows which plots are misclassified."],
-    ["Permutation test (100 ×)", "Plot labels shuffled (12 healthy / 36 diseased kept) and V2 repeated: tells whether the observed balanced accuracy is better than chance."],
+    ["CV1 · Paper-style random 10-fold (× 5)", "As in Das et al.: bands chosen once on all data, then QDA cross-validated on randomly split spectra. Reported for comparison only: it is optimistic because spectra of the same plot fall in training and test, and the bands were chosen with the test spectra."],
+    ["CV2 · Plot-grouped nested 4-fold (× 10) — main result", "Whole plots are held out (3 healthy + 9 diseased per test fold). Tier 1, Tier 2, re-sampling and QDA are all redone inside each training fold. Repeated 10 times with different plot splits."],
+    ["CV3 · Leave-one-plot-out (48 folds)", "Each plot predicted by a model built on the other 47 plots; a plot is called diseased if > 50% of its spectra are. Shows which plots are misclassified."],
+    ["Permutation test (100 ×)", "Plot labels shuffled (12 healthy / 36 diseased kept) and CV2 repeated: tells whether the observed balanced accuracy is better than chance."],
   ], MX, 1.45, 2, 5.98, 2.45, 0.17, 0.17, 15, 13);
   caption(s, "References: Hurlbert 1984 (pseudo-replication); Roberts et al. 2017 (grouped/block CV); Ambroise & McLachlan 2002 (selection inside the folds); Santos et al. 2018 (re-sampling inside the folds); Ojala & Garriga 2010 (permutation test).", MX, 6.55, CW, 0.4);
+}
+
+{
+  const s = slide("CONTENT", "Validation using the treatment design and why");
+  steps(s, [
+    ["CV4 · Leave-one-treatment-combination-out (12 folds)", "Hold out the 4 plots sharing a variety × inoculation date (1 control + 3 inoculated). The model never saw that combination: tests transfer to new treatment levels (Meyer et al. 2018)."],
+    ["CV5 · Leave-one-variety-out (3 folds)", "Train on two varieties, test on the third (4 control + 12 inoculated plots). Disease detection should not depend on the variety."],
+    ["CV6 · Leave-one-inoculation-date-out (4 folds)", "Train on three inoculation dates, test on the fourth (3 + 9 plots)."],
+    ["Negative control: block vs block", "Classify two INOCULATED blocks (e.g. R3 vs R1) with the same pipeline. They cannot differ by disease, so their accuracy measures the block/location effect (Lipsitch et al. 2010)."],
+    ["Restricted permutation (4 labellings)", "Treatments were applied to whole blocks, so blocks are the exchangeable units (Anderson & ter Braak 2003): label each block in turn 'healthy'. The smallest attainable p is 1/4."],
+    ["Detection by block, variety and date", "Share of each plot's spectra predicted diseased, compared between blocks, varieties and inoculation dates (Kruskal & Wallis 1952)."],
+  ], MX, 1.4, 2, 5.98, 1.62, 0.17, 0.12, 14.5, 12.5);
+  caption(s, "All schemes are nested: Tier 1, Tier 2, re-balancing and QDA are refitted without the test plots. Every test fold keeps the 1 healthy : 3 diseased plot ratio.", MX, 6.6, CW, 0.35);
 }
 
 {
@@ -288,8 +340,11 @@ slide("SECTION", "B · Methods and why they are used", "Four-tier method, imbala
     ["Kappa", "Agreement beyond chance", "Used in remote sensing and by Das et al.", "Cohen 1960"],
     ["F1 per class, ROC-AUC", "Precision–recall balance; ranking quality", "Complementary views", "He & Garcia 2009"],
     ["Plot-level BA", "Majority vote of a plot's spectra vs its true class", "Plots are the real units of interest", "Hurlbert 1984"],
-    ["Overall accuracy (OA)", "Correct / total", "Reported only for comparison with the paper", "Das et al. 2020"],
-  ], MX, 1.45, CW, [2.9, 3.6, 3.7, 1.93], { fontSize: 12.5, rowH: 0.56 });
+    ["Overall accuracy (OA), error matrix", "Correct / total, from the reference × predicted matrix", "Standard remote-sensing report; inflated by the majority class", "Congalton 1991; Das et al. 2020"],
+    ["Producer's / user's accuracy (PA, UA)", "PA = correct / reference total; UA = correct / predicted total", "Omission and commission error per class", "Story & Congalton 1986"],
+    ["Quantity / allocation disagreement", "Wrong class proportions / wrong placement; sum = 1 − OA", "Explains the errors; alternative to kappa", "Pontius & Millones 2011"],
+    ["95% confidence intervals", "Plots resampled with replacement within each class (2000×)", "Spectra of a plot are not independent", "Field & Welsh 2007; Olofsson et al. 2014"],
+  ], MX, 1.4, CW, [2.9, 3.6, 3.7, 1.93], { fontSize: 11.5, rowH: 0.43 });
 }
 
 // ================================================================== PART C RESULTS
@@ -370,8 +425,19 @@ slide("SECTION", "C · Results, tier by tier", "Tier 1 → Tier 2 (CART and RF) 
   ], MX, 5.1, 7.8, 1.75, 14);
 }
 
+for (const t2 of T2) {
+  const s = slide("CONTENT", `Tier 3 · J–M of each band selected by ${t2} in Tier 2`);
+  const lists = S.map((st) => D.jmBands[`${t2}-${st}`]);
+  const nmax = Math.max(...lists.map((l) => l.length));
+  const rows = [["#", ...S.flatMap((st) => [`${SN[st]}: band (nm)`, "JM band", "JM cumul."])]];
+  for (let i = 0; i < nmax; i++) rows.push([String(i + 1), ...lists.flatMap((l) => (l[i] ? [l[i][0].toFixed(1), f2(l[i][1], 4), f2(l[i][2], 3)] : ["", "", ""]))]);
+  rows.push([{ text: "Set", options: { bold: true } }, ...S.flatMap((st) => ["", { text: `max ${f2(Math.max(...D.jmBands[`${t2}-${st}`].map((b) => b[1])), 3)}`, options: { bold: true } }, { text: f2(K(t2, st).JM, 3), options: { bold: true } }])]);
+  table(s, rows, MX, 1.3, CW, [0.37, ...Array(4).fill([1.25, 0.95, 0.74]).flat()], { fontSize: 8.5, rowH: 0.195, margin: [1, 3, 1, 3] });
+  caption(s, `Bands in ${t2 === "CART" ? "wavelength order (all bands used in the pruned tree)" : "order of RF importance (after the |r| < 0.95 filter)"}. JM band = J–M of that single band (0–2 scale); JM cumul. = J–M of the first k bands together; last row = J–M of the whole set. No single band exceeds JM ${f2(D.jm_band_max, 3)}; the 1.94 threshold is not reached.`, MX, 6.42, CW, 0.5);
+}
+
 {
-  const s = slide("CONTENT", "Tier 4 · QDA with paper-style validation (V1)");
+  const s = slide("CONTENT", "Tier 4 · QDA with paper-style validation (CV1)");
   table(s, [["Tier 2", ...S.map((st) => SN[st])],
     ...T2.map((t) => [t, ...S.map((st) => `${f2(K(t, st).v1.BA[0], 3)} (OA ${pct(K(t, st).v1.OA[0], 1)})`)])],
     MX, 1.5, CW, [1.6, 2.63, 2.63, 2.63, 2.64], { fontSize: 14, rowH: 0.55 });
@@ -383,7 +449,7 @@ slide("SECTION", "C · Results, tier by tier", "Tier 1 → Tier 2 (CART and RF) 
 }
 
 {
-  const s = slide("CONTENT", "Main result · plot-grouped nested validation (V2)");
+  const s = slide("CONTENT", "Main result · plot-grouped nested validation (CV2)");
   const labels = allCfg.map(lab).concat(["RF all bands"]);
   s.addChart(pres.charts.BAR, [
     { name: "Spectrum-level BA", labels, values: allCfg.map((c) => +c.v2.BA[0].toFixed(3)).concat([+D.bench.BA[0].toFixed(3)]) },
@@ -405,12 +471,50 @@ slide("SECTION", "C · Results, tier by tier", "Tier 1 → Tier 2 (CART and RF) 
 }
 
 {
-  const s = slide("CONTENT", "V2 in detail (mean ± SD over 10 repetitions)");
+  const s = slide("CONTENT", "CV2 in detail (mean ± SD over 10 repetitions)");
   const rows = [["Config.", "BA", "Kappa", "MCC", "Sensitivity (D)", "Specificity (H)", "AUC", "Plot BA", "Bands/fold"]];
   for (const c of allCfg) rows.push([{ text: lab(c), options: { bold: c === topV2 } }, pm(c.v2.BA, 3), pm(c.v2.kappa, 2), pm(c.v2.MCC, 2), pm(c.v2.sens_D, 2), pm(c.v2.spec_H, 2), pm(c.v2.AUC, 2), pm(c.v2plot.BA, 2), f2(c.v2_kfold, 1)]);
   rows.push(["RF all bands", pm(D.bench.BA, 3), pm(D.bench.kappa, 2), pm(D.bench.MCC, 2), pm(D.bench.sens_D, 2), pm(D.bench.spec_H, 2), pm(D.bench.AUC, 2), pm(D.bench.plotBA, 2), String(D.P)]);
   table(s, rows, MX, 1.45, CW, [1.45, 1.4, 1.3, 1.3, 1.45, 1.45, 1.3, 1.35, 1.13], { fontSize: 11.5, rowH: 0.44 });
   caption(s, "Tier 1, Tier 2, re-sampling and QDA refitted in every training fold; test plots never seen. D = diseased, H = healthy. The RF benchmark is a class-weighted RF classifier on all bands (no Tier 1–3).", MX, 6.05, CW, 0.6);
+}
+
+{
+  const s = slide("CONTENT", "Accuracy assessment · error matrices (plot-grouped CV2)");
+  const em = (x, y, c, title) => {
+    const a = ACC[lab(c)].V2.spectra, m = a.cm;
+    s.addText(title, { x, y, w: 5.95, h: 0.35, fontSize: 15, bold: true, color: C.text2, margin: 0, isTextBox: true, fontFace: THEME.headFontFace });
+    table(s, [
+      ["Reference \\ Predicted", "Healthy", "Diseased", "Total", "PA"],
+      ["Healthy", m[0][0], m[0][1], m[0][0] + m[0][1], `${pct(a.PA_H)} (${ci(a.ci.PA_H.map((v) => 100 * v), 0)}%)`],
+      ["Diseased", m[1][0], m[1][1], m[1][0] + m[1][1], `${pct(a.PA_D)} (${ci(a.ci.PA_D.map((v) => 100 * v), 0)}%)`],
+      ["Total", m[0][0] + m[1][0], m[0][1] + m[1][1], a.n, ""],
+      ["UA", pct(a.UA_H), pct(a.UA_D), "", ""],
+    ], x, y + 0.4, 5.95, [1.55, 1.0, 1.0, 0.8, 1.6], { fontSize: 11.5, rowH: 0.36 });
+    table(s, [
+      ["Measure", "Value", "95% CI (plot bootstrap)"],
+      ["Overall accuracy", pct(a.OA), `${ci(a.ci.OA.map((v) => 100 * v), 1)}%`],
+      ["Balanced accuracy", pct(a.BA), `${ci(a.ci.BA.map((v) => 100 * v), 1)}%`],
+      ["Kappa", f2(a.kappa, 3), ci(a.ci.kappa, 3)],
+      ["MCC · F1 healthy · F1 diseased", `${f2(a.MCC, 3)} · ${f2(a.F1_H, 2)} · ${f2(a.F1_D, 2)}`, ""],
+      ["Quantity / allocation disagreement", `${pct(a.QD)} / ${pct(a.AD)}`, ""],
+    ], x, y + 2.35, 5.95, [2.6, 1.75, 1.6], { fontSize: 11.5, rowH: 0.34 });
+  };
+  em(MX, 1.35, bestC, `${lab(bestC)} + QDA (${D.strats[bestC.s]})`);
+  em(MX + 6.13, 1.35, bestR, `${lab(bestR)} + QDA (${D.strats[bestR.s]})`);
+  caption(s, `Error matrices summed over 10 repetitions × ${D.N} spectra (each spectrum predicted once per repetition, always from plots not used for training). PA = producer's accuracy (1 − omission error), UA = user's accuracy (1 − commission error) (Story & Congalton 1986). CI: 2000 stratified bootstrap resamples of plots (Field & Welsh 2007).`, MX, 6.35, CW, 0.55);
+}
+
+{
+  const s = slide("CONTENT", "Accuracy of every configuration (95% CI by plot bootstrap)");
+  const rows = [["Config.", "Validation", "OA", "BA (95% CI)", "Kappa (95% CI)", "PA H", "UA H", "PA D", "UA D", "Quantity / allocation disagr."]];
+  for (const c of allCfg) for (const k of ["V2", "V3"]) {
+    const a = ACC[lab(c)][k].spectra;
+    rows.push([k === "V2" ? { text: lab(c), options: { bold: c === bestC || c === bestR } } : "", k === "V2" ? "plot-grouped" : "leave-one-plot-out", pct(a.OA), `${pct(a.BA)} (${ci(a.ci.BA.map((v) => 100 * v), 0)}%)`,
+      `${f2(a.kappa, 2)} (${ci(a.ci.kappa, 2)})`, pct(a.PA_H, 0), pct(a.UA_H, 0), pct(a.PA_D, 0), pct(a.UA_D, 0), `${pct(a.QD, 0)} / ${pct(a.AD, 0)}`]);
+  }
+  table(s, rows, MX, 1.3, CW, [0.95, 1.45, 0.85, 1.75, 1.65, 0.8, 0.8, 0.8, 0.8, 2.28], { fontSize: 9.5, rowH: 0.29 });
+  caption(s, "Spectrum level. H = healthy, D = diseased. Without correction (S0) PA healthy is low: healthy spectra are absorbed by the majority class. UA healthy stays below 50% in every configuration: many spectra predicted healthy are diseased. Plot-level matrices and all schemes: sheet 14_Accuracy.", MX, 6.35, CW, 0.55);
 }
 
 {
@@ -420,14 +524,14 @@ slide("SECTION", "C · Results, tier by tier", "Tier 1 → Tier 2 (CART and RF) 
     MX, 1.5, 7.2, [1.6, 2.0, 1.6, 2.0], { fontSize: 13, rowH: 0.45 });
   card(s, 8.1, 1.5, 4.63, 4.9, "Stability of band selection", [
     "40 training folds (4 folds × 10 repetitions) per configuration",
-    `${lab(bestC)} and ${lab(bestR)} are the best-performing strategies of each Tier-2 method in V2`,
+    `${lab(bestC)} and ${lab(bestR)} are the best-performing strategies of each Tier-2 method in CV2`,
     "Even the most frequent bands are chosen in only part of the folds: the band set depends on which plots are in the training set",
     "Report regions (blue, red-edge/NIR, SWIR-2) rather than single wavelengths",
   ], HX.lt2, 13.5);
 }
 
 {
-  const s = slide("CONTENT", "Leave-one-plot-out (V3): which plots are misclassified?");
+  const s = slide("CONTENT", "Leave-one-plot-out (CV3): which plots are misclassified?");
   img(s, "f11_lopo_CART.png", MX, 1.3, 4.6, 4.2, "LOPO CART map");
   img(s, "f11_lopo_RF.png", 5.3, 1.3, 4.6, 4.2, "LOPO RF map");
   const c3 = K("CART", D.best.CART).v3, r3 = K("RF", D.best.RF).v3;
@@ -450,20 +554,65 @@ slide("SECTION", "C · Results, tier by tier", "Tier 1 → Tier 2 (CART and RF) 
     8.0, 1.5, 4.73, [0.7, 0.8, 0.95, 0.8, 0.8, 0.68], { fontSize: 11.5, rowH: 0.5 });
   body(s, [
     `Plot labels were shuffled ${pc.n} times (12 healthy / 36 diseased kept) and the full nested pipeline rerun (one 4-fold repetition each)`,
-    `Observed = balanced accuracy of V2 repetition 1 with the true labels. CART: p = ${f2(pc.p, 3)}; RF: p = ${f2(pr.p, 3)} (smallest possible p with ${pc.n} permutations = ${f2(1 / (pc.n + 1), 3)})`,
+    `Observed = balanced accuracy of CV2 repetition 1 with the true labels. CART: p = ${f2(pc.p, 3)}; RF: p = ${f2(pr.p, 3)} (smallest possible p with ${pc.n} permutations = ${f2(1 / (pc.n + 1), 3)})`,
     `Because whole plots are permuted, this tests the plot-level class difference (Ojala & Garriga 2010). In ${D.no_bands_perm} of 800 permuted folds Tier 1 found no significant band; these folds predict by prior (BA 0.5), as the pipeline would`,
   ], MX, 5.1, CW, 1.7, 14);
 }
 
 {
+  const s = slide("CONTENT", "Validation using the treatment design (CV4–CV6)");
+  const rows = [["Configuration", "CV2 plot-grouped", "CV4 leave-one-treatment-out", "CV5 leave-one-variety-out", "CV6 leave-one-date-out", "CV4–CV6 plot BA"]];
+  for (const c of allCfg) {
+    const g = (k) => DV[k][lab(c)];
+    rows.push([{ text: lab(c), options: { bold: c === bestC || c === bestR } }, f2(c.v2.BA[0], 3), `${f2(g("V4").BA, 3)} (${ci(g("V4").ci)})`, `${f2(g("V5").BA, 3)} (${ci(g("V5").ci)})`,
+      `${f2(g("V6").BA, 3)} (${ci(g("V6").ci)})`, `${f2(g("V4").plotBA, 2)} · ${f2(g("V5").plotBA, 2)} · ${f2(g("V6").plotBA, 2)}`]);
+  }
+  table(s, rows, MX, 1.4, 8.4, [1.25, 1.15, 1.6, 1.6, 1.6, 1.2], { fontSize: 11, rowH: 0.45 });
+  const all = allCfg.flatMap((c) => ["V4", "V5", "V6"].map((k) => DV[k][lab(c)].BA));
+  card(s, 9.2, 1.4, 3.53, 5.3, "What it shows", [
+    `Balanced accuracy ${f2(Math.min(...all), 2)}–${f2(Math.max(...all), 2)} when a whole treatment level is held out, similar to CV2 (${f2(Math.min(...allCfg.map((c) => c.v2.BA[0])), 2)}–${f2(Math.max(...allCfg.map((c) => c.v2.BA[0])), 2)})`,
+    "The weak separation is not specific to one variety or inoculation date: the model transfers, but stays weak",
+    "Brackets: 95% CI by plot bootstrap",
+    "These folds still keep the control block C intact in its location, so they cannot remove the block confound (next slides)",
+  ], HX.lt2, 12.5);
+}
+
+{
+  const s = slide("CONTENT", "Negative control: block vs block");
+  img(s, "f14_negative_control.png", MX, 1.3, CW, 3.95, "Negative control: balanced accuracy for block pairs");
+  body(s, [
+    `Control vs inoculated: mean BA ${f2(ncMean(ncCtrl, "CART"), 2)} (CART) / ${f2(ncMean(ncCtrl, "RF"), 2)} (RF); inoculated vs inoculated: ${f2(ncMean(ncNeg, "CART"), 2)} / ${f2(ncMean(ncNeg, "RF"), 2)}`,
+    `At the same distance (≈ 27 m): C vs R2 ${f2(ncPair("C vs R2").CART.BA[0], 2)} / ${f2(ncPair("C vs R2").RF.BA[0], 2)} against R3 vs R1 ${f2(ncPair("R3 vs R1").CART.BA[0], 2)} / ${f2(ncPair("R3 vs R1").RF.BA[0], 2)}: the control block differs more than location alone explains`,
+    `But Tier 1 also finds many significant bands between inoculated blocks (R3 vs R1: ${ncPair("R3 vs R1").sig}; plot means ${ncPair("R3 vs R1").sig_plot}) and C vs R accuracy rises with distance (C vs R3 ${f2(ncPair("C vs R3").CART.BA[0], 2)} → C vs R1 ${f2(ncPair("C vs R1").CART.BA[0], 2)}): a west–east gradient adds to the class difference`,
+  ], MX, 5.35, CW, 1.55, 12.5);
+}
+
+{
+  const s = slide("CONTENT", "Detection by block, variety and inoculation date");
+  img(s, "f15_detection_block.png", MX, 1.3, 8.3, 3.2, "Detection by block");
+  const rp = (t2) => ["C", "R3", "R2", "R1"].map((b) => f2(RP[t2].ba[b], 3));
+  table(s, [["Block labelled healthy", "C (true)", "R3", "R2", "R1", "p"],
+    ...T2.map((t2) => [`${t2}-${RP[t2].strategy}`, ...rp(t2), f2(RP[t2].p, 2)])],
+    9.1, 1.4, 3.63, [1.0, 0.6, 0.5, 0.5, 0.5, 0.53], { fontSize: 10, rowH: 0.42 });
+  caption(s, "Restricted permutation: CV2 balanced accuracy when each block in turn is called healthy. p ≥ 0.25 is the smallest possible with 4 blocks.", 9.1, 2.75, 3.63, 0.9);
+  const kw = (t2, k) => f2(DET[t2].kw[k][1], 2);
+  body(s, [
+    `Share of spectra predicted diseased rises from west to east: C ${pct(DET.CART.by_block.C, 0)}, R3 ${pct(DET.CART.by_block.R3, 0)}, R2 ${pct(DET.CART.by_block.R2, 0)}, R1 ${pct(DET.CART.by_block.R1, 0)} (CART; RF ${pct(DET.RF.by_block.C, 0)} → ${pct(DET.RF.by_block.R1, 0)})`,
+    `Among inoculated plots detection does not differ by inoculation date (Kruskal–Wallis p = ${kw("CART", "date|diseased")} CART, ${kw("RF", "date|diseased")} RF) or variety (p = ${kw("CART", "variety|diseased")}, ${kw("RF", "variety|diseased")}); between inoculated blocks p = ${f2(DET.CART.kw_block[1], 2)} / ${f2(DET.RF.kw_block[1], 2)}`,
+    `The true labelling ranks first of 4 for both methods (p = ${f2(RP.CART.p, 2)}), the best this design allows: disease and block cannot be separated statistically with one control block`,
+  ], MX, 4.65, CW, 2.2, 13);
+}
+
+{
   const s = slide("CONTENT", "Comparison: CART vs RF in Tier 2 and the imbalance strategies");
-  const rows = [["Configuration", "Bands", "JM", "V1 BA (paper-style)", "V2 BA (plot-grouped)", "V2 plot BA", "V3 plot BA (plots correct)"]];
-  for (const c of allCfg) rows.push([lab(c), c.k, f2(c.JM, 3), f2(c.v1.BA[0], 3), f2(c.v2.BA[0], 3), f2(c.v2plot.BA[0], 3), `${f2(c.v3.plotBA, 2)} (${c.v3.correct}/48)`]);
-  table(s, rows, MX, 1.45, 8.0, [1.35, 0.75, 0.9, 1.25, 1.3, 1.2, 1.25], { fontSize: 12, rowH: 0.44 });
+  const rows = [["Config.", "Bands", "JM", "CV1 BA", "CV2 BA", "CV2 plot BA", "CV3 plot BA (correct)", "CV4 BA", "CV5 BA", "CV6 BA"]];
+  for (const c of allCfg) rows.push([lab(c), c.k, f2(c.JM, 3), f2(c.v1.BA[0], 3), f2(c.v2.BA[0], 3), f2(c.v2plot.BA[0], 3), `${f2(c.v3.plotBA, 2)} (${c.v3.correct}/48)`,
+    f2(DV.V4[lab(c)].BA, 3), f2(DV.V5[lab(c)].BA, 3), f2(DV.V6[lab(c)].BA, 3)]);
+  table(s, rows, MX, 1.45, 8.0, [0.85, 0.55, 0.65, 0.7, 0.7, 0.8, 1.15, 0.7, 0.7, 0.7], { fontSize: 10.5, rowH: 0.44 });
   const dV = allCfg.map((c) => c.v1.BA[0] - c.v2.BA[0]);
   card(s, 8.85, 1.45, 3.88, 5.3, "What the comparison shows", [
     `Paper-style CV is optimistic by up to ${f2(Math.max(...dV), 2)} BA compared with plot-grouped CV`,
-    `CART vs RF in Tier 2: best V2 BA ${f2(bestC.v2.BA[0], 3)} (CART) vs ${f2(bestR.v2.BA[0], 3)} (RF): no clear winner`,
+    `CART vs RF in Tier 2: best CV2 BA ${f2(bestC.v2.BA[0], 3)} (CART) vs ${f2(bestR.v2.BA[0], 3)} (RF): no clear winner`,
     "S0 (no correction) gives the weakest plot-level result: healthy plots are missed",
     "S1/S2/S3 perform similarly; S1 (class weights) needs no synthetic or discarded data",
     `RF classifier on all ${D.P} bands with class weights only: BA ${f2(D.bench.BA[0], 2)}, plot BA ${f2(D.bench.plotBA[0], 2)}: it still favours the majority class`,
@@ -482,12 +631,16 @@ slide("SECTION", "C · Results, tier by tier", "Tier 1 → Tier 2 (CART and RF) 
     "Tier 3": "1-D closed-form J–M = matrix form",
     Validation: "no plot in training and test; SMOTE on training only; permutation nulls ≈ 0.5",
     "Tier 4": "hand-coded QDA = sklearn; BA = (sens + spec)/2; confusion matrix total = N",
+    Design: "48 plots; C = plots 1–12; each block holds every variety × date once",
+    Reproducibility: "CV2 re-run with the shared pipeline module reproduces all 80 stored repetitions",
+    Accuracy: "pooled matrix totals; OA = 1 − QD − AD; kappa = sklearn; CV3 matrix = stored result",
+    "Validation design": "every spectrum tested once; both classes in every fold; true labelling = main result",
   };
   const rows = [["Step", "Checks", "What was checked", "Result"]];
   for (const [k, v] of Object.entries(groups)) rows.push([k, v.length, ex[k] || "", { text: v.every((c) => c[3] === "PASS") ? "PASS" : "FAIL", options: { bold: true, color: v.every((c) => c[3] === "PASS") ? "008000" : "C00000" } }]);
-  rows.push(["Excel ↔ Python", "live", "ANOVA F and p, weights, J–M, confusion-matrix BA/kappa/MCC recomputed by Excel formulas", { text: "PASS", options: { bold: true, color: "008000" } }]);
-  table(s, rows, MX, 1.45, CW, [2.0, 1.0, 7.93, 1.2], { fontSize: 12.5, rowH: 0.45 });
-  caption(s, `${D.checks.passed} of ${D.checks.n} Python checks pass; live Excel checks in sheet 14_Cross_Checks of Four_Tier_48plots.xlsx. QDA needed the ridge fallback in ${D.fallbacks} fits.`, MX, 6.45, CW);
+  rows.push(["Excel ↔ Python", "live", "ANOVA F and p, weights, J–M, design layout, all accuracy measures of every error matrix recomputed by Excel formulas", { text: "PASS", options: { bold: true, color: "008000" } }]);
+  table(s, rows, MX, 1.4, CW, [2.0, 1.0, 7.93, 1.2], { fontSize: 11.5, rowH: 0.38 });
+  caption(s, `${D.checks.passed} of ${D.checks.n} Python checks pass; live Excel checks in sheet 18_Cross_Checks of Four_Tier_48plots.xlsx. QDA needed the ridge fallback in ${D.fallbacks} fits.`, MX, 6.5, CW);
 }
 
 // ================================================================== DISCUSSION / SUMMARY / CONCLUSION
@@ -500,10 +653,10 @@ slide("SECTION", "D · Discussion, summary and conclusion", "What the results me
     ["Weak to moderate separation", `JM ≤ ${f2(jmMax, 2)} (threshold 1.94) and plot-grouped BA ${f2(Math.min(...allCfg.map((c) => c.v2.BA[0])), 2)}–${f2(topV2.v2.BA[0], 2)}, far below the 98% of Das et al. Their samples were averaged field spectra of uniform plots; here single SMACC endmembers mix leaves, lesions, soil and shadow.`],
     ["Pseudo-replication", `${t1.sig} bands are significant with spectra as replicates but only ${t1.plotmean} with plot means. Spectra of one plot are not independent, so plot-grouped validation is the honest estimate (Hurlbert 1984; Roberts et al. 2017).`],
     ["Imbalance handling helps at plot level", `Without correction the minority (healthy) class is under-predicted. Class weighting, under-sampling and SMOTE all raise plot-level BA (best ${f2(topPlot.v2plot.BA[0], 2)}); applied inside folds only (Santos et al. 2018).`],
-    ["CART vs RF in Tier 2", `Similar performance (V2 BA ${f2(bestC.v2.BA[0], 3)} vs ${f2(bestR.v2.BA[0], 3)}). RF ranking is more stable in principle; CART picks complementary bands. The bands change from fold to fold for both.`],
-    ["Location confound", "All healthy plots are at the west end of the field. Part of any difference may be position (soil, illumination, sowing), not disease. Leave-one-plot-out errors should be inspected in the field."],
+    ["CART vs RF in Tier 2", `Similar performance (CV2 BA ${f2(bestC.v2.BA[0], 3)} vs ${f2(bestR.v2.BA[0], 3)}). RF ranking is more stable in principle; CART picks complementary bands. The bands change from fold to fold for both.`],
+    ["Block / location confound", `All healthy plots form block C at the west end. Inoculated blocks also differ from each other, and the share predicted diseased rises west → east (${pct(DET.CART.by_block.C, 0)} → ${pct(DET.CART.by_block.R1, 0)}). Control vs inoculated (BA ${f2(ncMean(ncCtrl, "CART"), 2)}) beats inoculated vs inoculated (${f2(ncMean(ncNeg, "CART"), 2)}), so some disease signal is likely, but with one control block it cannot be proven (restricted permutation p = ${f2(RP.CART.p, 2)}).`],
     ["All wavelengths kept", `Edge bands (< 420, > 2,350 nm) and negative reflectance are retained as requested; some selected bands lie there (${lab(K("CART", "S1"))}: ${nEdge(K("CART", "S1"))} edge bands). CART's first split uses near-zero/negative R2380. The ≈ 918–921 nm bands, chosen in most RF folds, sit just after the 899–916 nm gap where Tier 1 shows a narrow spike: check for a sensor artefact.`],
-  ], MX, 1.4, 2, 5.98, 1.68, 0.17, 0.12, 14.5, 12);
+  ], MX, 1.4, 2, 5.98, 1.68, 0.17, 0.12, 14.5, 11.5);
 }
 
 {
@@ -514,7 +667,7 @@ slide("SECTION", "D · Discussion, summary and conclusion", "What the results me
     [`${K("CART", "S1").k} / ${K("CART", "S0").k}`, "CART bands with / without class weights; RF selects the same number"],
     [f2(jmMax, 2), `highest J–M distance (${lab(jmBest)}), below the 1.94 threshold`],
     [f2(topV2.v2.BA[0], 2), `best plot-grouped balanced accuracy (${lab(topV2)}); paper-style up to ${f2(v1max, 2)}`],
-    [f2(topPlot.v2plot.BA[0], 2), `best plot-level balanced accuracy (${lab(topPlot)}); permutation p = ${f2(D.perm[topPlot.t2].p, 3)}`],
+    [f2(topPlot.v2plot.BA[0], 2), `best plot-level BA (${lab(topPlot)}); plot-label permutation p = ${f2(D.perm[topPlot.t2].p, 3)}, block-level p = ${f2(RP.CART.p, 2)} (minimum possible)`],
   ];
   items.forEach(([v, l], i) => {
     const col = i % 3, row = Math.floor(i / 3);
@@ -531,18 +684,19 @@ slide("SECTION", "D · Discussion, summary and conclusion", "What the results me
     `The four-tier method of Das et al. (2020) was applied to all ${D.N} endmembers of 48 plots and all ${D.P} bands, with Random Forest replacing CART in Tier 2 for comparison and four ways of handling the 1 : ${f2(D.nD / D.nH, 2)} imbalance.`,
     `Healthy and diseased spectra differ statistically, but separability is low (JM ≤ ${f2(jmMax, 2)}) and realistic plot-grouped balanced accuracy is ${f2(topV2.v2.BA[0], 2)} at best (plot level ${f2(topPlot.v2plot.BA[0], 2)}).`,
     "Imbalance correction is needed: class weighting (S1) is the simplest choice that keeps all data; CART and RF in Tier 2 perform similarly.",
-    "Paper-style random cross-validation overstates accuracy; plots must be the validation unit. Next steps: plot-level ground truth, plots of both classes across the whole field, and an independent date.",
+    `Paper-style random cross-validation overstates accuracy; plots must be the validation unit. Holding out whole varieties, inoculation dates or treatment combinations gives similar, weak accuracy (BA ≈ ${f2(mean(allCfg.flatMap((c) => ["V4", "V5", "V6"].map((k) => DV[k][lab(c)].BA))), 2)}).`,
+    "The control plots form a single block, and inoculated blocks also differ along the field: part of the healthy–diseased separation is location. Next season: randomise control plots within every replication, add plot-level disease scores and an independent date.",
   ];
   s.addText(pts.map((t, i) => ({ text: t, options: { bullet: true, breakLine: i < pts.length - 1, paraSpaceAfter: 12 } })),
     { x: MX, y: 1.55, w: CW, h: 5.2, fontSize: 18, color: HX.lt1, margin: 0, isTextBox: true, valign: "middle" });
 }
 
 {
-  const half = Math.ceil(D.refs.length / 2);
-  [D.refs.slice(0, half), D.refs.slice(half)].forEach((part, k) => {
-    const s = slide("CONTENT", `References (${k + 1}/2)`);
+  const per = Math.ceil(D.refs.length / 3);
+  [0, 1, 2].map((k) => D.refs.slice(k * per, (k + 1) * per)).forEach((part, k) => {
+    const s = slide("CONTENT", `References (${k + 1}/3)`);
     s.addText(part.map((r, i) => ({ text: r[1], options: { bullet: true, breakLine: i < part.length - 1, paraSpaceAfter: 5 } })),
-      { x: MX, y: 1.35, w: CW, h: 5.5, fontSize: 11.5, color: C.text1, margin: 0, isTextBox: true, valign: "top" });
+      { x: MX, y: 1.35, w: CW, h: 5.5, fontSize: 12, color: C.text1, margin: 0, isTextBox: true, valign: "top" });
   });
 }
 

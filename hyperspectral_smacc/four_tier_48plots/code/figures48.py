@@ -147,7 +147,7 @@ for t2, s in cfgs:
     c = full[(t2, s)]["cum"]
     ax.plot(range(1, len(c) + 1), c, color=CD if t2 == "CART" else "#2a78d6", lw=1.6, ls=["-", "--", ":", "-."][list(STRATS).index(s)],
             label=f"{t2}-{s}")
-ax.axhline(1.94, color=INK, ls="--", lw=1); ax.set_ylim(0, 2.05); ax.set_xlabel("Bands added (selection order)"); ax.set_ylabel("Cumulative JM (0–2)")
+ax.axhline(1.94, color=INK, ls="--", lw=1); ax.set_ylim(0, 2.05); ax.set_xlabel("Bands added (CART: wavelength order; RF: importance order)"); ax.set_ylabel("Cumulative JM (0–2)")
 ax.text(0.5, 1.94, "threshold 1.94", va="bottom", fontsize=9); ax.legend(fontsize=8, ncol=2, loc="center left"); ax.set_title("Selected band sets (cumulative)")
 fig.tight_layout(); fig.savefig("results/f09_jm.png"); plt.close(fig)
 

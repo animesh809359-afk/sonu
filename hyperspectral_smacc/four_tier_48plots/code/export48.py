@@ -1,8 +1,9 @@
 """Export the numbers the slide deck needs from results/r48.pkl to results/deck48.json."""
 import json, pickle
 from collections import Counter
-import numpy as np
+import numpy as np, pandas as pd
 from refs48 import REFS
+from abbrev48 import ABBR
 
 R = pickle.load(open("results/r48.pkl", "rb"))
 V, full, wl, y, groups = R["V"], R["full"], R["wl"], R["y"], R["groups"]
@@ -55,9 +56,44 @@ out["no_bands_perm"] = int(R.get("no_bands_perm", 0))
 out["perm"] = {t2: dict(strategy=p["strategy"], observed=float(p["observed"]), p=float(p["p"]), null_mean=float(np.mean(p["null"])),
                         null_max=float(np.max(p["null"])), n=int(len(p["null"])), q95=float(np.quantile(p["null"], 0.95)))
                for t2, p in R["perm"].items()}
-ck = R["checks"]
+# ---------------------------------------------------------------- design-based validation and accuracy (design48.py)
+DZ = pickle.load(open("results/d48.pkl", "rb"))
+td = DZ["design"]
+def fl(v): return None if v is None or (isinstance(v, float) and np.isnan(v)) else float(v)
+def accd(m):
+    o = {k: fl(m[k]) for k in ("OA", "BA", "kappa", "PA_H", "UA_H", "PA_D", "UA_D", "F1_H", "F1_D", "MCC", "QD", "AD")}
+    o["cm"] = np.asarray(m["cm"]).astype(int).tolist(); o["n"] = int(np.asarray(m["cm"]).sum())
+    if "ci" in m: o["ci"] = {k: [float(m["ci"][k][0]), float(m["ci"][k][1])] for k in ("OA", "BA", "kappa", "PA_H", "PA_D", "UA_H", "UA_D")}
+    return o
+out["design"] = dict(blocks={b: dict(plots=[int(k) for k in td.index[td.block == b]], x=float(DZ["block_centroids"].loc[b, "x_m"]), y=float(DZ["block_centroids"].loc[b, "y_m"]))
+                             for b in ["C", "R3", "R2", "R1"]},
+                     varieties=sorted(td.variety.unique()), dates=sorted(td.date.unique()),
+                     plot=[dict(plot=int(k), block=td.block[k], variety=td.variety[k], date=td.date[k]) for k in td.index])
+out["jmBands"] = {f"{t2}-{s}": [[round(float(wl[b]), 1), float(R["jm_band"][b]), float(c)] for b, c in zip(full[(t2, s)]["bands"], full[(t2, s)]["cum"])]
+                  for (t2, s) in full}
+out["acc"] = {f"{t2}-{s}": {k: {lev: accd(DZ["ACC"][(t2, s)][k][lev]) for lev in DZ["ACC"][(t2, s)][k]} for k in ("V1", "V2", "V3")} for (t2, s) in R["CONFIGS"]}
+for (k, t2, s), mm in DZ["DV"].items():
+    out["acc"][f"{t2}-{s}"][k] = {lev: accd(mm["acc"][lev]) for lev in ("spectra", "plots")}
+out["dv"] = {k: dict(name=v[0], folds=list(v[1])) for k, v in DZ["SCHEMES"].items()}
+for (k, t2, s), mm in DZ["DV"].items():
+    tb = mm["plot"]["table"]
+    out["dv"][k][f"{t2}-{s}"] = dict(BA=float(mm["BA"]), OA=float(mm["OA"]), kappa=float(mm["kappa"]), MCC=float(mm["MCC"]), AUC=fl(mm.get("AUC")),
+                                     sens_D=float(mm["sens_D"]), spec_H=float(mm["spec_H"]), plotBA=float(mm["plot"]["BA"]),
+                                     correct=int((tb.pred == tb.t).sum()), ci=list(map(float, mm["acc"]["spectra"]["ci"]["BA"])),
+                                     no_band=int(mm["no_band_folds"]), per_fold=[[f["label"], float(f["BA"])] for f in mm["per_fold"]])
+out["nc"] = [dict(pair=r["pair"], kind=r["kind"], dist=float(r["distance_m"]), sig=int(r["sig"]), sig_plot=int(r["sig_plot"]), jm=float(r["jm_band_max"]),
+                  n=list(r["n"]), CART=dict(BA=list(r["CART"]["BA"]), plotBA=list(r["CART"]["plotBA"])), RF=dict(BA=list(r["RF"]["BA"]), plotBA=list(r["RF"]["plotBA"])))
+             for r in DZ["NC"].values()]
+out["rp"] = {t2: dict(strategy=v["strategy"], ba=v["ba"], p=float(v["p"]), rank=int(v["rank"])) for t2, v in DZ["RP"].items()}
+out["det"] = {t2: dict(strategy=v["strategy"], by_block={b: float(x) for b, x in v["by_block"]["mean"].items()},
+                       by_variety={c: {i: float(x) for i, x in v["by_variety"][c].items()} for c in v["by_variety"].columns},
+                       by_date={c: {i: float(x) for i, x in v["by_date"][c].items()} for c in v["by_date"].columns},
+                       kw={k: [float(a), float(b)] for k, (a, b) in v["kw"].items()}, kw_block=list(map(float, v["kw_block"])))
+              for t2, v in DZ["DET"].items()}
+ck = pd.concat([R["checks"], DZ["checks"]], ignore_index=True)
 out["checks"] = dict(n=int(len(ck)), passed=int((ck.result == "PASS").sum()), rows=ck[["step", "check", "obtained", "result"]].values.tolist())
 out["refs"] = [list(r) for r in REFS]
+out["abbr"] = [list(r) for r in ABBR]
 json.dump(out, open("results/deck48.json", "w"), indent=1)
 print("written; configs", list(cfg))
 for k, c in cfg.items():
