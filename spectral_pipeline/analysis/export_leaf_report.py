@@ -115,7 +115,9 @@ for cfgf in sorted((ROOT / "configs" / "leaf_levels").glob("[123]_*.yaml")):
          "stages": sorted(meta["Growth stage"].unique()), "varieties": sorted(meta["Variety"].unique()),
          "k3": int(F["v3_k"]), "v3_method": F["v3_method"], "nV3": len(F["V3"]), "v4": list(map(int, F["v4_plots"])),
          "v5_by": F.get("V5_by", "Date"), "nV5": len(F["V5"]), "v5_dropped": len(F.get("V5_dropped", [])),
-         "by_stage": recs(D["audit"]["by_stage"].reset_index()), "by_variety": recs(D["audit"]["by_variety"].reset_index())}
+         "by_stage": recs(D["audit"]["by_stage"].reset_index()), "by_variety": recs(D["audit"]["by_variety"].reset_index()),
+         "by_date": recs(D["audit"]["by_date"].reset_index()), "leaf_n": int(D["audit"]["leaf"]["n_files"]),
+         "by_stage_total": recs(D["audit"]["by_stage_total"].reset_index())}
     t1 = A["tier1"]
     tt = A["tier1_tests"]
     s["tier1_tests"] = [[r["Test"], int(r["Significant bands"])] for _, r in tt.iterrows()]
