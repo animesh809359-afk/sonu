@@ -1,0 +1,32 @@
+# White rust (Albugo candida) in mustard - PLOT-AVERAGE spectra, all four dates combined.
+# Each spectrum = mean of the leaf spectra of one plot on one date (48 plots x 4 dates = 192: 48 healthy, 144 diseased).
+# Disease-sensitive features are derived from the RAW plot-average reflectance (no smoothing, no splice correction).
+title: "Healthy vs white-rust-diseased mustard - plot-average spectra, all dates combined"
+subtitle: "Four-tier hierarchical analysis (Das et al., 2020) with imbalance correction on raw reflectance and on the combined pool of raw-reflectance-derived features; CART vs Random Forest; plot-grouped and leave-one-date-out validation"
+author: "Animesh Panda · Division of Agricultural Physics, ICAR-IARI, New Delhi"
+data:
+  files:
+    - [asd__data_complete_labelled_110226.xlsx, 11-02-2026]
+    - [asd__data_complete_labelled_240226.xlsx, 24-02-2026]
+    - [asd__data_complete_labelled_030326.xlsx, 03-03-2026]
+    - [asd__data_complete_labelled_130326.xlsx, 13-03-2026]
+  plot_col: Plot
+  class_col: Class
+  date_col: Date
+  drop_exact_duplicates: true
+  plot_average: true
+  subset_label: "plot-average spectra, all dates, growth stages and varieties combined"
+  subset_family: "plot-average analysis: one spectrum per plot and date, all four dates combined"
+classes: {negative: Healthy, positive: Diseased}
+spectra:
+  keep_range: [400, 2500]
+  canopy: false
+  feature_source: raw
+features:
+  extended: true
+validation:
+  v5_by: Date
+naming: full
+output:
+  dir: ../../../deliverables/WhiteRust_PlotAverage_AllDates
+  stem: WhiteRust_Mustard_PlotAverage_AllDates

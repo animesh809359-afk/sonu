@@ -46,6 +46,43 @@ if C["data"].get("subset"):
                 if _dm[((meta_all["Date"] == d["Date"]) & (meta_all["Source column"] == d["Source column"])).to_numpy()].any()]
 present_dates = [d for _, d in C["data"]["files"] if d in set(meta["Date"])]
 
+# ---- plot averages: one spectrum per plot and date (mean of its leaf spectra)
+PLOTAVG = None
+if C["data"].get("plot_average"):
+    import plotavg_features as pf
+    n_leaf = len(meta)
+    rows, Ravg = [], []
+    for d in present_dates:
+        md = meta[meta["Date"] == d]
+        for p, g in md.groupby("Plot", sort=True):
+            f0 = g.iloc[0]
+            rows.append({"Plot": int(p), "Variety": f0["Variety"], "Growth stage": f0["Growth stage"], "Class": f0["Class"],
+                         "Date": d, "File": f"Plot {int(p)} · {d} (mean of {len(g)} leaf spectra)",
+                         "Source column": ", ".join(g["Source column"].astype(str)), "Leaf spectra averaged": len(g),
+                         "Leaf files": "; ".join(g["File"].astype(str)), "Unnamed": False})
+            Ravg.append(R_full[g.index.to_numpy()].mean(0))
+    meta = pd.DataFrame(rows)
+    meta.insert(0, "Spectrum ID", np.arange(1, len(meta) + 1))
+    R_full = np.vstack(Ravg)
+    # cross-check: the labelled workbooks contain one =AVERAGE column per plot; their cached values must equal our means
+    pa_rows = []
+    for (f, d) in C["data"]["files"]:
+        if d not in present_dates:
+            continue
+        wa = pf.workbook_averages(RAW_DIR / f)
+        for i in np.where(meta["Date"].values == d)[0]:
+            for fm, v in wa.get(int(meta.at[i, "Plot"]), []):
+                pa_rows.append({"Date": d, "Plot": int(meta.at[i, "Plot"]), "Workbook column": "source formula: " + fm.lstrip("="),
+                                "Leaf spectra in our mean": int(meta.at[i, "Leaf spectra averaged"]),
+                                "Max |difference| (2151 bands)": float(np.nanmax(np.abs(v - R_full[i])))})
+    pa_tab = pd.DataFrame(pa_rows)
+    n_ok = int((pa_tab["Max |difference| (2151 bands)"] < 1e-12).sum())
+    leaf_tab = (meta.groupby(["Date", "Class"])["Leaf spectra averaged"].agg(["count", "sum", "min", "max"])
+                .rename(columns={"count": "Plot averages", "sum": "Leaf spectra", "min": "Min leaves per plot", "max": "Max leaves per plot"})
+                .reindex(pd.MultiIndex.from_product([present_dates, ["Healthy", "Diseased"]])).reset_index()
+                .rename(columns={"level_0": "Date", "level_1": "Class"}))
+    PLOTAVG = {"n_leaf": n_leaf, "n_avg": len(meta), "check": pa_tab, "n_ok": n_ok, "leaf_tab": leaf_tab}
+
 y = (meta["Class"].values == "Diseased").astype(int)
 groups = meta["Plot"].astype(str).values
 dates = meta["Date"].values
@@ -131,6 +168,16 @@ checks = [
 if LEAF is not None:
     for c_ in reversed(LEAF["checks"]):
         checks.insert(0, c_)
+if PLOTAVG is not None:
+    checks.insert(0, ("Plot averages equal the labelled workbooks' own =AVERAGE plot columns",
+                      f"{PLOTAVG['n_ok']} of {len(PLOTAVG['check'])} columns identical at all 2151 bands "
+                      f"(max |Δ| {PLOTAVG['check']['Max |difference| (2151 bands)'].max():.1e})",
+                      "PASS" if PLOTAVG["n_ok"] == len(PLOTAVG["check"]) else "FLAG"))
+    checks.insert(0, ("Plot averaging: one spectrum per plot and date",
+                      f"{PLOTAVG['n_leaf']} leaf spectra → {PLOTAVG['n_avg']} plot-average spectra "
+                      f"({int((meta['Class'] == 'Healthy').sum())} healthy, {int((meta['Class'] == 'Diseased').sum())} diseased; "
+                      f"{meta['Plot'].nunique()} plots × {len(present_dates)} dates)",
+                      "PASS" if PLOTAVG["n_avg"] == meta["Plot"].nunique() * len(present_dates) else "FLAG"))
 if C["data"].get("subset"):
     checks.insert(0, ("Subset selected after duplicate removal on all four files",
                       f"{C['data']['subset_label']}: {len(meta)} of {n_before_subset} leaf spectra", "PASS"))
@@ -168,7 +215,7 @@ save({"meta": meta, "meta_all": meta_all, "R_full": R_full, "R_all": R_all, "dup
                 "checks": checks, "noise": noise, "sam": sam_tab, "top_dev": top_dev, "subset": subset_info, "leaf": LEAF,
                 "by_level": (pd.crosstab([meta_all.loc[~dup_mask, "Leaf level"], meta_all.loc[~dup_mask, "Date"]],
                                          meta_all.loc[~dup_mask, "Class"]) if LEAF is not None else None),
-                "present_dates": present_dates}},
+                "present_dates": present_dates, "plotavg": PLOTAVG}},
      "data")
 print(counts, "\n", by_date, "\n", by_stage_total, "\n", by_variety)
 print("bands analysed", len(spec.wl), "| K0 bump flag", spec.k0["bump_flag"])

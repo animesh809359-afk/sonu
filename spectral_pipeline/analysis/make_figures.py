@@ -50,7 +50,7 @@ done = []
 _CFG = cfg()
 if _CFG.get("naming") == "full":
     from naming import Namer  # noqa: E402
-    _NAMER = Namer(D["folds"].get("V5_by", "Date"))
+    _NAMER = Namer(D["folds"].get("V5_by", "Date"), unit="plot" if _CFG["data"].get("plot_average") else "leaf")
 else:
     _NAMER = None
 

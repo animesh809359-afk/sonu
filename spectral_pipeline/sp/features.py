@@ -240,12 +240,78 @@ def k4_derivative_bands(spec, guard=True, which="D1"):
     if guard:
         m &= ~spec.guard[which]
     wl = spec.wl[m]
-    X = (spec.D1 if which == "D1" else spec.D2)[:, m]
+    X = {"D1": spec.D1, "D2": spec.D2, "D3": spec.D3}[which][:, m]
     return FeatureSet(X, _meta([f"{which}_{int(w)}" for w in wl], f"K4 {which} band", which, wl.astype(float)))
+
+
+# ------------------------------------------------------------------ extended set (plot-average analysis)
+CR_EXTRA = ["left area", "right area", "depth/area"]
+
+
+def _pf():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "analysis"))
+    import plotavg_features as pf
+    return pf
+
+
+def k2_continuum_ext(spec, windows):
+    """8 parameters per window: depth, position, area, width, symmetry (= left area / area), left area, right area, depth/area."""
+    cols, names, desc, curves = [], [], [], {}
+    for name, lo, hi in windows:
+        x, CR = continuum_removed(spec.R, spec.wl, lo, hi)
+        curves[name] = (x, CR)
+        p = cr_parameters(x, CR)
+        BD = 1 - CR
+        imin = BD.argmax(1)
+        step = np.median(np.diff(x))
+        left = np.array([BD[i, :imin[i] + 1].sum() for i in range(len(CR))]) * step
+        extra = {"left area": left, "right area": p["area"] - left,
+                 "depth/area": np.where(p["area"] > 0, p["depth"] / np.where(p["area"] > 0, p["area"], 1), np.nan)}
+        for k in ("depth", "position", "area", "width", "symmetry"):
+            cols.append(p[k])
+            names.append(f"{name} {k}")
+            desc.append(f"{k} of the continuum-removed feature {lo}-{hi} nm")
+        for k in CR_EXTRA:
+            cols.append(extra[k])
+            names.append(f"{name} {k}")
+            desc.append(f"{k} of the continuum-removed feature {lo}-{hi} nm")
+    return FeatureSet(np.column_stack(cols), _meta(names, "K2 continuum", list(names), np.nan, desc)), curves
+
+
+def vi_definitions(cfg):
+    if cfg.get("features", {}).get("extended"):
+        pf = _pf()
+        return [(v[0], v[1], v[2], v[3]) for v in pf.VI]
+    return [v[:4] for v in VI_TABLE]
+
+
+def k3_indices_ext(spec):
+    pf = _pf()
+    D = pf.indices(spec.R, spec.wl)
+    desc = [f"{v[1]}: {v[2]} ({v[3]})" for v in pf.VI]
+    return FeatureSet(D.to_numpy(float), _meta(list(D.columns), "K3 index", list(D.columns), np.nan, desc))
+
+
+EDGE_EXTRA = ["REIP, Lagrangian interpolation (nm)", "REIP, linear extrapolation (nm)", "Red-edge slope (R750 − R700)/50"]
+
+
+def edge_parameters_ext(spec):
+    base = edge_parameters(spec)
+    pf = _pf()
+    re = pf.red_edge(spec.R, spec.D1, spec.wl)
+    X = np.column_stack([re["REIP, Lagrangian interpolation (nm)"], re["REIP, linear extrapolation (nm)"],
+                         re["Red-edge slope (R750 − R700)/50 (1/nm)"]])
+    extra = FeatureSet(X, _meta(EDGE_EXTRA, "K4 edge", list(EDGE_EXTRA), np.nan,
+                                ["Dawson & Curran (1998)", "Cho & Skidmore (2006)", "Filella & Peñuelas (1994)"]))
+    return FeatureSet.concat([base, extra])
 
 
 def build_all(spec, cfg):
     """All feature groups G0-G6 used by K5 and Part C."""
+    if cfg.get("features", {}).get("extended"):
+        return build_all_ext(spec, cfg)
     k1 = k1_bands(spec)
     k2, curves = k2_continuum(spec, cfg["cr_windows"])
     k3 = k3_indices(spec)
@@ -264,4 +330,27 @@ def build_all(spec, cfg):
     }
     return {"K1": k1, "K2": k2, "K3": k3, "K4edge": edge, "K4d1": d1,
             "K4": k4, "D2": k4_derivative_bands(spec, which="D2"),
+            "cr_curves": curves, "groups": groups}
+
+
+def build_all_ext(spec, cfg):
+    """Extended pool: reflectance + 8 continuum-removal parameters × 6 windows + 86 indices + first, second and third
+    derivative bands + 23 red-edge / edge parameters (all from spec.R, i.e. raw reflectance when feature_source = raw)."""
+    k1 = k1_bands(spec)
+    k2, curves = k2_continuum_ext(spec, cfg["cr_windows"])
+    k3 = k3_indices_ext(spec)
+    edge = edge_parameters_ext(spec)
+    d1, d2, d3 = (k4_derivative_bands(spec, which=w) for w in ("D1", "D2", "D3"))
+    k4 = FeatureSet.concat([d1, d2, d3, edge])
+    all_d = FeatureSet.concat([k4_derivative_bands(spec, guard=False, which=w) for w in ("D1", "D2", "D3")] + [edge])
+    groups = {
+        "G0": ("Full spectrum (raw reflectance)", k1_bands(spec, guard=False, raw=True)),
+        "G1": ("K1 band reflectance", k1),
+        "G2": ("K2 continuum-removed parameters", k2),
+        "G3": ("K3 vegetation indices", k3),
+        "G4": ("K4 derivatives + edge parameters", k4),
+        "G5": ("K1–K4 combined pool", FeatureSet.concat([k1, k2, k3, k4])),
+        "G6": ("K4 incl. guard-zone bands (artefact test)", all_d),
+    }
+    return {"K1": k1, "K2": k2, "K3": k3, "K4edge": edge, "K4d1": d1, "K4": k4, "D2": d2, "D3": d3,
             "cr_curves": curves, "groups": groups}

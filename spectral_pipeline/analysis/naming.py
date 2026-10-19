@@ -34,8 +34,22 @@ SCHEME_COLS = ("Scheme", "Units", "Validation")
 PROTECT_COLS = ("Variety", "Level", "Held-out variety")
 
 
+UNIT_PROTECT = re.compile(r"\d+\s+leaf spectra|Leaf spectra averaged|Leaf files|Leaf spectra in our mean|leaf spectra →|"
+                          r"[Mm]in leaves per plot|[Mm]ax leaves per plot|^Leaf spectra$|individual leaf|single[- ]leaf|"
+                          r"leaf spectra of (?:each|a|the) plot|leaf spectra listed|averaging the leaf|leaf-to-leaf|"
+                          r"of its leaf spectra|leaf spectra were averaged|leaf spectra per plot")
+UNIT_RULES = [(r"\bleaf-level 10-fold", "spectrum-level 10-fold"), (r"\bLeaf-level 10-fold", "Spectrum-level 10-fold"),
+              (r"\bleaf-level\b", "spectrum-level"), (r"\bLeaf-level\b", "Spectrum-level"),
+              (r"\bleaf spectra\b", "plot-average spectra"), (r"\bLeaf spectra\b", "Plot-average spectra"),
+              (r"\bleaf spectrum\b", "plot-average spectrum"), (r"\bLeaf spectrum\b", "Plot-average spectrum"),
+              (r"\bleaves\b", "plot-average spectra"), (r"\bLeaves\b", "Plot-average spectra"),
+              (r"\bleaf\b", "plot-average spectrum"), (r"\bLeaf\b", "Plot-average spectrum")]
+
+
 class Namer:
-    def __init__(self, v5_by="Date"):
+    def __init__(self, v5_by="Date", unit="leaf"):
+        self.unit = unit
+        self.urx = [(re.compile(p), r) for p, r in UNIT_RULES]
         self.v = dict(VNAME)
         self.v["5"] = V5_BY.get(v5_by, V5_BY["Date"])
         K = KNAME
@@ -132,9 +146,26 @@ class Namer:
             s2 = rx.sub(rep, s2)
         for k, v in prot.items():
             s2 = s2.replace(k, v)
+        if self.unit == "plot":
+            s2 = self.plot_units(s2)
         if s2[:1].islower() and (s[:1].isupper() or re.match(r"V[1-5]\b|K\d|Part ", s)):
             s2 = s2[0].upper() + s2[1:]
         return s2
+
+    def plot_units(self, s):
+        """Plot-average analysis: the unit is a plot-average spectrum (one per plot and date), not a leaf."""
+        prot = {}
+
+        def keep(m):
+            k = f"\x01{len(prot)}\x01"
+            prot[k] = m.group(0)
+            return k
+        s = UNIT_PROTECT.sub(keep, s)
+        for rx, rep in self.urx:
+            s = rx.sub(rep, s)
+        for k, v in prot.items():
+            s = s.replace(k, v)
+        return s
 
     def cell(self, value, column=None):
         if not isinstance(value, str):

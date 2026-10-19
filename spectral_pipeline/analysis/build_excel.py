@@ -48,6 +48,12 @@ else:
     V5_TXT = f"V5 = leave-one-variety-out ({len(F['V5'])} units: train on the other varieties, test on all leaves of the held-out variety)"
 DATES_TXT = ", ".join(PD)
 LEAF = D["audit"].get("leaf")
+PA = bool(C["data"].get("plot_average"))
+PAV = D["audit"].get("plotavg")
+RAWF = getattr(D["spec"], "source", "smoothed") == "raw"
+NVI = len(K["vi_table"])
+SRC_R = ("raw plot-average reflectance (no splice correction, no smoothing — features derived from raw reflectance as requested)"
+         if RAWF else "splice-corrected, smoothed reflectance")
 FAMILY = C["data"].get("subset_family") or "one of nine separate analyses: 4 dates, 2 growth stages, 3 varieties"
 NCAND = len(A.get("sig_cols", np.where(A["tier1"]["sig"])[0]))
 if A.get("tier1_rule", "FDR") == "FDR":
@@ -61,7 +67,7 @@ SHEETS = []
 FULL = C.get("naming") == "full"
 if FULL:
     from naming import Namer
-    NAMER = Namer(F.get("V5_by", "Date"))
+    NAMER = Namer(F.get("V5_by", "Date"), unit="plot" if C["data"].get("plot_average") else "leaf")
     xl.TEXT, xl.CELL = NAMER.text, NAMER.cell
 PCT = "0.0%"
 
@@ -122,7 +128,9 @@ cA, cK, cC = A["checks"], K["checks"], Cc["checks"]
 readme = S_("00_README", f"Healthy vs white-rust-diseased mustard leaves — {SUBSET}",
             "Four-tier hierarchical analysis of Das et al. (2020, Geocarto International 35:64–77) with imbalance and "
             "pseudo-replication corrections; CART vs Random Forest; disease-sensitive features (Part K); four-tier "
-            "analysis of the combined feature pool (Part C: K1 + K2–K4" + ("; Part C′: raw reflectance + K2–K4" if HAS_CR else "") + "). Leaf level, ASD FieldSpec contact probe.")
+            "analysis of the combined feature pool (Part C: K1 + K2–K4" + ("; Part C′: raw reflectance + K2–K4" if HAS_CR else "") + ")."
+            + (" Plot-average spectra (mean of the leaf spectra of each plot on each date), all dates combined; features derived from raw reflectance; ASD FieldSpec contact probe."
+               if PA else " Leaf level, ASD FieldSpec contact probe."))
 
 # =====================================================================================
 # 01 Summary
@@ -186,7 +194,11 @@ corr = pd.DataFrame([
      "selecting bands on all leaves and validating on the same leaves is optimistic"),
     ("Water-absorption bands", "kept (contact probe with its own light source; no atmospheric path)", "Das et al. removed them for canopy measurements"),
     ("Detector edge 350–399 nm", f"removed (noise {NOISE:.0f} × the 500–699 nm level); sensitivity run with 350–2500 nm", "noise could be chosen by CART"),
-    ("Detector joins 1000/1001 and 1800/1801 nm (Part K)", "splice correction; guard zones excluded from feature ranking (reported with and without)", "instrument artefacts must not be read as disease"),
+    ("Detector joins 1000/1001 and 1800/1801 nm (Part K)",
+     ("no splice correction and no smoothing (all features from raw reflectance, as requested); bands beside the joins (guard zones) excluded from the reflectance and derivative feature sets and rankings"
+      if RAWF else "splice correction; guard zones excluded from feature ranking (reported with and without)"), "instrument artefacts must not be read as disease"),
+    *([("Plot averaging", f"each spectrum = mean of the leaf spectra of one plot on one date ({PAV['n_leaf']} leaf spectra → {PAV['n_avg']} plot averages); identical to the labelled workbooks' own =AVERAGE columns ({PAV['n_ok']} of {len(PAV['check'])})",
+        "one spectrum per experimental unit and date, as requested; leaf-to-leaf noise averaged out")] if PA else []),
     ("Exact duplicate spectra", "75 copies (13-03-2026, block 2) and 4 unnamed copies (plot 27, 11-02-2026) removed from the four files before the subset was taken"
      + (f"; {NBLOCK2 + NDUP_UNNAMED} of them belong to this subset ({NBLOCK2} block-2, {NDUP_UNNAMED} unnamed)" if IS_SUB else "")
      + ("; sensitivity run with the unnamed copies kept" if A.get("sensitivity_dups_applicable", True) else ""), "a duplicate in both training and test inflates V1"),
@@ -224,6 +236,8 @@ S.table(st_, widths={"B": 55, "C": 60})
 S = S_("03_Step0_Data_Audit", "Step 0 · Data audit — what was analysed",
        "Leaf-level workbooks (one column per leaf spectrum, headed by its leaf level) matched exactly to the labelled ASD export workbooks for plot, variety and growth stage; exact duplicates removed."
        if D["audit"].get("leaf") is not None else
+       "Four ASD export workbooks (one column per leaf spectrum); exact duplicates removed; the leaf spectra of each plot on each date averaged to one plot-average spectrum."
+       if PA else
        "Four ASD export workbooks (one column per leaf spectrum); plot-average columns ignored; exact duplicates removed.")
 S.h2("What was done")
 if LEAF is not None:
@@ -254,6 +268,21 @@ if LEAF is not None:
         S.table(LEAF["dups"], title="Table 0.0c  Identical spectra inside the leaf-level files (one copy of each pair kept)")
     if len(_um):
         S.table(_um.drop(columns=["Unnamed"]), title="Table 0.0d  Spectra of the labelled files that are not in the leaf-level files (not used)")
+elif PA:
+    S.para("The four files (11-02-2026, 24-02-2026, 03-03-2026, 13-03-2026) were read; each spectrum column carries plot number, "
+           "variety, growth stage and the healthy/diseased label. On 13-03-2026 a second data block (75 columns) repeats plots 13, 34, 38, "
+           "41 and 42 exactly; on 11-02-2026 four unnamed columns of plot 27 are exact copies of Mustard00215–00218. These 79 copies were "
+           f"removed, leaving {PAV['n_leaf']} unique leaf spectra. The leaf spectra of each plot on each date were then averaged (arithmetic "
+           f"mean at every band, all leaf levels together) to one plot-average spectrum: {PAV['n_avg']} plot-average spectra = 48 plots × 4 dates "
+           f"({nH} healthy, {nD} diseased; ratio 1 : {RATIO:.1f}). The labelled workbooks contain their own plot-average (=AVERAGE) columns; "
+           f"{PAV['n_ok']} of {len(PAV['check'])} of them are identical to the averages computed here at all 2151 bands (Table 0.0b). "
+           "All following steps use the plot-average spectra only. The same plot appears once per date, so every honest validation keeps "
+           "the four dates of a plot together (plot-grouped folds), and the mixed model has a random plot effect. Disease score was not "
+           "used (healthy vs diseased only).")
+    S.table(PAV["leaf_tab"], title="Table 0.0a  Leaf spectra averaged into each plot-average spectrum, by date and class")
+    S.table(PAV["check"], title="Table 0.0b  Cross-check: plot averages vs the labelled workbooks' own =AVERAGE columns (cached values)",
+            fmts={"Max |difference| (2151 bands)": "0.0E+00"}, max_rows=60,
+            note=f"First 60 of {len(PAV['check'])} columns shown; all {PAV['n_ok']} identical." if PAV['n_ok'] == len(PAV['check']) else None)
 else:
   S.para("The four files (11-02-2026, 24-02-2026, 03-03-2026, 13-03-2026) were read; each spectrum column carries plot number, "
        "variety, growth stage and the healthy/diseased label. The 48+ numbered columns per file are =AVERAGE() plot means and were "
@@ -595,8 +624,16 @@ for meth in ("CART", "RF"):
 # =====================================================================================
 # 14 K0
 k0 = K["k0"]
-S = S_("14_K0_Denoising", "Step K0 · Spectral smoothing / denoising and detector joins",
-       "Splice correction, Savitzky–Golay smoothing and derivatives; guard zones at the detector joins.")
+S = S_("14_K0_Denoising", "Step K0 · Spectral smoothing / denoising and detector joins" + (" (information only)" if RAWF else ""),
+       ("Noise level and detector joins of the raw spectra; the features of this workbook are derived from RAW reflectance, so no smoothing "
+        "or splice correction is applied to them — only the guard zones are used." if RAWF else
+        "Splice correction, Savitzky–Golay smoothing and derivatives; guard zones at the detector joins."))
+if RAWF:
+    S.para("As requested, every disease-sensitive feature (band reflectance, continuum removal, vegetation indices, first-, second- and "
+           "third-derivative bands, red-edge parameters) is computed from the raw plot-average reflectance. Derivatives are central finite "
+           "differences on the 1-nm grid: D1 = [R(λ+1) − R(λ−1)]/2, D2 = R(λ+1) − 2R(λ) + R(λ−1), D3 = [R(λ+2) − 2R(λ+1) + 2R(λ−1) − R(λ−2)]/2. "
+           "This sheet shows what a splice correction and Savitzky–Golay smoothing WOULD change (for information), the detector-join "
+           "artefact, and the guard zones that are excluded from the reflectance and derivative feature sets because of it.", fill=FILL_FLAG)
 S.h2("What was done")
 S.para("1. Splice correction: the ASD records 350–1000 nm (VNIR), 1001–1800 nm (SWIR-1) and 1801–2500 nm (SWIR-2) with three "
        "detectors. For each join a straight line was fitted to the 10 nm before the join and the next detector was shifted so "
@@ -619,13 +656,13 @@ checks_table(S, [c for c in cK if c[0] == "K0"])
 # =====================================================================================
 # 15 K1
 S = S_("15_K1_Band_Reflectance", "Step K1 · Band reflectance — which single bands are disease-sensitive",
-       "Splice-corrected, smoothed reflectance at every band 400–2500 nm (guard zones excluded from the ranking).")
+       ("Raw plot-average reflectance" if RAWF else "Splice-corrected, smoothed reflectance") + " at every band 400–2500 nm (guard zones excluded from the ranking).")
 S.h2("What was done")
 S.para("For every band: Welch's t-test with BH-FDR, Hedges' g (standardised mean difference, bias-corrected), the area under "
        "the ROC curve (AUC, direction-free: 0.5 = no separation, 1 = perfect) and a threshold classifier (Youden's J; the "
        "threshold and its direction are chosen on training plots and applied to test plots: plot-grouped CV (V3) and hold-out (V4)).")
 s1 = K["k1_summary"]
-S.table(pd.DataFrame([("Bands tested", s1["tested"]), ("Significant (Welch + FDR), smoothed spectra", s1["sig_smoothed"]),
+S.table(pd.DataFrame([("Bands tested", s1["tested"]), ("Significant (Welch + FDR), " + ("feature spectra (raw)" if RAWF else "smoothed spectra"), s1["sig_smoothed"]),
                       ("Significant, raw spectra (Tier 1)", s1["sig_raw"]), ("Bands with AUC ≥ 0.70 (outside guard zones)", s1["auc70"]),
                       ("Highest AUC (outside guard zones)", f"{s1['best_auc']:.3f} at {s1['best_wl']:.0f} nm")],
                      columns=["Summary", "Value"]), title="Table K1.1  Band-reflectance sensitivity")
@@ -662,17 +699,19 @@ checks_table(S, [c for c in cK if c[0] == "K2"])
 
 # =====================================================================================
 # 17 K3
-S = S_("17_K3_Vegetation_Indices", "Step K3 · Disease-sensitive spectral (vegetation) indices — the 31 indices of the flowering-stage workbook",
-       "Computed from splice-corrected, smoothed reflectance at the nearest 1 nm band.")
-S.table(K["vi_table"], title="Table K3.1  The 31 indices", widths={"B": 40, "C": 60, "D": 28})
-S.table(feat_table(K["k3"]), title="Table K3.2  Sensitivity of the 31 indices to white rust, ranked by AUC",
+S = S_("17_K3_Vegetation_Indices", "Step K3 · Disease-sensitive spectral (vegetation) indices — " + (
+       f"{NVI} indices: the 31 of the flowering-stage workbook (Activity 1.4 table) + {NVI - 31} pigment, red-edge, water and disease indices" if NVI > 31 else
+       "the 31 indices of the flowering-stage workbook"),
+       f"Computed from {SRC_R} at the nearest 1 nm band.")
+S.table(K["vi_table"], title=f"Table K3.1  The {NVI} indices", widths={"B": 40, "C": 60, "D": 28})
+S.table(feat_table(K["k3"]), title=f"Table K3.2  Sensitivity of the {NVI} indices to white rust, ranked by AUC",
         fmts={"BA all leaves": PCT, "BA plot-grouped CV": PCT, "BA hold-out": PCT})
 S.image(FIG / "F18_K3_indices.png", 620)
 # Excel recomputation of nine indices for ten leaves
 S.h2("Cross-check: indices recomputed by Excel formulas for ten leaves")
 inp = K["vi_excel_input"]
 inp = inp[["Leaf row"] + [c for c in inp.columns if c != "Leaf row"]]
-f, l, L = S.table(inp, title="Table K3.3  Reflectance input (splice-corrected, smoothed)")
+f, l, L = S.table(inp, title="Table K3.3  Reflectance input (" + ("raw plot-average reflectance" if RAWF else "splice-corrected, smoothed") + ")")
 col = {c: L[c] for c in inp.columns}
 formulas = {
     "NDVI780": "=({R780}-{R670})/({R780}+{R670})", "PRI": "=({R531}-{R570})/({R531}+{R570})",
@@ -756,8 +795,10 @@ checks_table(S, [c for c in cK if c[0] == "K3b"])
 
 # =====================================================================================
 # 19 K4
-S = S_("19_K4_Derivatives", "Step K4 · First-derivative spectra and edge parameters",
-       "Savitzky–Golay first derivative (window 15) and second derivative (window 21) of the splice-corrected spectra; 20 edge parameters (Gong et al. 2002; Guyot & Baret 1988).")
+S = S_("19_K4_Derivatives", "Step K4 · " + ("First-, second- and third-derivative spectra and red-edge parameters" if RAWF else "First-derivative spectra and edge parameters"),
+       ("First, second and third derivative of the RAW plot-average reflectance (central finite differences, Δλ = 1 nm); 23 red-edge / edge "
+        "parameters (Gong et al. 2002; Guyot & Baret 1988; Dawson & Curran 1998; Cho & Skidmore 2006; Filella & Peñuelas 1994)." if RAWF else
+        "Savitzky–Golay first derivative (window 15) and second derivative (window 21) of the splice-corrected spectra; 20 edge parameters (Gong et al. 2002; Guyot & Baret 1988)."))
 S.para("Band-wise: every first- and second-derivative band was tested as in K1 (bands in the guard zones are reported but "
        "excluded from the ranking). Edge parameters from the first derivative: amplitude (maximum/minimum D1), position and area "
        "(sum of D1) of the blue (490–530 nm), yellow (550–582 nm) and red (680–760 nm) edges; green peak and red well "
@@ -796,7 +837,7 @@ S.image(FIG / "F21_K4_REIP.png", 900)
 # 21 K6 correlation
 S = S_("21_K6_Correlation", "Step K6 · Correlation of reflectance with disease status (correlation spectra)",
        "Severity scores were not used (instruction), so the point-biserial correlation with the binary status (healthy = 0, diseased = 1) is reported.")
-S.para("r(λ) = Pearson correlation between the band value and the 0/1 disease status (point-biserial r), for the smoothed "
+S.para("r(λ) = Pearson correlation between the band value and the 0/1 disease status (point-biserial r), for the " + ("raw" if RAWF else "smoothed") + " "
        "reflectance and the first derivative, on all leaves and separately on each date. r is a monotone function of "
        "Student's t, so the ranking matches Tier 1; the per-date curves show whether the sign is stable over time"
        + (" (this subset has a single date)." if len(PD) == 1 else "."))
@@ -922,7 +963,7 @@ S = part_c_sheets(Cc, ["23_C0_Feature_Pool", "24_C1_Tier1", "25_C2_Tier2", "26_C
                   "C", "K1 + K2 + K3 + K4",
                   dict(tree="F26_C_cart_tree", top="F25_C_top_importance", comp="F24_C_composition", inc="F27_C_incremental",
                        pipes="F28_C_pipelines", stab="F28b_C_stability"),
-                  "35_C_AllFeatures", "K1 smoothed, splice-corrected reflectance bands (guard zones excluded)")
+                  "35_C_AllFeatures", ("K1 raw plot-average reflectance bands (guard zones excluded)" if RAWF else "K1 smoothed, splice-corrected reflectance bands (guard zones excluded)"))
 S.table(X["guard_edge"], title="Table C6.5  Are selected derivative/reflectance bands crowding the detector guard zones? (artefact-leakage check)",
         fmts={"Share": PCT}, note="Guard zones: reflectance 990–1010 and 1795–1835 nm; first derivative 988–1012 and 1793–1837 nm. A feature within 5 nm outside a guard zone may still carry some join artefact.")
 for meth in ("CART", "RF"):
@@ -1146,10 +1187,11 @@ if FULL:
         ("30 % plot hold-out validation", f"30 % of the plots of each class held out, everything refitted on the rest; {len(F['V4'])} random splits."),
         (NAMER.v["5"][0].upper() + NAMER.v["5"][1:], "Transfer test: train on the other dates (training plots of a hold-out split), test on the held-out date (test plots); no leaf, plot or date of the test set is seen in training."),
         ("Nested plot-grouped cross-validation with random under-sampling", "As nested plot-grouped cross-validation, but diseased leaves are randomly under-sampled to the number of healthy leaves in every training set instead of using equal priors."),
-        ("Band reflectance", "Splice-corrected, Savitzky–Golay-smoothed reflectance at each 1 nm band (disease-sensitive feature step 1)."),
-        ("Continuum-removal features", "Depth, position, area, width and symmetry of six absorption features after division by the upper convex hull (step 2)."),
-        ("Vegetation indices", "31 published indices of the flowering-stage workbook, plus the optimised two-band index (step 3)."),
-        ("Derivative and edge features", "First- and second-derivative bands, 20 edge parameters and the red-edge inflection point (step 4)."),
+        ("Band reflectance", ("Raw plot-average reflectance" if RAWF else "Splice-corrected, Savitzky–Golay-smoothed reflectance") + " at each 1 nm band (disease-sensitive feature step 1)."),
+        ("Continuum-removal features", ("Depth, position, area, width, symmetry, left area, right area and depth/area" if RAWF else "Depth, position, area, width and symmetry") + " of six absorption features after division by the upper convex hull (step 2)."),
+        ("Vegetation indices", f"{NVI} published indices" + (" (31 of the flowering-stage workbook + additional disease/stress indices)" if NVI > 31 else " of the flowering-stage workbook") + ", plus the optimised two-band index (step 3)."),
+        ("Derivative and edge features", ("First-, second- and third-derivative bands, 23 red-edge/edge parameters" if RAWF else "First- and second-derivative bands, 20 edge parameters") + " and the red-edge inflection point (step 4)."),
+        *([("Plot-average spectrum", "Mean of the leaf spectra of one plot on one date; the unit of this analysis (48 plots × 4 dates).")] if PA else []),
         ("Combined feature pool", "Band reflectance + continuum-removal features + vegetation indices + derivative and edge features, analysed with the same four tiers."),
         ("CART", "Classification and regression tree (R rpart), prior 0.5/0.5."),
         ("RF / Balanced RF", "Random Forest; each tree grown on a bootstrap sample with equal numbers of healthy and diseased leaves."),

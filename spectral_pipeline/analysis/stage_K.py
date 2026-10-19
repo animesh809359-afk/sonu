@@ -140,7 +140,7 @@ K["checks"].append(("K2", "Convex hull", "monotone-chain upper hull vs SciPy Con
 fourtier.log("K3: vegetation indices")
 K["k3"] = feature_stats(FE["K3"], mixed=True)
 K["vi_table"] = pd.DataFrame([{"Index": v[0], "Name": v[1], "Equation (as computed)": v[2], "Reference": v[3]}
-                              for v in features.VI_TABLE])
+                              for v in features.vi_definitions(C)])
 k3x = FE["K3"].X
 names3 = list(FE["K3"].names)
 dmc = float(np.abs(k3x[:, names3.index("mCARI1")] - k3x[:, names3.index("MTVI1")]).max())
@@ -160,12 +160,20 @@ K["vi_excel_python"] = pd.DataFrame({n: k3x[xrows, names3.index(n)] for n in
 fourtier.log("K4: derivatives, edge parameters, REIP")
 K["d1_all"] = band_stats(spec.D1, wl, spec.guard["D1"])
 K["d2_all"] = band_stats(spec.D2, wl, spec.guard["D2"])
+DTABS = [("D1", K["d1_all"]), ("D2", K["d2_all"])]
+if spec.D3 is not None:
+    K["d3_all"] = band_stats(spec.D3, wl, spec.guard["D3"])
+    DTABS.append(("D3", K["d3_all"]))
+RAWSRC = spec.source == "raw"
+DLAB = {"D1": "First derivative (central difference of raw reflectance)" if RAWSRC else "First derivative (SG 15, 2)",
+        "D2": "Second derivative (central difference of raw reflectance)" if RAWSRC else "Second derivative (SG 21, 2)",
+        "D3": "Third derivative (central difference of raw reflectance)"}
 rows, best_guard = [], {}
-for tag, tab in (("D1", K["d1_all"]), ("D2", K["d2_all"])):
+for tag, tab in DTABS:
     ok = tab[~tab["Guard"]]
     gd = tab[tab["Guard"]]
     best_guard[tag] = (float(gd["AUC"].max()), float(gd.loc[gd["AUC"].idxmax(), "Wavelength (nm)"]))
-    rows.append({"Derivative": "First derivative (SG 15, 2)" if tag == "D1" else "Second derivative (SG 21, 2)",
+    rows.append({"Derivative": DLAB[tag],
                  "Bands": len(tab), "Significant (FDR)": int((tab["q (BH)"] < 0.05).sum()),
                  "Best AUC outside guard": float(ok["AUC"].max()),
                  "at (nm)": float(ok.loc[ok["AUC"].idxmax(), "Wavelength (nm)"]),
@@ -173,7 +181,7 @@ for tag, tab in (("D1", K["d1_all"]), ("D2", K["d2_all"])):
                  "Best AUC inside guard (excluded)": f"{best_guard[tag][0]:.3f} at {best_guard[tag][1]:.0f} nm"})
 K["k4_summary"] = pd.DataFrame(rows)
 reg_rows = []
-for tag, tab in (("D1", K["d1_all"]), ("D2", K["d2_all"])):
+for tag, tab in DTABS:
     ok = tab[~tab["Guard"]]
     for _, a, b in REG:
         s = ok[(ok["Wavelength (nm)"] >= a) & (ok["Wavelength (nm)"] <= b)]
@@ -242,7 +250,8 @@ K["checks"].append(("K4", "REP by two methods (Excel)", "linear 4-point REP reco
                     "see 'largest difference' on sheet K4", "PASS"))
 dc = np.gradient(spec.R, axis=1)
 r_dc = float(np.corrcoef(dc[:, 50:-50].ravel()[::97], spec.D1[:, 50:-50].ravel()[::97])[0, 1])
-K["checks"].append(("K4", "Derivative filter", "Savitzky–Golay derivative vs central difference of the smoothed spectra",
+K["checks"].append(("K4", "Derivative filter", ("Central-difference first derivative of the raw spectra vs numpy.gradient" if RAWSRC else
+                                                "Savitzky–Golay derivative vs central difference of the smoothed spectra"),
                     f"r = {r_dc:.4f}", "PASS" if r_dc > 0.99 else "FLAG"))
 
 # ================================================================== K6 correlation spectra (status)

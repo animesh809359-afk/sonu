@@ -19,6 +19,8 @@ class Spectra:
     guard: dict           # name -> boolean mask over wl (True = inside guard)
     excluded: np.ndarray  # bands excluded from every analysis (canopy water bands)
     k0: dict              # tables for the report
+    D3: np.ndarray = None # third derivative (raw feature source only)
+    source: str = "smoothed"
 
 
 def in_ranges(wl, ranges):
@@ -64,6 +66,10 @@ def preprocess(ds, cfg) -> Spectra:
     w2, p2 = s["sg_d2"]
     D2_full = savgol_filter(R_sc_full, w2, p2, deriv=2, delta=dl, axis=1, mode="interp")
 
+    D3_full = None
+    if s.get("feature_source", "smoothed") == "raw":
+        # features from RAW reflectance: central finite differences on the 1-nm grid, no splice correction, no smoothing
+        D1_full, D2_full, D3_full = finite_differences(R_full)
     lo, hi = s["keep_range"]
     keep = (wl_full >= lo) & (wl_full <= hi)
     wl = wl_full[keep]
@@ -133,9 +139,28 @@ def preprocess(ds, cfg) -> Spectra:
         k0["date_means_sc"] = {d: R_sc_full[ds.dates == d].mean(0) for d in _ordered_dates(ds.dates)}
     k0["wl_full"] = wl_full
 
+    raw = s.get("feature_source", "smoothed") == "raw"
     return Spectra(wl=wl, R_raw=R_full[:, keep], R_sc=R_sc_full[:, keep],
-                   R=Rs_full[:, keep], D1=D1_full[:, keep], D2=D2_full[:, keep],
-                   guard=guard, excluded=excluded, k0=k0)
+                   R=(R_full if raw else Rs_full)[:, keep], D1=D1_full[:, keep], D2=D2_full[:, keep],
+                   guard=guard, excluded=excluded, k0=k0,
+                   D3=None if D3_full is None else D3_full[:, keep], source="raw" if raw else "smoothed")
+
+
+def finite_differences(R):
+    """First, second and third derivative by central finite differences (Δλ = 1 nm):
+    D1 = [R(λ+1) − R(λ−1)]/2, D2 = R(λ+1) − 2R(λ) + R(λ−1), D3 = [R(λ+2) − 2R(λ+1) + 2R(λ−1) − R(λ−2)]/2.
+    The one or two end bands without both neighbours take the value of the nearest defined band."""
+    n = R.shape[1]
+    D1 = np.empty_like(R)
+    D2 = np.empty_like(R)
+    D3 = np.empty_like(R)
+    D1[:, 1:-1] = (R[:, 2:] - R[:, :-2]) / 2
+    D2[:, 1:-1] = R[:, 2:] - 2 * R[:, 1:-1] + R[:, :-2]
+    D3[:, 2:n - 2] = (R[:, 4:] - 2 * R[:, 3:-1] + 2 * R[:, 1:-3] - R[:, :-4]) / 2
+    for D, k in ((D1, 1), (D2, 1), (D3, 2)):
+        D[:, :k] = D[:, [k]]
+        D[:, n - k:] = D[:, [n - k - 1]]
+    return D1, D2, D3
 
 
 def _ordered_dates(dates):

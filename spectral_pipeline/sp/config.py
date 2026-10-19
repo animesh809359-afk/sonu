@@ -29,12 +29,14 @@ DEFAULTS = {
         "subset_label": None,    # human-readable name of the subset
         "subset_family": None,   # sentence describing the set of subset analyses (README)
         "leaf_level_files": None,  # optional workbooks with leaf-level columns (L3, L5, LL), matched to the labelled files
+        "plot_average": False,     # True = average the leaf spectra of each plot on each date (one spectrum per plot × date)
         "wavelength_regex": r"^\D{0,3}(\d{3,4}(?:\.0+)?)$",
     },
     "classes": {"negative": "Healthy", "positive": "Diseased"},
     "spectra": {
         "keep_range": [400, 2500],      # analysed range (nm); outside = sensor noise
         "joins": [1000, 1800],          # ASD detector joins (last band of detector)
+        "feature_source": "smoothed",   # "raw" = disease-sensitive features from raw reflectance (no splice correction, no smoothing)
         "splice_fit_nm": 10,            # line fitted to the 10 nm before a join
         "canopy": False,                # True -> mask water-absorption bands
         "water_bands": [[1350, 1430], [1800, 1950], [2350, 2500]],
@@ -45,6 +47,7 @@ DEFAULTS = {
             "R": [[990, 1010], [1795, 1835]],
             "D1": [[988, 1012], [1793, 1837]],
             "D2": [[985, 1015], [1790, 1840]],
+            "D3": [[985, 1015], [1790, 1840]],
         },
         "regions": [
             ["Blue", 400, 499], ["Green", 500, 599], ["Red", 600, 679],
@@ -75,6 +78,7 @@ DEFAULTS = {
     "k5": {"top_n": 15, "max_abs_r": 0.9},
     "combined": {"dedupe_abs_r": 0.99999, "collinear_abs_r": 0.999},
     "output": {"dir": "output", "stem": "analysis"},
+    "features": {"extended": False},   # True = 8 continuum-removal parameters, 86 indices, 1st-3rd derivatives, 23 red-edge parameters
     "naming": "short",   # "full" = no codes (V1-V5, K1-K4) in workbook text, sheet names and figures
     "fast": False,   # True = reduced repeats / trees (for smoke tests only)
 }
