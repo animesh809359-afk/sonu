@@ -91,7 +91,12 @@ K["features"] = FE
 k0 = spec.k0
 ft_raw = stats.feature_table(spec.R_raw, y)
 ft_s = stats.feature_table(spec.R, y)
-K["k0"] = {**k0, "sig_raw": int(ft_raw["sig"].sum()), "sig_smoothed": int(ft_s["sig"].sum())}
+if getattr(spec, "source", "smoothed") == "raw":     # K0 information: what smoothing WOULD change (features stay raw)
+    from scipy.signal import savgol_filter as _sg
+    _ft_sm = stats.feature_table(_sg(spec.R_sc, *C["spectra"]["sg_smooth"], axis=1, mode="interp"), y)
+    K["k0"] = {**k0, "sig_raw": int(ft_raw["sig"].sum()), "sig_smoothed": int(_ft_sm["sig"].sum())}
+else:
+    K["k0"] = {**k0, "sig_raw": int(ft_raw["sig"].sum()), "sig_smoothed": int(ft_s["sig"].sum())}
 K["checks"].append(("K0", "Smoothing preserves the signal", "class-mean spectra raw vs smoothed; Tier-1 counts",
                     f"r ≥ {min(k0['corr_neg'], k0['corr_pos']):.6f}; {K['k0']['sig_raw']} (raw) vs {K['k0']['sig_smoothed']} (smoothed) significant bands",
                     "PASS"))

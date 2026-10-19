@@ -633,7 +633,7 @@ if RAWF:
            "third-derivative bands, red-edge parameters) is computed from the raw plot-average reflectance. Derivatives are central finite "
            "differences on the 1-nm grid: D1 = [R(λ+1) − R(λ−1)]/2, D2 = R(λ+1) − 2R(λ) + R(λ−1), D3 = [R(λ+2) − 2R(λ+1) + 2R(λ−1) − R(λ−2)]/2. "
            "This sheet shows what a splice correction and Savitzky–Golay smoothing WOULD change (for information), the detector-join "
-           "artefact, and the guard zones that are excluded from the reflectance and derivative feature sets because of it.", fill=FILL_FLAG)
+           "artefact, and the guard zones that are excluded from the reflectance and derivative feature sets because of it.", fill=xl.FILL_FLAG)
 S.h2("What was done")
 S.para("1. Splice correction: the ASD records 350–1000 nm (VNIR), 1001–1800 nm (SWIR-1) and 1801–2500 nm (SWIR-2) with three "
        "detectors. For each join a straight line was fitted to the 10 nm before the join and the next detector was shifted so "

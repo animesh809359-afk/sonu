@@ -108,11 +108,11 @@ sep_c = "≥ 1.90 (separable)" if jm_c >= 1.9 else "< 1.90 (not separable by the
 
 # ---------------------------------------------------------------- conclusions
 con = [
-    f"Subset: {SUB} — {len(y)} leaves ({nH} healthy, {nD} diseased; imbalance 1 : {nD / nH:.1f}), "
+    (f"Data: {SUB} — {len(y)} plot-average spectra (" if C["data"].get("plot_average") else f"Subset: {SUB} — {len(y)} leaves (") + f"{nH} healthy, {nD} diseased; imbalance 1 : {nD / nH:.1f}), "
     f"{len(set(D['groups'][y == 0]))} healthy and {len(set(D['groups'][y == 1]))} diseased plots, {'dates' if len(PD) > 1 else 'date'} {', '.join(PD)}.",
     f"Tier 1: healthy and white-rust leaves differ significantly at {n_sig} of {nb} bands (Welch + BH-FDR); {n_mm} bands remain "
     f"significant with a random plot effect and {n_bal} in ≥ 95 % of 1000 balanced subsets. The most sensitive single band "
-    f"(smoothed reflectance) reaches AUC {s1['best_auc']:.2f} at {s1['best_wl']:.0f} nm."
+    f"({'raw' if getattr(D['spec'], 'source', 'smoothed') == 'raw' else 'smoothed'} reflectance) reaches AUC {s1['best_auc']:.2f} at {s1['best_wl']:.0f} nm."
     + ("" if A.get("tier1_rule", "FDR") == "FDR" else
        f" Because fewer than 2 bands passed the FDR correction, Tier 2 used the {len(A['sig_cols'])} bands with "
        + ("uncorrected p < 0.05." if A["tier1_rule"] == "uncorrected p" else "the smallest p-values.")),
@@ -162,11 +162,18 @@ else:
                f"varieties {'transfer only partly' if v5_c < c_v3 - 0.05 else 'transfer well'} to the third. Best pipeline under transfer: "
                f"{V5_BEST[0]} ({pc(V5_BEST[1])}).")
 if ref:
-    con.append(f"Compared with all dates, stages and varieties pooled (V3: reflectance QDA-CART {pc(ref['a'])}, combined-pool QDA-RF "
-               f"{pc(ref['c'])}; J–M {ref['jm']:.2f}), this subset gives {pc(qda_v3)} and {pc(c_v3)} (J–M {jm_c:.2f}): "
-               + ("analysing it separately improves discrimination." if c_v3 > ref["c"] + 0.02 else
-                  ("discrimination is lower than in the pooled analysis (same plots, but only one leaf level, i.e. fewer leaves per plot)." if "Leaf level" in (C["data"].get("subset") or {}) else "discrimination is lower than in the pooled analysis (fewer leaves and plots).") if c_v3 < ref["c"] - 0.02 else
-                  "discrimination is similar to the pooled analysis."))
+    if C["data"].get("plot_average"):
+        con.append(f"Compared with the leaf-level analysis of all 2264 leaf spectra (V3: reflectance QDA-CART {pc(ref['a'])}, combined-pool QDA-RF "
+                   f"{pc(ref['c'])}; J–M {ref['jm']:.2f}), the plot-average spectra give {pc(qda_v3)} and {pc(c_v3)} (J–M {jm_c:.2f}): "
+                   + ("averaging the leaves of a plot improves discrimination on new plots." if c_v3 > ref["c"] + 0.02 else
+                      "plot averaging gives lower accuracy on new plots than the leaf-level analysis." if c_v3 < ref["c"] - 0.02 else
+                      "plot averaging gives a similar accuracy on new plots."))
+    else:
+        con.append(f"Compared with all dates, stages and varieties pooled (V3: reflectance QDA-CART {pc(ref['a'])}, combined-pool QDA-RF "
+                   f"{pc(ref['c'])}; J–M {ref['jm']:.2f}), this subset gives {pc(qda_v3)} and {pc(c_v3)} (J–M {jm_c:.2f}): "
+                   + ("analysing it separately improves discrimination." if c_v3 > ref["c"] + 0.02 else
+                      ("discrimination is lower than in the pooled analysis (same plots, but only one leaf level, i.e. fewer leaves per plot)." if "Leaf level" in (C["data"].get("subset") or {}) else "discrimination is lower than in the pooled analysis (fewer leaves and plots).") if c_v3 < ref["c"] - 0.02 else
+                      "discrimination is similar to the pooled analysis."))
 
 rec = [
     f"Use {'first-derivative and continuum-removed' if best_g in ('G2', 'G4') else groups[best_g]} features rather than single reflectance "
@@ -201,7 +208,7 @@ if w_rc is not None:
     rd["12_A3_CART_vs_RF"] = [con[5]]
 rd["13_A4_Band_Stability"] = [f"Mean pairwise Jaccard (±10 nm): RF {stab.loc['RF', 'Mean pairwise Jaccard (±10 nm)']:.2f}, CART "
                               f"{stab.loc['CART', 'Mean pairwise Jaccard (±10 nm)']:.2f} over {NSETS} nested training sets."]
-rd["15_K1_Band_Reflectance"] = [f"{s1['sig_smoothed']} of {s1['tested']} smoothed bands significant; {s1['auc70']} bands with AUC ≥ 0.70; "
+rd["15_K1_Band_Reflectance"] = [f"{s1['sig_smoothed']} of {s1['tested']} {'raw' if getattr(D['spec'], 'source', 'smoothed') == 'raw' else 'smoothed'} bands significant; {s1['auc70']} bands with AUC ≥ 0.70; "
                                 f"best band {s1['best_wl']:.0f} nm (AUC {s1['best_auc']:.2f})."]
 rd["16_K2_Continuum_Removal"] = [f"Most sensitive continuum-removed parameter: {k2b['name']} (AUC {k2b['AUC']:.2f}, BA plot-grouped CV {pc(k2b['BA plot-grouped CV'])})."]
 rd["17_K3_Vegetation_Indices"] = [f"Most sensitive index: {k3b_['name']} (AUC {k3b_['AUC']:.2f}, BA plot-grouped CV {pc(k3b_['BA plot-grouped CV'])})."]
@@ -222,6 +229,16 @@ rd["31_V5_Transfer"] = [con[8]] + ([("By held-out level (QDA on combined-pool RF
                                      + "; ".join(f"{r[lev]} {pc(r['BA mean'])}" for _, r in lv.iterrows() if np.isfinite(r["BA mean"])) + ".")]
                                    if len(lv) else [])
 out = {"conclusions": con, "recommendations": rec, "readings": rd}
+if C["data"].get("plot_average"):
+    def _pa(o):
+        if isinstance(o, str):
+            return o.replace("for this subset", "for the plot-average data").replace("this subset", "the plot-average data")
+        if isinstance(o, list):
+            return [_pa(v) for v in o]
+        if isinstance(o, dict):
+            return {k: _pa(v) for k, v in o.items()}
+        return o
+    out = _pa(out)
 (WORK / "conclusions.json").write_text(json.dumps(out, indent=1, ensure_ascii=False))
 for t in con + rec:
     print("-", t)

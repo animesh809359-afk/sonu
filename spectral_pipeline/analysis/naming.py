@@ -31,13 +31,13 @@ SHEETS = {"10_A1_RF_Importance": "10_RF_Band_Importance", "11_A2_RF_Tier3_Tier4"
           "32_Extra_Strata": "32_Within_Strata_Checks", "34_K_AllBands": "34_Features_AllBands",
           "35_C_AllFeatures": "35_Pool_AllFeatures"}
 SCHEME_COLS = ("Scheme", "Units", "Validation")
-PROTECT_COLS = ("Variety", "Level", "Held-out variety")
+PROTECT_COLS = ("Variety", "Level", "Held-out variety", "Workbook column", "Source column")
 
 
 UNIT_PROTECT = re.compile(r"\d+\s+leaf spectra|Leaf spectra averaged|Leaf files|Leaf spectra in our mean|leaf spectra →|"
                           r"[Mm]in leaves per plot|[Mm]ax leaves per plot|^Leaf spectra$|individual leaf|single[- ]leaf|"
-                          r"leaf spectra of (?:each|a|the) plot|leaf spectra listed|averaging the leaf|leaf-to-leaf|"
-                          r"of its leaf spectra|leaf spectra were averaged|leaf spectra per plot")
+                          r"leaf spectra of (?:each|a|the|one) plot|leaf spectra listed|averaging the leaf|leaf-to-leaf|"
+                          r"of its leaf spectra|leaf spectra were averaged|leaf spectra per plot|leaf-level analysis")
 UNIT_RULES = [(r"\bleaf-level 10-fold", "spectrum-level 10-fold"), (r"\bLeaf-level 10-fold", "Spectrum-level 10-fold"),
               (r"\bleaf-level\b", "spectrum-level"), (r"\bLeaf-level\b", "Spectrum-level"),
               (r"\bleaf spectra\b", "plot-average spectra"), (r"\bLeaf spectra\b", "Plot-average spectra"),
@@ -58,6 +58,7 @@ class Namer:
         v = self.v
         MET = {"BA": "Balanced accuracy", "SD": "SD", "AUC": "AUC", "κ": "κ", "OA": "Overall accuracy"}
         self.rules = [
+            (r"\bK2 continuum-removed parameters\b", "continuum-removal parameters"),
             (r"\bV1[–-]V5\b", "the five validation schemes (leaf-level 10-fold, plot-grouped, nested plot-grouped, 30 % plot hold-out, leave-one-date-out)"),
             (r"\bPart A1[–-]A4\b", "the Random Forest steps"),
             (r"\bV([1-5]) = ", ""),
@@ -74,6 +75,7 @@ class Namer:
             (r"\bStep (?:K3b|K4b|K\d)\s*·\s*", ""), (r"\bPart C′?\d\s*·\s*", ""), (r"(?<![\w-])C′?[0-7]\s*·\s*", ""),
             (r"\bPart A · reflectance four-tier\b", "Raw reflectance · four tiers"),
             (r"\bPart C · combined-pool four-tier\b", "Combined feature pool · four tiers"),
+            (r"\bK5\s*(?:·\s*)?(?=K\d|K-selected|full raw)", "Feature group · "),
             (r"\bK5 · ", "Feature group · "),
             (r"\bK5\s*[·:—–]\s*CART vs (?:RF|Random Forest)", "CART vs Random Forest"),
             (r"\bPlot-grouped CV \(V3\)", v["3"]), (r"\b30 % plot hold-out \(V4\)", v["4"]),
@@ -98,7 +100,10 @@ class Namer:
             (r"\bK1\s+(?:band\s+)?reflectance\b", "band reflectance"), (r"\bK2\s+continuum(?:\s+removal)?\b", "continuum removal"),
             (r"\bK3\s+vegetation\s+ind(ex|ices)\b", lambda m: "vegetation ind" + m.group(1)), (r"\bK3\s+indices\b", "vegetation indices"),
             (r"\bK4\s+derivatives\s+\+\s+edge(?:\s+parameters)?\b", "derivatives + edge parameters"), (r"\bK4\s+edge\s+parameter\b", "edge parameter"),
-            (r"\bK4\s+first-derivative\s+band\b", "first-derivative band"), (r"\bK4 incl\. guard", "derivatives incl. guard"),
+            (r"\bK4\s+first-derivative\s+band\b", "first-derivative band"),
+            (r"\bK3 index\b", "vegetation index"), (r"\bK4 edge\b(?! parameter)", "red-edge / edge parameter"),
+            (r"\bK4\s+D1\s+band\b", "first-derivative band"), (r"\bK4\s+D2\s+band\b", "second-derivative band"),
+            (r"\bK4\s+D3\s+band\b", "third-derivative band"), (r"\bK4 incl\. guard", "derivatives incl. guard"),
             (r"\bK-selected\b", "selected"),
             (r"\b(K3b|K4b|K\d)\s*[·:—–]\s*", lambda m: K[m.group(1)][0].upper() + K[m.group(1)][1:] + " — "),
             (r"\b(K3b|K4b|K\d)\b", lambda m: K[m.group(1)]),
@@ -173,7 +178,8 @@ class Namer:
         if column is not None and str(column) in PROTECT_COLS:
             return value
         if column is not None and any(str(column).startswith(c) for c in SCHEME_COLS) and re.fullmatch(r"V[1-5]", value.strip()):
-            return self.v[value.strip()[1]]
+            out = self.v[value.strip()[1]]
+            return self.plot_units(out) if self.unit == "plot" else out
         if column is not None and str(column) == "Step":
             code = value.strip()
             for pre in ("Part C · ", ""):

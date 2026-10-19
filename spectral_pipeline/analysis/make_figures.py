@@ -99,9 +99,14 @@ def f01_workflow():
         boxes[-2] = (0.5, 0.175, "Validation · leaf-level 10-fold cross-validation (optimistic) · plot-grouped cross-validation\n"
                      f"nested plot-grouped cross-validation ({v3_label(F)}) · 30 % plot hold-out × {len(F['V4'])}\n"
                      f"{v5_label(F)} · Wilcoxon tests · band stability", "#f0efec")
-        boxes[-1] = (0.5, 0.045, "Disease-sensitive features · smoothing and detector-join correction → band reflectance · continuum removal\n"
-                     "vegetation indices (+ optimised two-band index) · derivatives and red-edge inflection point · correlation spectra\n"
-                     "CART vs Random Forest on each feature group  |  four tiers on the combined feature pool", "#e3f4ec")
+        if getattr(D["spec"], "source", "smoothed") == "raw":
+            boxes[-1] = (0.5, 0.045, "Disease-sensitive features from RAW reflectance (no smoothing) → band reflectance · continuum removal\n"
+                         "vegetation indices (+ optimised two-band index) · first, second, third derivatives · red-edge parameters\n"
+                         "CART vs Random Forest on each feature group  |  four tiers on the combined feature pool", "#e3f4ec")
+        else:
+            boxes[-1] = (0.5, 0.045, "Disease-sensitive features · smoothing and detector-join correction → band reflectance · continuum removal\n"
+                         "vegetation indices (+ optimised two-band index) · derivatives and red-edge inflection point · correlation spectra\n"
+                         "CART vs Random Forest on each feature group  |  four tiers on the combined feature pool", "#e3f4ec")
         boxes[0] = (0.5, 0.95, boxes[0][2].replace(f"({SUBSET})", "").replace("Leaf spectra :", "Leaf spectra:") + f"\n{SUBSET}", boxes[0][3])
     for x, y0, t, c in boxes:
         w = 0.42 if x != 0.5 else 0.92
@@ -420,13 +425,17 @@ def f17_cr():
 
 def f18_vi():
     t = K["k3"].sort_values("AUC")
+    n_all = len(t)
+    if n_all > 40:                      # extended index set: show the 30 most sensitive (full list in the workbook table)
+        t = t.tail(30)
     fig, ax = plt.subplots(figsize=(6, 6.5))
     col = [D_COL if d == "D > H" else H_COL for d in t["Direction"]]
     ax.barh(t["name"], t["AUC"], color=col)
     for yv, (a, b) in enumerate(zip(t["AUC"], t["BA plot-grouped CV"])):
         ax.text(a + 0.003, yv, f"{a:.3f}", va="center", fontsize=6.5, color=INK)
     ax.set(xlim=(0.5, max(0.9, t["AUC"].max() + 0.05)), xlabel="AUC (direction-free)")
-    ax.set_title("K3: the 31 vegetation indices ranked by AUC\n(orange: higher in diseased, aqua: lower in diseased)")
+    ax.set_title((f"K3: the 30 most sensitive of {n_all} vegetation indices, ranked by AUC" if n_all > 40 else "K3: the 31 vegetation indices ranked by AUC")
+                 + "\n(orange: higher in diseased, aqua: lower in diseased)")
     ax.grid(axis="y", visible=False)
     save(fig, "F18_K3_indices")
 

@@ -238,15 +238,17 @@ TYPE_FULL = {"K1 band": "Band reflectance", "K2 continuum": "Continuum removal",
              "K4 D1 band": "First derivative", "K4 D2 band": "Second derivative", "K4 D3 band": "Third derivative",
              "K4 edge": "Red-edge / edge parameter"}
 t1 = Cc["tier1"].set_index("name")
-freq = {m: Cc["stability"]["freq"][m] for m in ("CART", "RF")}
+RESEL = {m: Cc["stability"][f"reselect_{m}"] for m in ("CART", "RF")}
 
 
 def _share(m, nm):
-    f = freq[m]
-    col = [c for c in f.columns if c.startswith("Share")][0]
-    key = [c for c in f.columns if c not in (col,) and f[c].dtype == object][0]
-    r = f[f[key] == nm]
-    return float(r[col].iloc[0]) if len(r) else 0.0
+    """share of the 50 nested training sets in which method m selected a feature of the same type within ±10 nm"""
+    for tab_ in (RESEL["RF"], RESEL["CART"]):
+        r = tab_[tab_["Feature"] == nm]
+        col = [c for c in tab_.columns if c.startswith("Re-selected") and m in c]
+        if len(r) and col:
+            return float(r[col[0]].iloc[0])
+    return None
 
 
 def _label(nm):
@@ -275,7 +277,7 @@ for nm in list(dict.fromkeys(list(rf_set) + list(cart_set))):
 DSdf = pd.DataFrame(ds_rows)
 J["DS"] = {"rows": [["Feature", "Type", "Selected by", "Mean healthy", "Mean diseased", "Direction", "AUC", "q (FDR)", "Re-selected CART / RF"]]
            + [[r["Feature"], r["Type"], r["Selected by"], f(r["Mean healthy"], 4), f(r["Mean diseased"], 4), r["Direction"], f"{r['AUC']:.3f}",
-               f"{r['q (FDR)']:.1e}", f"{100 * r['Re-selected, CART (50 sets)']:.0f} % / {100 * r['Re-selected, RF (50 sets)']:.0f} %"] for r in ds_rows],
+               f"{r['q (FDR)']:.1e}", " / ".join("–" if v is None else f"{100 * v:.0f} %" for v in (r["Re-selected, CART (50 sets)"], r["Re-selected, RF (50 sets)"]))] for r in ds_rows],
            "colW": [2.6, 1.9, 1.9, 1.05, 1.05, 0.8, 0.7, 0.85, 1.38],
            "note": "Features of the combined pool chosen by CART and by Random Forest (highest importance peaks) on all 192 plot-average spectra; "
                    "AUC is direction-free; re-selected = share of the 50 nested cross-validation training sets in which a feature within ±10 nm "

@@ -115,6 +115,9 @@ const em = (m) => [["Classified \\ Reference", "Healthy", "Diseased", "User's ac
   ["Healthy", m.HH, m.DH, pct(m.HH / (m.HH + m.DH))], ["Diseased", m.HD, m.DD, pct(m.DD / (m.HD + m.DD))],
   ["Producer's accuracy", pct(m.PA_H), pct(m.PA_D), `BA ${pct(m.BA)} · κ ${(+m.kappa).toFixed(3)}`]].map((r) => r.map(String));
 const A = J.A, K = J.K, CC = J.C, X = J.X, PA = J.PA, T = J.txt || {};
+const DN = { D1: "first derivative", D2: "second derivative", D3: "third derivative" };
+const featName = (n) => { const m = /^(D[123])_(\d+)$/.exec(n.trim()); if (m) return `${DN[m[1]]} ${m[2]} nm`; const r = /^R(\d+)$/.exec(n.trim()); return r ? `reflectance ${r[1]} nm` : n.trim(); };
+const featList = (str) => str.split(",").map(featName).join("; ");
 const jmA = (s) => (+A.jm[s]).toFixed(3), jmC = (s) => (+CC.jm[s]).toFixed(3);
 
 // ================================================================ title
@@ -177,8 +180,8 @@ para(s, "Balanced accuracy (BA) = ½ (recall healthy + recall diseased) is the h
 sectionSlide("Step 1 · Four tiers on raw reflectance", "Welch t-test + FDR → CART (rpart, equal priors) and Balanced Random Forest → Jeffries–Matusita distance → QDA with equal priors");
 
 s = content("Mean plot-average spectra of healthy and diseased plots");
-img(s, "F02_mean_spectra.png", M, 1.25, 7.6, 5.7, "Mean spectra");
-img(s, "F02b_mean_spectra_by_date.png", 8.3, 1.25, W - 8.3 - M, 5.7, "Mean spectra by date");
+img(s, "F02_mean_spectra.png", M, 1.2, W - 2 * M, 3.3, "Mean spectra");
+img(s, "F02b_mean_spectra_by_date.png", M, 4.55, W - 2 * M, 2.45, "Mean spectra by date");
 
 s = content("Tier 1 · statistical screening of 2101 bands");
 img(s, "F05_minus_log10_p.png", M, 1.25, 7.9, 5.6, "-log10 p against wavelength");
@@ -209,21 +212,21 @@ table(s, A.tier3, M, 1.35, 5.6, { colW: [2.8, 1.2, 1.6], fontSize: 13, rowH: 0.4
 img(s, "F09_tier3_tier4_incremental.png", 6.4, 1.25, W - 6.4 - M, 5.6, "J-M and accuracy by number of bands");
 para(s, `J–M (0–2) on the CART bands = ${jmA(A.cart_name)}, on the ${A.rf_name} bands = ${jmA(A.rf_name)}; the classes count as separable at ≥ 1.90 (Das et al. used 1.94).`, M, 4.6, 5.6, 2.0, 14);
 
-s = content("Tier 4 · QDA with equal priors (spectrum-level 10-fold cross-validation)");
+s = content("Tier 4 · QDA with equal priors");
 s.addText(`CART bands (${A.cart_name})`, { x: M, y: 1.3, w: 5.9, h: 0.4, fontSize: 16, bold: true, color: THEME.colors.dk2, isTextBox: true, margin: 0 });
 table(s, em(A.errmat[A.cart_name]), M, 1.75, 5.9, { colW: [2.0, 1.1, 1.1, 1.7], fontSize: 13, rowH: 0.45 });
 s.addText(`Random Forest bands (${A.rf_name})`, { x: 6.9, y: 1.3, w: 5.9, h: 0.4, fontSize: 16, bold: true, color: THEME.colors.dk2, isTextBox: true, margin: 0 });
 table(s, em(A.errmat[A.rf_name]), 6.9, 1.75, W - 6.9 - M, { colW: [2.0, 1.1, 1.1, 1.68], fontSize: 13, rowH: 0.45 });
-para(s, "Error matrix layout of Das et al. (2020, Table 2): rows = classified, columns = reference. Producer's accuracy = recall of a class; user's accuracy = precision. Balanced accuracy and κ correct for the class imbalance.", M, 4.4, W - 2 * M, 1.2, 14);
+para(s, "Spectrum-level 10-fold cross-validation (protocol of Das et al.). Error matrix layout of Das et al. (2020, Table 2): rows = classified, columns = reference. Producer's accuracy = recall of a class; user's accuracy = precision. Balanced accuracy and κ correct for the class imbalance.", M, 4.4, W - 2 * M, 1.2, 14);
 
-s = content("Validation · how accurate on new plots and new dates? (raw reflectance)");
-table(s, valRows(A), M, 1.35, 7.6, { colW: [2.4, 1.3, 1.3, 1.3, 1.3], fontSize: 12, rowH: 0.48 });
-img(s, "F11_validation_qda_cart.png", 8.3, 1.25, W - 8.3 - M, 5.6, "Validation of QDA on CART bands");
-para(s, "Balanced accuracy of the four pipelines. Spectrum-level 10-fold reproduces the paper; nested plot-grouped and 30 % plot hold-out are honest estimates for new plots; leave-one-date-out tests transfer to an unseen date.", M, 4.0, 7.6, 2.0, 14);
+s = content("Validation of the raw-reflectance pipelines");
+table(s, valRows(A), M, 1.3, 7.2, { colW: [2.4, 1.2, 1.2, 1.2, 1.2], fontSize: 12, rowH: 0.42 });
+para(s, "Balanced accuracy. Spectrum-level 10-fold reproduces the paper; nested plot-grouped and 30 % plot hold-out are honest estimates for new plots; leave-one-date-out tests transfer to an unseen date.", 7.95, 1.3, W - 7.95 - M, 2.2, 14);
+img(s, "F11_validation_qda_cart.png", M, 3.6, W - 2 * M, 3.4, "Validation of QDA on CART bands");
 
 s = content("CART versus Random Forest on raw reflectance");
-img(s, "F13_A3_pipelines.png", M, 1.25, 6.4, 5.6, "CART vs RF pipelines");
-table(s, A.wilcoxon.slice(0, 6).map((r) => [r[0], r[1], r[2], r[5]]), 7.1, 1.35, W - 7.1 - M, { colW: [2.4, 1.6, 0.9, 0.78], fontSize: 11, rowH: 0.5 });
+img(s, "F13_A3_pipelines.png", M, 1.2, W - 2 * M, 3.2, "CART vs RF pipelines");
+table(s, [["Comparison", "Validation", "Mean difference", "Wilcoxon p"], ...A.wilcoxon.slice(1, 7).map((r) => [r[0], r[1], r[2], r[5]])], M, 4.5, W - 2 * M, { colW: [4.6, 4.4, 1.6, 1.63], fontSize: 11, rowH: 0.3 });
 
 s = content("Stability of the selected bands");
 img(s, "F14_A4_stability.png", M, 1.25, 7.4, 5.6, "Stability");
@@ -232,7 +235,7 @@ table(s, A.stability.map((r) => [r[0], r[1], r[2], r[5]]), 8.1, 1.35, W - 8.1 - 
 // ================================================================ K: features from raw reflectance
 sectionSlide("Step 2 · Disease-sensitive features from raw reflectance", "Band reflectance · continuum-removal parameters · vegetation indices · optimised two-band index · first/second/third derivatives · red-edge parameters · correlation spectra");
 
-s = content("Detector joins and noise (information only — features use raw reflectance)");
+s = content("Detector joins and noise (information only)");
 img(s, "F15_K0_detector_joins.png", M, 1.25, 8.2, 5.6, "Detector joins");
 bullets(s, ["All features are computed from the raw plot-average reflectance, as requested: no splice correction, no smoothing.",
             "Derivatives: central finite differences on the 1-nm grid (first, second and third order).",
@@ -277,13 +280,14 @@ table(s, K.k5.map((r) => [r[0], r[1], r[2], r[3]]), 7.3, 1.35, W - 7.3 - M, { co
 sectionSlide("Step 3 · Four tiers on the combined feature pool", `Raw reflectance + continuum removal + vegetation indices + derivatives + red-edge parameters (${CC.n_features} features) → disease-specific features`);
 
 s = content("The combined feature pool");
-img(s, "F24_C_composition.png", M, 1.25, 6.4, 5.65, "Pool composition");
-table(s, CC.composition, 7.1, 1.35, W - 7.1 - M, { fontSize: 11, rowH: 0.42 });
-para(s, `${CC.pool_raw} features; ${CC.n_features} after removing exact duplicates; Tier 1 (Welch + FDR): ${CC.n_sig} significant.`, 7.1, 5.3, W - 7.1 - M, 1.0, 14);
+table(s, CC.composition, M, 1.3, 7.6, { colW: [2.6, 0.85, 0.95, 0.65, 0.75, 0.6, 0.6, 0.6], fontSize: 10, rowH: 0.3 });
+para(s, [`${CC.pool_raw} features from the raw plot-average reflectance; ${CC.n_features} after removing exact duplicates; Tier 1 (Welch + FDR): ${CC.n_sig} significant.`,
+         "Columns 4–8: number of features of each type in the CART and Random Forest sets."], 8.4, 1.3, W - 8.4 - M, 2.4, 14);
+img(s, "F24_C_composition.png", M, 4.5, W - 2 * M, 2.5, "Pool composition");
 
-s = content(`Tier 2 · features selected by CART (${CC.cart_name}) and Random Forest (${CC.rf_name})`);
+s = content(`Tier 2 · CART (${CC.cart_name}) and Random Forest (${CC.rf_name}) features`);
 img(s, "F26_C_cart_tree.png", M, 1.25, 6.6, 5.65, "CART tree of the pool");
-para(s, [`CART: ${CC.sets[CC.cart_name]}`, `Random Forest (${CC.rf_name}): ${CC.sets[CC.rf_name]}`], 7.3, 1.4, W - 7.3 - M, 5.4, 13);
+para(s, [`CART (${CC.cart_name}): ${featList(CC.sets[CC.cart_name])}.`, `Random Forest (${CC.rf_name}): ${featList(CC.sets[CC.rf_name])}.`], 7.3, 1.4, W - 7.3 - M, 5.4, 14);
 
 s = content("Tier 2 · Random Forest importance in the combined pool");
 img(s, "F25_C_top_importance.png", M, 1.25, W - 2 * M, 5.65, "Top importance");
@@ -295,10 +299,10 @@ table(s, em(CC.errmat[CC.rf_name]), 6.6, 1.75, W - 6.6 - M, { colW: [2.0, 1.1, 1
 img(s, "F27_C_incremental.png", 6.6, 3.85, W - 6.6 - M, 3.0, "Incremental");
 para(s, `J–M on the CART features = ${jmC(CC.cart_name)}, on the ${CC.rf_name} features = ${jmC(CC.rf_name)}.`, M, 4.6, 5.6, 1.5, 14);
 
-s = content("Validation · combined pool vs raw reflectance");
-table(s, valRows(CC), M, 1.35, 7.6, { colW: [2.4, 1.3, 1.3, 1.3, 1.3], fontSize: 12, rowH: 0.48 });
-img(s, "F28_C_pipelines.png", 8.3, 1.25, W - 8.3 - M, 5.6, "Pool pipelines");
-para(s, `Raw reflectance, QDA on CART bands: ${pct(A.v["QDA on CART features|V3"].BA)} → combined pool, QDA on ${CC.rf_name} features: ${pct(CC.v["QDA on RF features|V3"].BA)} (nested plot-grouped cross-validation).`, M, 4.0, 7.6, 2.2, 15);
+s = content("Validation of the combined-pool pipelines");
+table(s, valRows(CC), M, 1.3, 7.2, { colW: [2.4, 1.2, 1.2, 1.2, 1.2], fontSize: 12, rowH: 0.42 });
+para(s, `Nested plot-grouped cross-validation: raw reflectance, QDA on CART bands ${pct(A.v["QDA on CART features|V3"].BA)} → combined pool, QDA on ${CC.rf_name} features ${pct(CC.v["QDA on RF features|V3"].BA)}; Random Forest classifier ${pct(A.v["RF classifier|V3"].BA)} → ${pct(CC.v["RF classifier|V3"].BA)}.`, 7.95, 1.3, W - 7.95 - M, 2.2, 14);
+img(s, "F28_C_pipelines.png", M, 3.6, W - 2 * M, 3.4, "Pool pipelines");
 
 s = content("Stability of the selected pool features");
 img(s, "F28b_C_stability.png", M, 1.25, 7.4, 5.65, "Pool stability");
@@ -306,25 +310,28 @@ table(s, CC.stability.map((r) => [r[0], r[1], r[2], r[4]]), 8.1, 1.35, W - 8.1 -
 table(s, CC.fold_comp.slice(0, 11).map((r) => [r[0], r[1], r[3]]), 8.1, 3.2, W - 8.1 - M, { colW: [1.3, 2.5, 1.33], fontSize: 10, rowH: 0.3 });
 
 // disease-specific features slide (filled from J.DS)
-s = content("Disease-specific features that separate diseased from healthy plots");
+s = content("Disease-specific features: diseased vs healthy plots");
 if (J.DS) {
-  table(s, J.DS.rows, M, 1.3, W - 2 * M, { colW: J.DS.colW, fontSize: 11, rowH: 0.3 });
-  cap(s, J.DS.note, M, 6.65, W - 2 * M, 0.5);
+  table(s, J.DS.rows, M, 1.2, W - 2 * M, { colW: J.DS.colW, fontSize: 10, rowH: 0.245 });
+  cap(s, J.DS.note, M, 6.5, W - 2 * M, 0.55);
 }
 
 // ================================================================ synthesis
 sectionSlide("Synthesis", "All approaches side by side · transfer to an unseen date · conclusions");
 
-s = content("All approaches side by side (ranked by nested plot-grouped balanced accuracy)");
-img(s, "F29_synthesis.png", M, 1.25, 6.6, 5.65, "Synthesis");
-table(s, X.synthesis.slice(0, 12), 7.3, 1.35, W - 7.3 - M, { colW: [2.6, 0.8, 0.8, 0.83], fontSize: 10, rowH: 0.4 });
+s = content("All approaches on new plots");
+img(s, "F29_synthesis.png", M, 1.2, W - 2 * M, 5.8, "Synthesis");
+s = content("All approaches · balanced accuracy table");
+table(s, [["Approach", "Nested plot-grouped", "30 % plot hold-out", "Leave-one-date-out"], ...X.synthesis.slice(1, 15)], M, 1.3, W - 2 * M,
+      { colW: [7.4, 1.6, 1.6, 1.63], fontSize: 11, rowH: 0.36 });
 
-s = content("Transfer to an unseen date (leave-one-date-out validation on new plots)");
-img(s, "F30_V5_leave_one_date_out.png", M, 1.25, 6.8, 5.65, "Leave-one-date-out");
-table(s, X.lodo, 7.5, 1.35, W - 7.5 - M, { fontSize: 10, rowH: 0.42 });
+s = content("Transfer to an unseen date");
+table(s, X.lodo, M, 1.25, 7.4, { colW: [3.0, 1.1, 1.1, 1.1, 1.1], fontSize: 10, rowH: 0.27 });
+para(s, "Balanced accuracy on each held-out date: trained on the other three dates (training plots of a hold-out split), tested on the held-out date (test plots of the split). the last date, 13-03-2026, is predicted at chance level by every pipeline.", 8.2, 1.3, W - 8.2 - M, 2.6, 14);
+img(s, "F30_V5_leave_one_date_out.png", M, 4.1, W - 2 * M, 2.9, "Leave-one-date-out");
 
 s = content("Conclusions");
-bullets(s, (T.conclusions || []).slice(1, 9), M, 1.3, W - 2 * M, 5.7, 13);
+bullets(s, (T.conclusions || []).slice(1, 9), M, 1.3, W - 2 * M, 5.7, 14);
 
 s = content("Recommendations and cross-checks");
 bullets(s, (T.recommendations || []).slice(0, 5), M, 1.3, 7.6, 5.7, 14);
@@ -333,7 +340,14 @@ stat(s, String(J.checks.flag), "flagged (limitations, reported)", 10.75, 1.4, 2.
 stat(s, String(J.checks.fail), "failed", 8.5, 3.2, 2.0, C.accent2);
 para(s, "Every step was verified by an independent implementation or recomputation (SciPy, statsmodels, R rpart/MASS/nlme/randomForest, Excel formulas); see the 33_Cross_Checks sheet of the workbook.", 10.75, 3.2, 2.05, 3.0, 11);
 
-s = content("References");
-bullets(s, (J.refs || []).slice(0, 12), M, 1.3, W - 2 * M, 5.7, 11);
+const KEY = ["Das B", "Breiman L", "Chen C", "Benjamini", "Welch", "Swain", "Richards", "Bhattacharyya", "Clark, R.N.", "Clark RN", "Kokaly",
+             "Gong", "Dawson", "Cho", "Guyot", "Horler", "Tsai", "Mahlein", "Brodersen", "Varma", "Hurlbert", "Therneau", "Venables", "Lemaître",
+             "Pinheiro", "Haboudane, D., Miller, J.R., Tremblay", "Gitelson, A.A., Merzlyak, M.N., 1996", "Saharan", "Thenkabail", "Ambroise"];
+const keyRefs = (J.refs || []).filter((r) => KEY.some((k) => r.startsWith(k)));
+for (let i = 0; i < keyRefs.length; i += 14) {
+  s = content(i === 0 ? "Key references" : "Key references (continued)");
+  bullets(s, keyRefs.slice(i, i + 14), M, 1.3, W - 2 * M, 5.7, 11);
+}
+cap(s, `Full list (${(J.refs || []).length} references, including the source of every vegetation index) in the Word report.`, M, 6.65, W - 2 * M, 0.4);
 
 pres.writeFile({ fileName: OUT }).then(async () => { await applyTheme(OUT, THEME); console.log("saved", OUT); });
