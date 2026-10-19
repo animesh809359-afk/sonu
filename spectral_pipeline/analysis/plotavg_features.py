@@ -471,9 +471,21 @@ def optimise(R, wl, y, lo=OSI_RANGE[0], hi=OSI_RANGE[1]):
     return x, out
 
 
-def straddles(a, b):
-    lo, hi = min(a, b), max(a, b)
-    return any(lo <= j < hi for j in JOINS)
+GUARD = [(990, 1010), (1795, 1835)]   # bands beside the detector joins (step and SWIR-2 start-up artefact)
+
+
+def in_guard(lam):
+    return any(lo <= lam <= hi for lo, hi in GUARD)
+
+
+def guard_pair(a, b):
+    """True when either band of the pair lies in a detector-join guard zone (artefact-prone)."""
+    return in_guard(a) or in_guard(b)
+
+
+def guard_mask(x):
+    g = np.array([in_guard(v) for v in x])
+    return g[:, None] | g[None, :]
 
 
 def top_pairs(x, r, n=10, min_sep=10, kind="NDSI"):

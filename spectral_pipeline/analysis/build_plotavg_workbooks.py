@@ -79,20 +79,14 @@ def compute(tag):
         vi = pf.indices(X, wl)
         re = pf.red_edge(X, D1, wl)
         x, O = pf.optimise(X, wl, y.astype(float))
-        tops = {k: pf.top_pairs(x, O[k], 10, kind=k) for k in O}
-        tops_far = {}
+        G = pf.guard_mask(x)
+        dist = np.abs(x[:, None] - x[None, :])
+        tops_any = {k: pf.top_pairs(x, O[k], 10, kind=k) for k in O}          # unrestricted (reference)
+        tops, tops_far = {}, {}
         for k in O:
-            Mk = O[k].copy()
-            dist = np.abs(x[:, None] - x[None, :])
-            Mk[dist < 10] = 0
-            tops_far[k] = pf.top_pairs(x, Mk, 10, kind=k)
-        nojoin = {}
-        for k in O:
-            Mk = O[k].copy()
-            for j in pf.JOINS:
-                Mk[np.ix_(x <= j, x > j)] = 0
-                Mk[np.ix_(x > j, x <= j)] = 0
-            nojoin[k] = pf.top_pairs(x, Mk, 1, kind=k)[0]
+            Mk = np.where(G, 0, O[k])
+            tops[k] = pf.top_pairs(x, Mk, 10, kind=k)                          # outside the guard zones
+            tops_far[k] = pf.top_pairs(x, np.where(dist < 10, 0, Mk), 10, kind=k)
         osi = {}
         for k in O:
             a_, b_, r_, _ = tops[k][0]
@@ -103,7 +97,7 @@ def compute(tag):
         F = {"cr": cr, "vi": vi, "re": re, "osi": osi}
         stats = {k: pf.class_stats(F[k], y) for k in F}
         bs = {nm: band_stats(M, y) for nm, M in (("R", X), ("D1", D1), ("D2", D2), ("D3", D3))}
-        B[b] = dict(R=X, D1=D1, D2=D2, D3=D3, F=F, curves=curves, x=x, O=O, tops=tops, tops_far=tops_far, nojoin=nojoin,
+        B[b] = dict(R=X, D1=D1, D2=D2, D3=D3, F=F, curves=curves, x=x, O=O, tops=tops, tops_far=tops_far, tops_any=tops_any,
                     stats=stats, bs=bs)
     # smoothing alternatives
     alts = pf.smoothing_alternatives(Ra, wl)
@@ -254,7 +248,7 @@ def figures(C, d):
         axs[0].set_ylabel("λ1 (nm)")
         cb = fig.colorbar(im, ax=axs, fraction=0.015)
         cb.set_label("r² with disease status (healthy 0, diseased 1)")
-        fig.suptitle(f"{C['date']} · optimised two-band indices from {BR[b].lower()} reflectance (5-nm display grid; orange circle = best pair)",
+        fig.suptitle(f"{C['date']} · optimised two-band indices from {BR[b].lower()} reflectance (5-nm display grid; orange circle = best pair outside the detector-join guard zones)",
                      x=0.01, ha="left", fontsize=9.5)
         f = d / f"F6_{b}_optimised.png"
         fig.savefig(f)
@@ -501,7 +495,7 @@ def build(C, figs):
         ("Step 3 · Vegetation indices (raw)", f"{len(pf.VI)} indices: the 31 of the Activity 1.4 table + {len(pf.VI) - 31} further pigment, red-edge, water and disease indices. Sheet 06."),
         ("Step 4 · Derivatives (raw)", "First, second and third derivative by central finite differences (Δλ = 1 nm). Sheets 07–09."),
         ("Step 5 · Red-edge parameters (raw)", "Red-edge inflection point by four methods and 19 edge parameters. Sheet 10."),
-        ("Step 6 · Optimised spectral indices (raw)", "All band pairs 400–2500 nm (1-nm step) for NDSI, simple ratio and difference index; best pairs by r² with disease status. Sheets 11–12."),
+        ("Step 6 · Optimised spectral indices (raw)", "All band pairs 400–2500 nm (1-nm step) for NDSI, simple ratio and difference index; best pairs by r² with disease status (bands beside the detector joins excluded). Sheets 11–12."),
         ("Step 7 · Spectral smoothing / denoising", "Detector-join correction + Savitzky–Golay (11 nm, 2nd order) of the plot averages; comparison of five smoothing filters. Sheets 13–14."),
         ("Steps 8–12 · Features of the smoothed spectra", "Steps 2–6 repeated on the smoothed plot averages. Sheets 15–23."),
         ("Step 13 · Raw vs smoothed", "Change of every scalar feature through smoothing; separability before and after. Sheet 24."),
@@ -627,10 +621,13 @@ def build(C, figs):
                "(Thenkabail et al., 2000). r is the point-biserial correlation of the index with disease status; r² is the share of the index "
                "variance explained by the disease. Because the pair is chosen on the same plots, the r² of the best pair is optimistic and should "
                "be confirmed on independent plots or dates. Adjacent-band pairs behave like a first derivative; a second table therefore lists the "
-               "best pairs whose bands are at least 10 nm apart.")
+               "best pairs whose bands are at least 10 nm apart. Bands beside the detector joins (990–1010 and 1795–1835 nm) carry an instrument "
+               "step and the SWIR-2 start-up artefact and can produce spurious 'optimal' pairs; the search therefore excludes them (the "
+               "unrestricted result is shown for reference), and the index values in the next sheet use the guard-free pairs.")
         S.image(figs[f"osi_{b}"], 900)
         for k in ("NDSI", "SR", "DI"):
-            for tops, ttl in ((X["tops"][k], "all pairs"), (X["tops_far"][k], "bands ≥ 10 nm apart")):
+            for tops, ttl in ((X["tops"][k], "outside the detector-join guard zones"), (X["tops_far"][k], "outside the guard zones, bands ≥ 10 nm apart"),
+                              (X["tops_any"][k], "unrestricted search, for reference — pairs in the guard zones are artefact-prone")):
                 rows = []
                 for rank, (a_, b_, r_, r2_) in enumerate(tops, 1):
                     v = pf.index_value(X["R"], wl, k, a_, b_)
@@ -639,12 +636,9 @@ def build(C, figs):
                                  "p (t-test of r)": float(2 * st.t.sf(abs(r_) * np.sqrt((len(y) - 2) / (1 - r_ ** 2)), len(y) - 2)),
                                  "AUC (direction-free)": max(aa, 1 - aa), "Mean healthy": float(v[y == 0].mean()),
                                  "Mean diseased": float(v[y == 1].mean()),
-                                 "Straddles a detector join?": "yes" if pf.straddles(a_, b_) else "no"})
-                S.table(pd.DataFrame(rows), title=f"{k} · ten best non-redundant pairs ({ttl}; a pair counts as new when either band is ≥ 10 nm from every earlier pair)",
+                                 "Band in a guard zone (990–1010 / 1795–1835 nm)?": "yes" if pf.guard_pair(a_, b_) else "no"})
+                S.table(pd.DataFrame(rows), title=f"{k} · ten best non-redundant pairs, {ttl} (a pair counts as new when either band is ≥ 10 nm from every earlier pair)",
                         fmts={"r": "0.000", "r²": "0.000", "p (t-test of r)": "0.00E+00", "AUC (direction-free)": "0.000"})
-            a_, b_, r_, r2_ = X["nojoin"][k]
-            S.para(f"{k}: best pair that does not straddle a detector join (1000/1001 or 1800/1801 nm): ({int(a_)}, {int(b_)}) nm, r = {r_:.3f}, r² = {r2_:.3f}.",
-                   font=F_NOTE)
         feature_sheet(wb, nxt(f"{pre}_Optimised_Values"), f"Step {start_step + 4} (values) · Optimised index values of every plot ({lbl})",
                       "Best pair of each index type (all pairs, and bands ≥ 10 nm apart)", X["F"]["osi"], P, y, stats=stt["osi"])
 
@@ -758,13 +752,13 @@ def build(C, figs):
             for rn, lo, hi in (("Blue 400–499", 400, 499), ("Green 500–599", 500, 599), ("Red 600–679", 600, 679), ("Red edge 680–759", 680, 759),
                                ("NIR 760–1349", 760, 1349), ("Water band 1350–1430", 1350, 1430), ("SWIR-1 1431–1799", 1431, 1799),
                                ("Water band 1800–1950", 1800, 1950), ("SWIR-2 1951–2500", 1951, 2500)):
-                m = (wl >= lo) & (wl <= hi) & ~np.isnan(a)
+                m = (wl >= lo) & (wl <= hi) & ~np.isnan(a) & ~np.array([pf.in_guard(v) for v in wl])
                 if not m.any():
                     continue
                 i = np.where(m)[0][np.nanargmax(a[m])]
                 rows.append({"Spectrum": nm, "Region": rn, "Best band (nm)": int(wl[i]), "AUC": float(a[i]), "Welch t": float(t[i]), "p": float(p[i]),
                              "Bands with p < 0.05 in region": int((p[m] < 0.05).sum()), "Bands in region": int(m.sum())})
-        S.table(pd.DataFrame(rows), title=f"Most sensitive band of each region ({BR[b].lower()} reflectance and derivatives)",
+        S.table(pd.DataFrame(rows), title=f"Most sensitive band of each region ({BR[b].lower()} reflectance and derivatives; bands in the detector-join guard zones 990–1010 and 1795–1835 nm excluded)",
                 fmts={"AUC": "0.000", "Welch t": "0.00", "p": "0.00E+00"})
 
     # ---- index definitions
@@ -870,9 +864,12 @@ def build(C, figs):
         ("Smoothing keeps narrow features and removes only uncorrelated noise (Savitzky–Golay 11/2)",
          f"red-edge amplitude {C['alt_tab'].iloc[2]['Red-edge amplitude retained (% of unsmoothed)']:.1f} %, 970-nm depth {C['alt_tab'].iloc[2]['970-nm band depth retained (% of unsmoothed)']:.1f} %",
          "PASS"),
-        ("Optimised indices: best pair straddles a detector join?",
-         "; ".join(f"{BR[b]} {k} " + ("yes" if pf.straddles(B[b]['tops'][k][0][0], B[b]['tops'][k][0][1]) else "no") for b in B for k in ("NDSI", "SR", "DI")),
-         "FLAG" if any(pf.straddles(B[b]["tops"][k][0][0], B[b]["tops"][k][0][1]) for b in B for k in ("NDSI", "SR", "DI")) else "PASS"),
+        ("Optimised indices: unrestricted best pair lies in a detector-join guard zone? (artefact; guard-free pairs are used)",
+         "; ".join(f"{BR[b]} {k} " + ("yes" if pf.guard_pair(B[b]['tops_any'][k][0][0], B[b]['tops_any'][k][0][1]) else "no") for b in B for k in ("NDSI", "SR", "DI")),
+         "FLAG" if any(pf.guard_pair(B[b]["tops_any"][k][0][0], B[b]["tops_any"][k][0][1]) for b in B for k in ("NDSI", "SR", "DI")) else "PASS"),
+        ("Optimised index values reported in the values sheets use bands outside the guard zones",
+         "; ".join(f"{BR[b]} {k}({int(B[b]['tops'][k][0][0])}, {int(B[b]['tops'][k][0][1])})" for b in B for k in ("NDSI", "SR", "DI")),
+         "PASS" if not any(pf.guard_pair(B[b]["tops"][k][0][0], B[b]["tops"][k][0][1]) for b in B for k in ("NDSI", "SR", "DI")) else "FAIL"),
     ]
     S.table(pd.DataFrame(ch_rows, columns=["Check", "Result", "Status"]), flag_col="Status", widths={"A": 70, "B": 80, "C": 10})
     # move README first, references etc. order is creation order already
