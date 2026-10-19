@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -228,11 +229,75 @@ J["edge_all"] = tab(K["k4_edge"], ["name", "Mean healthy", "Mean diseased", "AUC
 J["k4_regions"] = tab(K["k4_regions"], ["Derivative", "Region (nm)", "Band (nm)", "AUC", "Direction", "Hedges g"],
                       {"Band (nm)": lambda v: f"{v:.0f}", "AUC": lambda v: f"{v:.3f}", "Hedges g": lambda v: f"{v:.2f}"})
 J["tier1_sig_by_test"] = {r["Test"]: int(r["Significant bands"]) for _, r in A["tier1_tests"].iterrows()}
+# ---- disease-specific features: the CART and Random Forest selections of the combined pool, with their statistics
+from sp import features as _feat  # noqa: E402
+from sp import stats as _st  # noqa: E402
+POOL = _feat.build_all(D["spec"], C)["groups"]["G5"][1]
+_names = list(POOL.names)
+TYPE_FULL = {"K1 band": "Band reflectance", "K2 continuum": "Continuum removal", "K3 index": "Vegetation index",
+             "K4 D1 band": "First derivative", "K4 D2 band": "Second derivative", "K4 D3 band": "Third derivative",
+             "K4 edge": "Red-edge / edge parameter"}
+t1 = Cc["tier1"].set_index("name")
+freq = {m: Cc["stability"]["freq"][m] for m in ("CART", "RF")}
+
+
+def _share(m, nm):
+    f = freq[m]
+    col = [c for c in f.columns if c.startswith("Share")][0]
+    key = [c for c in f.columns if c not in (col,) and f[c].dtype == object][0]
+    r = f[f[key] == nm]
+    return float(r[col].iloc[0]) if len(r) else 0.0
+
+
+def _label(nm):
+    import re as _re
+    m = _re.match(r"^(D[123])_(\d+)$", nm)
+    if m:
+        return {"D1": "First derivative", "D2": "Second derivative", "D3": "Third derivative"}[m.group(1)] + f" at {m.group(2)} nm"
+    m = _re.match(r"^R(\d+)$", nm)
+    if m:
+        return f"Reflectance at {m.group(1)} nm"
+    return nm
+
+
+ds_rows = []
+cart_set, rf_set = Cc["sets"][Cc["cart_name"]], Cc["sets"][Cc["rf_name"]]
+for nm in list(dict.fromkeys(list(rf_set) + list(cart_set))):
+    j = _names.index(nm)
+    x = POOL.X[:, j]
+    a = _st.auc(x[:, None], y)[0]
+    by = "CART + Random Forest" if nm in cart_set and nm in rf_set else ("Random Forest" if nm in rf_set else "CART")
+    r = t1.loc[nm]
+    ds_rows.append({"Feature": _label(nm), "Type": TYPE_FULL.get(POOL.meta.at[j, "type"], POOL.meta.at[j, "type"]), "Selected by": by,
+                    "Mean healthy": float(r["mean0"]), "Mean diseased": float(r["mean1"]), "Direction": "D > H" if r["mean1"] > r["mean0"] else "D < H",
+                    "Welch t": float(r["t"]), "q (FDR)": float(r["q"]), "AUC": max(a, 1 - a),
+                    "Re-selected, CART (50 sets)": _share("CART", nm), "Re-selected, RF (50 sets)": _share("RF", nm)})
+DSdf = pd.DataFrame(ds_rows)
+J["DS"] = {"rows": [["Feature", "Type", "Selected by", "Mean healthy", "Mean diseased", "Direction", "AUC", "q (FDR)", "Re-selected CART / RF"]]
+           + [[r["Feature"], r["Type"], r["Selected by"], f(r["Mean healthy"], 4), f(r["Mean diseased"], 4), r["Direction"], f"{r['AUC']:.3f}",
+               f"{r['q (FDR)']:.1e}", f"{100 * r['Re-selected, CART (50 sets)']:.0f} % / {100 * r['Re-selected, RF (50 sets)']:.0f} %"] for r in ds_rows],
+           "colW": [2.6, 1.9, 1.9, 1.05, 1.05, 0.8, 0.7, 0.85, 1.38],
+           "note": "Features of the combined pool chosen by CART and by Random Forest (highest importance peaks) on all 192 plot-average spectra; "
+                   "AUC is direction-free; re-selected = share of the 50 nested cross-validation training sets in which a feature within ±10 nm "
+                   "(same type) was selected again."}
+DSdf.to_pickle(WORK / "disease_specific_features.pkl")
+# ---- references: methods (Word report list) + vegetation-index sources (plot-average workbooks), alphabetical, de-duplicated
+import re as _re2  # noqa: E402
+from build_plotavg_workbooks import REFERENCES as _VI_REFS  # noqa: E402
+_m = json.loads((Path(__file__).resolve().parent / "conclusions_whiterust_all_dates.json").read_text())["references"]
+_all, _seen = [], set()
+for r in [x for x in _m if not x.startswith("Vegetation-index sources")] + _VI_REFS:
+    k = (_re2.match(r"[^\s,]+", r).group(0).lower(), (_re2.search(r"(19|20)\d\d[ab]?", r) or _re2.search(r"\d{4}", r)).group(0))
+    if k in _seen:
+        continue
+    _seen.add(k)
+    _all.append(r)
+J["refs"] = sorted(_all, key=lambda t: t.lower())
 # ---- full names (no codes) and plot-average wording in every string
 if C.get("naming") == "full":
     from naming import Namer
     NM = Namer(D["folds"].get("V5_by", "Date"), unit="plot" if C["data"].get("plot_average") else "leaf")
-    SKIP = {"fig", "sets"}
+    SKIP = {"fig", "sets", "refs"}
 
     def _tx(o, key=None):
         if key in SKIP:
