@@ -130,7 +130,7 @@ if 'E3' in D:
     lv = e3[e3.kind == 'LOVO'].groupby('held_out')['BA'].max()
     gain = (lo[True] - lo[False])
     N['e3'] = ('LODO best BA (without / with date normalisation): ' + ', '.join(f"{d} {f2(lo.loc[d, False])}/{f2(lo.loc[d, True])}" for d in DL if d in lo.index) +
-               f". Without normalisation an unseen date can collapse to chance ({gain.idxmax()}: {f2(lo.loc[gain.idxmax(), False])}); per-date standardisation of the features restores it ({f2(lo.loc[gain.idxmax(), True])}). "
+               f". Without normalisation accuracy on an unseen date can drop sharply (best pipeline on {gain.idxmax()}: {f2(lo.loc[gain.idxmax(), False])}); per-date standardisation of the features restores it ({f2(lo.loc[gain.idxmax(), True])}). "
                'LOVO: ' + ', '.join(f"{v} {f2(x)}" for v, x in lv.items()) + ' - varieties transfer well.')
 if 'E5' in D:
     e5 = D['E5']
@@ -144,12 +144,12 @@ if 'E6' in D:
 if 'E7' in D:
     e7 = pd.DataFrame(D['E7']); bb = e7.loc[e7.BA.idxmax()]
     N['e7'] = (f"Best OFC result: {bb['feature_set']} + {bb['clf']} BA {f3(bb['BA'])} with a median of {bb['features']:.0f} features. "
-               f"OFCs keep most of the accuracy of the full derivative spectrum ({f3(b0['BA'])}) with a handful of features, as reported by Tian et al. (2021).")
+               f"DSF / OFC sets of only {e7.features.min():.0f}-{e7.features.max():.0f} features reach BA {e7.groupby('feature_set').BA.max().min():.2f}-{bb['BA']:.2f}, i.e. most of the accuracy of the full derivative spectrum ({f3(b0['BA'])}), as Tian et al. (2021) reported for blast.")
 if 'E8' in D:
     e8 = pd.DataFrame(D['E8']); b8 = e8.loc[e8.BA.idxmax()]
     rk = e8.groupby('method')['BA'].max().sort_values(ascending=False)
     N['e8'] = (f"Best selector: {b8['method']} (k = {b8['k']}) + {b8['clf']}, BA {f3(b8['BA'])}. Order: " + ', '.join(f"{m} {f2(v)}" for m, v in rk.items()) +
-               '. All selectors pick derivative / wavelet features of the water and red-edge regions, matching the leaf-level ranking (Panda 2026).')
+               '. All selectors favour small-scale CWT and 2nd / 3rd-derivative features at the red-edge / NIR shoulder (780-850 nm), the 950 and 1230 nm water bands and 2170 nm; SVM-RFE was also the top selector at leaf level (Panda 2026).')
 if 'E9' in D:
     e9 = pd.DataFrame(D['E9'])
     p = e9.pivot_table(index='scenario', columns='averaging', values='BA')
@@ -169,12 +169,13 @@ N['summary_rows'] = [
     ['Which features?', f"{FL[fs[0]['family']]} and {FL[fs[1]['family']]} (AUC up to {f2(fs[0]['best_mean_AUC'])}); 1810-1950 nm water shoulder and red-edge / NIR slope."],
     ['Best plot-level model', f"{b0['scenario']} {SCN[b0['scenario']]} + {b0['clf']}: BA {f3(b0['BA'])}, MCC {f3(b0['MCC'])}, AUC {f3(b0['AUC'])}."],
     ['Compact model', f"{b1['scenario']} + {b1['clf']}: BA {f3(b1['BA'])} with ~{b1['n_features']:.0f} features."],
+    *([['Best compact selection (E8)', f"SVM-RFE, 15 features + LR: BA {f3(pd.DataFrame(D['E8']).query('method == \"SVM-RFE\"').BA.max())} (10 x 4-fold)."]] if 'E8' in D else []),
     ['Best published-index model', f"VIs (S6) + {b2['clf']}: BA {f3(b2['BA'])}."],
 ]
 if 'E3' in D:
     N['summary_rows'].append(['Transfer', f"Unseen date BA {f2(lo[True].min())}-{f2(lo[True].max())} with per-date normalisation ({f2(lo[False].min())}-{f2(lo[False].max())} without); unseen variety {f2(lv.min())}-{f2(lv.max())}."])
 if 'E5' in D and 'E9' in D:
-    N['summary_rows'].append(['Artefact checks', f"Permutation p {pf(max(r['p_value'] for r in D['E5']))}; equal-leaf BA {f2(p['3 random leaves per plot'].max())}; blocks ratio > 1."])
+    N['summary_rows'].append(['Artefact checks', f"Permutation p {pf(max(r['p_value'] for r in D['E5']))} (null BA 0.50); 3-leaf plot means BA {f2(p['3 random leaves per plot'].max())}; caveat: inoculated blocks separable from each other (BA {f2(rr_.min())}-{f2(rr_.max())})."])
 
 N['disc_mech'] = [
     'Inoculated plots show changes in the visible / red-edge region (pigment loss, anthocyanin and carotenoid indices rise, red-edge slope falls), as reported for blast, rusts and mildew (Zhang 2012; Mandal 2022; Ashourloo 2014).',
@@ -183,14 +184,14 @@ N['disc_mech'] = [
 ]
 N['disc_feat'] = [
     'Derivatives and small-scale CWT coefficients remove the brightness level that varies with date, leaf angle and probe contact and keep the band shape (Tsai & Philpot 1998; Lv 2023; Tian 2021).',
-    'Averaging 3-15 leaves suppresses random noise, so even second / third derivatives of raw plot averages are usable; smoothing added little (E1).',
+    'Averaging 3-15 leaves suppresses random noise, so even second / third derivatives of raw plot averages are usable; Savitzky-Golay smoothing helps mainly the third derivative (E1).',
     'Exhaustively optimised two-band indices recover a pigment ratio (green / red) but explain less variance than derivative features, consistent with Mandal et al. (2023).',
 ]
 N['compare'] = [
     ['Zhang et al. 2012', 'Derivative and CR features beat VIs for powdery mildew (OA 0.89)', 'Same pattern: derivative / CWT > CR > VIs at plot level'],
     ['Mandal et al. 2022, 2023', 'Red-edge shift and optimised NDSI track blast severity', 'Red-edge slope lower in diseased plots; best NDSI is a green-red pigment pair'],
     ['Tian et al. 2021', 'Date-stable OFCs from SFFS give 65-98.7 % OA', 'OFCs with few features keep most of the accuracy (E7)'],
-    ['Lv et al. 2023', 'FD + CWT best; date normalisation helps asymptomatic stages', 'FD / CWT best; date normalisation effect reported in E4'],
+    ['Lv et al. 2023', 'FD + CWT best; date normalisation helps asymptomatic stages', 'FD / CWT best; per-date standardisation +0.02 BA pooled (E4) and essential for unseen dates (E3)'],
     ['Terentev et al. 2023', 'Cross-experiment validation needed for honest accuracy', 'Unseen-date (LODO) accuracy lower than pooled CV (E3)'],
     ['Zhu 2017; Huang 2020', 'SPA selects few informative bands', 'SPA reflectance bands are weaker than derivative features'],
     ['Panda 2026 (leaf level)', 'Leaf pooled models BA 0.92-0.95', 'Plot averages give comparable or higher BA with one spectrum per plot (E10)'],
@@ -205,12 +206,12 @@ N['disc_caveats'] = ['All controls are in one block (plots 1-12): disease and fi
                      'No severity score per plot: the model is binary and its probability is not a severity estimate.',
                      'One season and site; transfer to other years and to canopy / UAV sensors is untested.']
 N['protocol'] = [['Sample', 'measure >= 9 leaves per plot with the contact probe and average them'], ['Pre-process', 'trim 400-2400 nm; use raw averages (smoothing optional)'],
-                 ['Features', 'first / second derivative or CWT (small scales) of the plot average'], ['Model', f"{b0['clf']} on the {SCN[b0['scenario']].split(',')[0].lower()} (or the compact {b1['scenario']} set)"],
+                 ['Features', 'first / second derivative or CWT (small scales) of the plot average'], ['Model', f"{b0['clf']} on the {SCN[b0['scenario']].split(',')[0].lower()}, or LR on ~15 SVM-RFE-selected derivative / wavelet features"],
                  ['Normalise', 'standardise features within each date (all plots of the date, no labels) before applying the model to a new date'], ['Validate', 'cell- or plot-grouped CV; report BA, MCC; test unseen dates'], ['Decide', 'combine the calls of successive dates per plot for the final plot decision']]
 N['conclusions'] = [
     f"Plot-average spectra separate healthy and white-rust diseased mustard plots on every date; disease explains a small but highly significant share of spectral variation (PERMANOVA p {pf(pm[('SNV', 'Disease')]['p_perm'])}).",
     f"Derivative and wavelet features of the raw plot average are the most discriminating and date-stable; the best pipeline ({b0['scenario']} + {b0['clf']}) reached BA {f3(b0['BA'])} on held-out plots.",
-    f"A compact selected set ({b1['scenario']} + {b1['clf']}, ~{b1['n_features']:.0f} features) and the best VIs (BA {f3(b2['BA'])}) offer simpler alternatives.",
+    (f"Compact sets work as well: SVM-RFE with 15 features + LR reached BA {pd.DataFrame(D['E8']).query('method == \"SVM-RFE\"').BA.max():.3f} (E8) and optimised two-band indices + {b1['clf']} {f3(b1['BA'])}; the best published vegetation indices reached BA {f3(b2['BA'])}." if 'E8' in D else ''),
     'Design controls (matched controls, block contrasts, permutations, equal leaf numbers) support a genuine disease effect, but the single control block remains a limitation.',
     (f"Standardising the features within each date (Lv et al. 2023) raised the first-derivative LDA model to BA {max(r['with'] for r in D['E4']):.3f} in the pooled CV (E4); " if 'E4' in D else '') + 'for a date not seen in training, per-date standardisation is essential (E3); varieties transfer without it.',
     'Plot averaging gives accuracy comparable to leaf-level models with far fewer spectra to process, and is the natural input for canopy-scale sensors.',

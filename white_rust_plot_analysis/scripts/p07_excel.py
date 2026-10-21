@@ -155,8 +155,8 @@ steps = [
     ('11', 'Classification (main CV)', '12 feature scenarios x 10 classifiers; nested, cell-grouped, repeated (20 x 4-fold) CV; selection and tuning inside the training folds.', 'Varma & Simon 2006; Roberts et al. 2017; Tian 2021; Zhu 2017; Huang 2020', '14_CV_Design, 15_CV_Results'),
     ('12', 'Model comparison', 'Friedman + Nemenyi, Nadeau-Bengio corrected t-test, Wilcoxon-Holm.', 'Demsar 2006; Nadeau & Bengio 2003', '17_Model_Comparison'),
     ('13', 'Best models', 'Confusion matrices, ROC, per-date / variety / inoculation performance, disease-call progression.', 'Fawcett 2006; Chicco & Jurman 2020', '18_Best_Models, 19_Progression'),
-    ('14', 'Supporting experiments', 'E1 branch, E2 single date, E3 transfer (LODO/LOVO), E4 date normalisation, E5 permutation test, E6 block controls, E7 OFC, E8 selector comparison, E9 equal leaf numbers, E10 leaf vs plot level.', 'see each sheet', '20_..29_'),
-    ('15', 'Final feature set', 'Robust selection on all data; correlation, VIF, J-M distance, permutation importance.', 'Tian et al. 2021; Dormann et al. 2013', '30_Final_Features'),
+    ('14', 'Supporting experiments', 'E1 branch, E2 single date, E3 transfer (LODO/LOVO), E4 date normalisation, E5 permutation test, E6 block controls, E7 OFC, E8 selector comparison, E9 equal leaf numbers, E10 leaf vs plot level.', 'see each sheet', '20_..28_'),
+    ('15', 'Final feature set', 'Robust selection on all data; correlation, VIF, J-M distance, permutation importance.', 'Tian et al. 2021; Dormann et al. 2013', '29_Final_Features'),
 ]
 write_df(ws, pd.DataFrame(steps, columns=['Step', 'Name', 'What was done', 'Main references', 'Result sheet']), 5, 1,
          widths={'What was done': 90, 'Main references': 45, 'Result sheet': 28, 'Name': 26})
@@ -292,7 +292,7 @@ ws.freeze_panes = None
 # ============================================================ 07 VI
 ws = sheet('07_Vegetation_Indices', 'Step 6a - 87 vegetation indices: definitions and separability',
            'Definitions from sheet 26 of the source workbooks. Disease-specific indices (HI, PMI, LRDSI, CLSI, SBRI) were developed for other pathogens with similar symptoms.',
-           'Mahlein et al. 2013; Ashourloo et al. 2014; Apan et al. 2004; see 33_References')
+           'Mahlein et al. 2013; Ashourloo et al. 2014; Apan et al. 2004; see 32_References')
 VD = pd.read_csv(os.path.join(CACHE, 'vi_definitions.csv'))
 VD.columns = ['Index', 'Full name', 'Equation', 'Reference', 'Group', 'Source']
 V = SCR[(SCR.branch == 'raw') & (SCR.family == 'VI')][['feature', 'direction', 'n_dates_q05', 'mean_AUC', 'min_AUC'] + [f'AUC_{d}' for d in DL] + ['score']].rename(columns={'feature': 'Index'})
@@ -671,7 +671,7 @@ if have('leaf_vs_plot_comparison.csv'):
 
 # ============================================================ final features, selection, hyper-parameters
 if have('final_features.csv'):
-    ws = sheet('30_Final_Features', 'Step 15 - Final feature set (S10 robust selection on all 192 plot-dates)',
+    ws = sheet('29_Final_Features', 'Step 15 - Final feature set (S10 robust selection on all 192 plot-dates)',
                'Selection: ReliefF top 10 % on >= 3 of 4 dates -> |r| < 0.98 -> VIF < 10 -> SFFS-LDA. Importance = drop in BA when a feature is permuted (SVM, cell-grouped 4-fold). VIF and r show no multicollinearity left.',
                'Tian et al. 2021; Lv et al. 2023; Dormann et al. 2013; Richards & Jia 2006')
     FIN = T('final_features.csv')
@@ -686,7 +686,7 @@ if have('final_features.csv'):
     write_df(ws, JM, r2 + 3, 1, freeze=False)
     ws.freeze_panes = None
 if have('selection_frequency.csv'):
-    ws = sheet('31_Selection_Frequency', 'Feature-selection stability across the 80 outer training sets',
+    ws = sheet('30_Selection_Frequency', 'Feature-selection stability across the 80 outer training sets',
                'How often each feature was chosen inside the outer folds (LDA rows; selection does not depend on the classifier). S10 family shares show which families the combined selection relies on.',
                'Kuncheva 2007; Nogueira et al. 2018')
     FS10 = T('S10_family_share.csv')
@@ -699,11 +699,11 @@ if have('selection_frequency.csv'):
     scatter_lines(ws, 'R5', 'Band selection frequency (SPA, GA-PLS)', 14, [15, 16], 5, 5 + len(BF), [COL_4, COL_3], yt='% of folds', w=17, h=9)
     ws.freeze_panes = None
 if have('hyperparameters.csv'):
-    ws = sheet('32_Hyperparameters', 'Hyper-parameters chosen in the inner CV (most frequent) and median feature numbers', '')
+    ws = sheet('31_Hyperparameters', 'Hyper-parameters chosen in the inner CV (most frequent) and median feature numbers', '')
     write_df(ws, T('hyperparameters.csv'), 5, 1, widths={'Most_frequent_params': 50})
 
 # ============================================================ references
-ws = sheet('33_References', 'References', '[P] = paper supplied for this thesis; [R] = the researcher\'s own work; others = methods and index sources.')
+ws = sheet('32_References', 'References', '[P] = paper supplied for this thesis; [R] = the researcher\'s own work; others = methods and index sources.')
 RF = pd.read_csv(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'references.csv'))
 write_df(ws, RF, 5, 1, widths={'Reference': 140, 'Used for': 50})
 for rr in range(6, 6 + len(RF)):
