@@ -104,6 +104,9 @@ if have('E6_design_controls_reps.csv'):
     D['E6'] = rec(E6.loc[E6.groupby(['contrast', 'scenario'])['BA'].idxmax()], 4)
 if have('E7_ofc_reps.csv'):
     D['E7'] = rec(summ(T('E7_ofc_reps.csv'), ['feature_set', 'clf'], extra=('features',)), 4)
+    if have('E7_ofc_final_sets.csv'):
+        D['E7_final'] = rec(T('E7_ofc_final_sets.csv'), 3); D['E7_summary'] = rec(T('E7_ofc_final_summary.csv'), 3)
+        fq = T('E7_ofc_feature_frequency.csv'); D['E7_freq'] = rec(fq[fq.Set == 'DSFs (all)'].head(8), 0)
 if have('E8_fs_reps.csv'):
     D['E8'] = rec(summ(T('E8_fs_reps.csv'), ['method', 'k', 'clf']), 4)
 if have('E9_equal_leaves_reps.csv'):

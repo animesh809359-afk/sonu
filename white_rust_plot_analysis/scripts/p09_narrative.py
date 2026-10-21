@@ -145,6 +145,12 @@ if 'E7' in D:
     e7 = pd.DataFrame(D['E7']); bb = e7.loc[e7.BA.idxmax()]
     N['e7'] = (f"Best OFC result: {bb['feature_set']} + {bb['clf']} BA {f3(bb['BA'])} with a median of {bb['features']:.0f} features. "
                f"DSF / OFC sets of only {e7.features.min():.0f}-{e7.features.max():.0f} features reach BA {e7.groupby('feature_set').BA.max().min():.2f}-{bb['BA']:.2f}, i.e. most of the accuracy of the full derivative spectrum ({f3(b0['BA'])}), as Tian et al. (2021) reported for blast.")
+if 'E7_final' in D:
+    W['e7final'] = 'Selections made inside each training fold vary because the 12 control plots are few; the table on the left is the single set fitted on all data.'
+    N['e7final'] = 'The second derivative (curvature) at 1810 nm (D2_1810) enters every set; SR(1820,1830), D1_1940 and WF1820_s1 (water shoulder) and ARI2 (anthocyanin) complete the pool.'
+    W['e7sets'] = 'DSFs = top 5 % ReliefF features on >= 3 of 4 dates, |r| < 0.98, VIF < 10; OFC = subset chosen by SFFS with that wrapper. BA = 10 x 4-fold cell-grouped CV.'
+    sm = pd.DataFrame(D['E7_summary'])
+    N['e7sets'] = 'Best: ' + '; '.join(f"{r.Set} + {r['Best classifier (CV)']} BA {r.BA:.3f}" for _, r in sm.sort_values('BA', ascending=False).iterrows()) + '.'
 if 'E8' in D:
     e8 = pd.DataFrame(D['E8']); b8 = e8.loc[e8.BA.idxmax()]
     rk = e8.groupby('method')['BA'].max().sort_values(ascending=False)

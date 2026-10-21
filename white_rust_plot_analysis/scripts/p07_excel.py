@@ -650,7 +650,11 @@ if have('E7_ofc_reps.csv'):
     w7 = E7.pivot(index='feature_set', columns='clf', values='BA').reset_index()
     exp_sheet('25_E7_OFC', 'E7 - Optimal feature combinations (OFC) from SFFS with LDA, kNN and SVM wrappers',
               'Disease-sensitive features (DSF) = top 5 % by ReliefF on >= 3 of 4 dates, |r| < 0.98, VIF < 10; SFFS with each wrapper gives an OFC that is then classified by 5 learners (Tian et al. 2021). Fully inside the training folds.',
-              'Tian et al. 2021; Pudil et al. 1994', w7, [], chart=(1, [2, 3, 4, 5, 6], 'OFC balanced accuracy by classifier'), extra_tables=[('All results (features = median subset size)', E7)])
+              'Tian et al. 2021; Pudil et al. 1994', w7, [], chart=(1, [2, 3, 4, 5, 6], 'OFC balanced accuracy by classifier'),
+              extra_tables=[('Final DSFs and OFCs fitted on all 192 plot-dates (yes = member of the set)', T('E7_ofc_final_sets.csv')),
+                            ('Final sets with their best classifier in the 10 x 4-fold CV', T('E7_ofc_final_summary.csv')),
+                            ('All results (features = median subset size)', E7),
+                            ('How often each feature entered a set across the 40 outer training folds (%)', T('E7_ofc_feature_frequency.csv'))])
 if have('E8_fs_reps.csv'):
     E8 = summ(T('E8_fs_reps.csv'), ['method', 'k', 'clf'])
     w8 = E8[E8.k == 10].pivot(index='method', columns='clf', values='BA').reset_index()

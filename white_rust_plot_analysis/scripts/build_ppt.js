@@ -607,6 +607,19 @@ if (D.E7) {
     { x: 8.35, y: 1.3, w: 4.45, colW: [1.4, 1.2, 1.85], fontSize: 11, rowH: 0.36 });
   explain(s, 'e7', { x: 8.35, y: 3.4, w: 4.45, h: 3.2, fontSize: 11.5 });
 }
+if (D.E7_final) {
+  const s = content('R24b. Disease-sensitive features (DSFs) and OFCs fitted on all plot-dates');
+  const f = D.E7_final;
+  table(s, ['DSF', 'Direction', ...DL.map((d) => 'AUC ' + d), 'OFC-LDA', 'OFC-kNN', 'OFC-SVM'],
+    f.map((r) => [r.Feature, r.Direction, ...DL.map((d) => heatCell(r['AUC ' + d], 0.5, 1, f2)), r['OFC-LDA'] ? '✓' : '', r['OFC-kNN'] ? '✓' : '', r['OFC-SVM'] ? '✓' : '']),
+    { x: 0.5, y: 1.2, w: 8.2, colW: [1.6, 0.95, 0.85, 0.85, 0.85, 0.85, 0.75, 0.75, 0.75], fontSize: 11, rowH: 0.36 });
+  table(s, ['Set', 'Features', 'Best clf', 'BA', 'MCC'], D.E7_summary.map((r) => [r.Set, r.Features, r['Best classifier (CV)'], f3(r.BA), f3(r.MCC)]),
+    { x: 0.5, y: 3.65, w: 8.2, colW: [1.3, 4.1, 1.0, 0.9, 0.9], fontSize: 11, rowH: 0.36 });
+  table(s, ['Feature', '% of folds'], D.E7_freq.map((r) => [r.Feature, Math.round(r.Selected_pct) + ' %']), { x: 9.0, y: 1.2, w: 3.8, colW: [2.6, 1.2], fontSize: 10.5, rowH: 0.3 });
+  s.addText('DSF frequency in the 40 outer training sets', { x: 9.0, y: 4.0, w: 3.8, h: 0.3, fontSize: 10, italic: true, color: C.accent6, isTextBox: true, margin: 0 });
+  explain(s, 'e7final', { x: 9.0, y: 4.4, w: 3.8, h: 2.2, fontSize: 11 });
+  explain(s, 'e7sets', { x: 0.5, y: 5.65, w: 8.2, h: 0.95, fontSize: 11 });
+}
 if (D.E8) {
   const s = content('R25. E8 - six published feature-selection methods (Panda 2026)');
   const ms = ['SVM-RFE', 'LASSO', 'CARS', 'ReliefF', 'SFFS (QDA)', 'Consensus (Borda)'], ks = [5, 10, 15];
