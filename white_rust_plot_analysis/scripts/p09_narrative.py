@@ -139,8 +139,8 @@ if 'E6' in D:
     e6 = pd.DataFrame(D['E6'])
     cr_ = e6[e6.contrast.str.startswith('C')].groupby('contrast')['BA'].max(); rr_ = e6[~e6.contrast.str.startswith('C')].groupby('contrast')['BA'].max()
     N['e6'] = (f"Control vs each block: BA {f2(cr_.min())}-{f2(cr_.max())}. Block vs block (both inoculated): BA {f2(rr_.min())}-{f2(rr_.max())}. "
-               + ('Blocks of inoculated plots are also partly separable, so field position carries some spectral signal; the disease contrast is clearly larger.' if rr_.max() > 0.65 else
-                  'Inoculated blocks are hardly separable, so field position alone does not create a learnable spectral difference.'))
+               f"The disease contrast is larger by about {f2(cr_.mean() - rr_.mean())} BA, but inoculated blocks are themselves separable: field position and / or different disease development between blocks carries spectral signal, "
+               'so part of the healthy-vs-diseased accuracy may reflect block rather than disease.')
 if 'E7' in D:
     e7 = pd.DataFrame(D['E7']); bb = e7.loc[e7.BA.idxmax()]
     N['e7'] = (f"Best OFC result: {bb['feature_set']} + {bb['clf']} BA {f3(bb['BA'])} with a median of {bb['features']:.0f} features. "
@@ -199,7 +199,7 @@ N['disc_evidence'] = ['Matched-control tests: inoculated plots differ from their
                       'Control-vs-inoculated effects exceed block-to-block effects (R12, E6).',
                       'Label permutation within cells destroys the accuracy (E5).',
                       'Accuracy holds when every plot mean is rebuilt from 3 leaves (E9) and for unseen varieties (E3).']
-N['disc_caveats'] = ['All controls are in one block (plots 1-12): disease and field position cannot be separated completely (Hurlbert 1984).',
+N['disc_caveats'] = ['All controls are in one block (plots 1-12): disease and field position cannot be separated completely (Hurlbert 1984); inoculated blocks are also separable from each other (E6).',
                      'Controls averaged fewer leaves; E9 tested this directly.',
                      'Only 12 healthy plots: the minority class drives the uncertainty (wide CIs on specificity).',
                      'No severity score per plot: the model is binary and its probability is not a severity estimate.',
@@ -212,7 +212,7 @@ N['conclusions'] = [
     f"Derivative and wavelet features of the raw plot average are the most discriminating and date-stable; the best pipeline ({b0['scenario']} + {b0['clf']}) reached BA {f3(b0['BA'])} on held-out plots.",
     f"A compact selected set ({b1['scenario']} + {b1['clf']}, ~{b1['n_features']:.0f} features) and the best VIs (BA {f3(b2['BA'])}) offer simpler alternatives.",
     'Design controls (matched controls, block contrasts, permutations, equal leaf numbers) support a genuine disease effect, but the single control block remains a limitation.',
-    'For a date not seen in training, per-date standardisation of the features is needed (E3); varieties transfer without it.',
+    (f"Standardising the features within each date (Lv et al. 2023) raised the first-derivative LDA model to BA {max(r['with'] for r in D['E4']):.3f} in the pooled CV (E4); " if 'E4' in D else '') + 'for a date not seen in training, per-date standardisation is essential (E3); varieties transfer without it.',
     'Plot averaging gives accuracy comparable to leaf-level models with far fewer spectra to process, and is the natural input for canopy-scale sensors.',
 ]
 N['limitations'] = N['disc_caveats']
