@@ -155,7 +155,7 @@ if 'E9' in D:
     p = e9.pivot_table(index='scenario', columns='averaging', values='BA')
     N['e9'] = ('BA all leaves -> 3 leaves: ' + ', '.join(f"{s} {f2(p.loc[s, 'all leaves (re-built)'])}->{f2(p.loc[s, '3 random leaves per plot'])}" for s in p.index) +
                f". Rebuilt all-leaf means equal the workbook values (max |diff| {D['E9_check']:.0e}). " +
-               ('Accuracy stays high with equal leaf numbers, so the separation is not an artefact of averaging more leaves in diseased plots.' if p['3 random leaves per plot'].max() > 0.85 else
+               ('Accuracy stays high with equal leaf numbers, so the separation is not an artefact of averaging more leaves in diseased plots; the drop (largest for the noise-sensitive third derivative) reflects noisier 3-leaf means, i.e. averaging more leaves per plot improves detection.' if p['3 random leaves per plot'].max() > 0.85 else
                 'Accuracy drops with 3 leaves, part of the separation depends on the number of leaves averaged.'))
 if 'E10' in D:
     e10 = D['E10']
