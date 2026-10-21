@@ -1,0 +1,25 @@
+Date,Index,AUC
+11 Feb,"Optimised NDSI(871, 872)",1.0
+11 Feb,"Optimised NDSI(865, 877), bands ≥ 10 nm apart",1.0
+11 Feb,"Optimised SR(871, 872)",1.0
+11 Feb,"Optimised SR(865, 877), bands ≥ 10 nm apart",1.0
+11 Feb,"Optimised DI(871, 872)",1.0
+11 Feb,"Optimised DI(865, 877), bands ≥ 10 nm apart",0.9976851851851852
+24 Feb,"Optimised NDSI(437, 450)",0.9976851851851852
+24 Feb,"Optimised NDSI(437, 450), bands ≥ 10 nm apart",0.9976851851851852
+24 Feb,"Optimised SR(437, 450)",0.9976851851851852
+24 Feb,"Optimised SR(437, 450), bands ≥ 10 nm apart",0.9976851851851852
+24 Feb,"Optimised DI(1383, 1658)",0.9768518518518519
+24 Feb,"Optimised DI(1383, 1658), bands ≥ 10 nm apart",0.9768518518518519
+03 Mar,"Optimised NDSI(466, 637)",0.9930555555555556
+03 Mar,"Optimised NDSI(466, 637), bands ≥ 10 nm apart",0.9930555555555556
+03 Mar,"Optimised SR(460, 638)",0.9930555555555556
+03 Mar,"Optimised SR(460, 638), bands ≥ 10 nm apart",0.9930555555555556
+03 Mar,"Optimised DI(734, 735)",0.9884259259259259
+03 Mar,"Optimised DI(727, 737), bands ≥ 10 nm apart",0.9884259259259259
+13 Mar,"Optimised NDSI(551, 1873)",0.9907407407407407
+13 Mar,"Optimised NDSI(551, 1873), bands ≥ 10 nm apart",0.9907407407407407
+13 Mar,"Optimised SR(551, 1878)",0.9884259259259259
+13 Mar,"Optimised SR(551, 1878), bands ≥ 10 nm apart",0.9884259259259259
+13 Mar,"Optimised DI(548, 1862)",0.9861111111111112
+13 Mar,"Optimised DI(548, 1862), bands ≥ 10 nm apart",0.9861111111111112

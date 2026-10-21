@@ -1,0 +1,13 @@
+scenario,Average_rank,Mean_BA,Scenario_name
+S3,1.9875,0.9414583333333333,"Second derivative, full (201)"
+S2,2.375,0.9321006944444445,"First derivative, full (201)"
+S5,4.165,0.901979166666667,Continuum-removal parameters (48)
+S10,5.5775,0.8927604166666664,All families combined + robust selection
+S4,5.98,0.8912500000000001,"Third derivative, full (201)"
+S8,6.225,0.884340277777778,Optimised two-band indices (in-fold NDSI/SR/DI)
+S9,6.27,0.8851736111111108,CWT coefficients + robust selection
+S1,7.82,0.8335937500000005,"Reflectance, full spectrum (201 bands)"
+S12,8.1775,0.8295312500000003,GA-PLS bands (reflectance)
+S11,8.715,0.8240798611111108,SPA bands (reflectance)
+S6,9.9575,0.7949999999999997,Vegetation indices (87)
+S7,10.75,0.7742187500000002,Red-edge parameters (23)

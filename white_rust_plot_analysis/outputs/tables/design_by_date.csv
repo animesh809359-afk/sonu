@@ -1,0 +1,5 @@
+date,Healthy,Diseased,min_Diseased,min_Healthy,median_Diseased,median_Healthy,max_Diseased,max_Healthy,sum_Diseased,sum_Healthy,Date
+2026-02-11,12,36,5,3,10.0,6.0,15,9,356,72,11 Feb
+2026-02-24,12,36,10,6,12.5,7.5,15,9,450,90,24 Feb
+2026-03-03,12,36,15,9,15.0,9.0,15,9,540,108,03 Mar
+2026-03-13,12,36,15,9,15.0,9.0,15,9,540,108,13 Mar

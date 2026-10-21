@@ -1,0 +1,8 @@
+Family,Share_pct,Family_name
+CWT,31.90045248868778,Wavelet (CWT) coefficients
+FD1,20.361990950226243,First derivative
+CR,15.384615384615385,Continuum-removal parameters
+FD2,13.122171945701359,Second derivative
+NDSI,11.538461538461538,Optimised two-band indices
+FD3,7.46606334841629,Third derivative
+VI,0.22624434389140274,Vegetation indices

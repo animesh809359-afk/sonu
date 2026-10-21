@@ -1,0 +1,5 @@
+Approach,Unit,Pipeline,BA,BA_SD,MCC,Sensitivity,Specificity
+Leaf spectra (leaf-level models),Leaf spectrum,S1 + LR,0.9189572956100152,0.0073471841916209,0.768713264378101,0.9318828451882846,0.906031746031746
+"Leaf models, majority vote per plot-date",Plot-date,S1 + LR,0.97125,0.0086527331905396,0.9153566302103352,0.9616666666666668,0.9808333333333332
+"Plot-average spectra (this analysis), best overall",Plot-date,"S2 First derivative, full (201) + LDA",0.9677083333333334,0.00789380612339255,0.9121119546417003,0.9635416666666666,0.971875
+"Plot-average spectra (this analysis), best compact",Plot-date,S8 Optimised two-band indices (in-fold NDSI/SR/DI) + ELM,0.9395833333333334,0.015130872656341735,0.8471761657760748,0.9385416666666666,0.940625

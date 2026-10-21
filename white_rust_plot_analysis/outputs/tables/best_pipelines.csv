@@ -1,0 +1,4 @@
+Role,scenario,clf,BA,MCC,AUC,n_features,Scenario_name
+Best overall,S2,LDA,0.9677083333333334,0.9121119546417003,0.9896990740740741,201.0,"First derivative, full (201)"
+Best compact (feature-selected),S8,ELM,0.9395833333333334,0.8471761657760748,0.9809100115740741,9.0,Optimised two-band indices (in-fold NDSI/SR/DI)
+Best vegetation-index model,S6,PLS-DA,0.9013888888888889,0.7631124615183411,0.9510344328703704,87.0,Vegetation indices (87)

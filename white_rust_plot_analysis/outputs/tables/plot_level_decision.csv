@@ -1,0 +1,2 @@
+Level,OA,BA,Sensitivity,Specificity,Precision,F1_Diseased,F1_Healthy,MacroF1,Kappa,MCC,TN,FP,FN,TP,ROC_AUC,PR_AUC_Healthy
+Plot (4 dates combined),1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,12,0,0,36,1.0,1.0

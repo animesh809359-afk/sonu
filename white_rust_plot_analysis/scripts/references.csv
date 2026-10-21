@@ -1,0 +1,116 @@
+ID,Reference,Used for
+P1,"[P] Huang, L., Li, T., Ding, C., Zhao, J., Zhang, D., Yang, G. (2020). Diagnosis of the severity of Fusarium head blight of wheat ears on the basis of image and spectral feature fusion. Sensors, 20, 2887.","SPA, PSO-SVM, OSC; texture/colour (not applicable)"
+P2,"[P] Lv, Z., Meng, R., Chen, G., Zhao, F., Xu, B., Zhao, Y., Huang, Z., Zhou, L., Zeng, L., Yan, J. (2023). Combining multiple spectral enhancement features for improving spectroscopic asymptomatic detection and symptomatic severity classification of southern corn leaf blight. Precision Agriculture, 24, 1593-1618.","Leaf-clip design, date normalisation, FSD/CWT/SB/SI families, RELIEF-F + SFFS-SVM, VIF, 4-fold x 100 CV"
+P3,"[P] Mandal, N., et al. (2022). Spectral characterisation of rice blast severity using hyperspectral reflectance. Journal of Agrometeorology.","Correlation spectrum, derivative and red-edge parameters"
+P4,"[P] Mandal, N., et al. (2023). Univariate and multivariate hyperspectral models of rice blast severity. Frontiers in Plant Science.","SG smoothing, 10-nm averaging, GA-PLS, J-M distance, VI screening, NDSI/RSI contour search, PLS/RF/SVM"
+P5,"[P] Nguyen, C., Sagan, V., Skobalski, J., Severo, J.I. (2023). Early detection of wheat yellow rust disease and its impact on terminal yield with multi-spectral UAV-imagery. Remote Sensing, 15, 3301.","Class imbalance, F1, SVM/RF/MLP/3D-CNN, multispectral sensor simulation"
+P6,"[P] Selvaprakash, et al. (2026). Early detection of rice blast using leaf hyperspectral reflectance. Plant Science Today.","SNV/MSC, derivatives, PCA/t-SNE/UMAP, Isolation Forest, SAM/cosine similarity, RF importance, RBI index"
+P7,"[P] Terentev, A., Badenko, V., Shaydayuk, E., Emelyanov, D., Eremenko, D., Klabukov, D., Fedotov, A., Dolzhenko, V. (2023). Hyperspectral remote sensing for early detection of wheat leaf rust caused by Puccinia triticina. Agriculture, 13, 1186.","Cross-experiment validation, linear SVM, band importance"
+P8,"[P] Tian, L., Xue, B., Wang, Z., Li, D., Yao, X., Cao, Q., Zhu, Y., Cao, W., Cheng, T. (2021). Spectroscopic detection of rice leaf blast infection from asymptomatic to mild stages with integrated machine learning and feature selection. Remote Sensing of Environment, 257, 112350.","Leaf-clip ASD, temporal stability of features, VIF, SFFS with LDA/kNN/SVM, CWT, 4-fold x 100 CV"
+P9,"[P] Zhang, J.-C., Pu, R., Wang, J., Huang, W., Yuan, L., Luo, J. (2012). Detecting powdery mildew of winter wheat using leaf level hyperspectral measurements. Computers and Electronics in Agriculture, 85, 13-23.","Derivative edge features, continuum removal, FLDA, producer/user accuracy, white-pustule effect, broad-band simulation"
+P10,"[P] Zhu, H., Chu, B., Zhang, C., Liu, F., Jiang, L., He, Y. (2017). Hyperspectral imaging for presymptomatic detection of tobacco disease with successive projections algorithm and machine-learning classifiers. Scientific Reports, 7, 4125.","SPA, PLS-DA, LS-SVM, ELM, BPNN"
+M1,"Ambroise, C., McLachlan, G.J. (2002). Selection bias in gene extraction on the basis of microarray gene-expression data. PNAS, 99, 6562-6566.",Selection bias / in-fold selection
+M2,"Anderson, M.J. (2001). A new method for non-parametric multivariate analysis of variance. Austral Ecology, 26, 32-46.",PERMANOVA
+M3,"Araujo, M.C.U., Saldanha, T.C.B., Galvao, R.K.H., Yoneyama, T., Chame, H.C., Visani, V. (2001). The successive projections algorithm for variable selection in spectroscopic multicomponent analysis. Chemometrics and Intelligent Laboratory Systems, 57, 65-73.",SPA
+M4,"Barker, M., Rayens, W. (2003). Partial least squares for discrimination. Journal of Chemometrics, 17, 166-173.",PLS-DA
+M5,"Barnes, R.J., Dhanoa, M.S., Lister, S.J. (1989). Standard normal variate transformation and de-trending of near-infrared diffuse reflectance spectra. Applied Spectroscopy, 43, 772-777.",SNV
+M6,"Bates, D., Maechler, M., Bolker, B., Walker, S. (2015). Fitting linear mixed-effects models using lme4. Journal of Statistical Software, 67(1), 1-48.",Mixed models
+M7,"Benjamini, Y., Hochberg, Y. (1995). Controlling the false discovery rate: a practical and powerful approach to multiple testing. Journal of the Royal Statistical Society B, 57, 289-300.",FDR
+M8,"Breiman, L. (2001). Random forests. Machine Learning, 45, 5-32.","RF, permutation importance"
+M9,"Chen, T., Guestrin, C. (2016). XGBoost: a scalable tree boosting system. Proceedings of the 22nd ACM SIGKDD, 785-794.",XGBoost
+M10,"Cheng, T., Rivard, B., Sanchez-Azofeifa, A. (2011). Spectroscopic determination of leaf water content using continuous wavelet analysis. Remote Sensing of Environment, 115, 659-670.",CWT
+M11,"Chicco, D., Jurman, G. (2020). The advantages of the Matthews correlation coefficient (MCC) over F1 score and accuracy in binary classification evaluation. BMC Genomics, 21, 6.",MCC
+M12,"Clark, R.N., Roush, T.L. (1984). Reflectance spectroscopy: quantitative analysis techniques for remote sensing applications. Journal of Geophysical Research, 89(B7), 6329-6340.",Continuum removal
+M13,"Cohen, J. (1960). A coefficient of agreement for nominal scales. Educational and Psychological Measurement, 20, 37-46.",Kappa
+M14,"Cortes, C., Vapnik, V. (1995). Support-vector networks. Machine Learning, 20, 273-297.",SVM
+M15,"Demsar, J. (2006). Statistical comparisons of classifiers over multiple data sets. Journal of Machine Learning Research, 7, 1-30.",Friedman/Nemenyi
+M16,"Geladi, P., MacDougall, D., Martens, H. (1985). Linearization and scatter-correction for near-infrared reflectance spectra of meat. Applied Spectroscopy, 39, 491-500.",MSC
+M17,"Hueni, A., Bialek, A. (2017). Cause, effect, and correction of field spectroradiometer interchannel radiometric steps. IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 10, 1542-1551.",Splice correction
+M18,"Huang, G.-B., Zhu, Q.-Y., Siew, C.-K. (2006). Extreme learning machine: theory and applications. Neurocomputing, 70, 489-501.",ELM
+M19,"Kokaly, R.F., Clark, R.N. (1999). Spectroscopic determination of leaf biochemistry using band-depth analysis of absorption features and stepwise multiple linear regression. Remote Sensing of Environment, 67, 267-287.",Continuum removal
+M20,"Leardi, R., Lupianez Gonzalez, A. (1998). Genetic algorithms applied to feature selection in PLS regression: how and when to use them. Chemometrics and Intelligent Laboratory Systems, 41, 195-207.",GA-PLS
+M21,"Liu, F.T., Ting, K.M., Zhou, Z.-H. (2008). Isolation forest. Proceedings of the IEEE International Conference on Data Mining, 413-422.",Outliers
+M22,"Lundberg, S.M., Lee, S.-I. (2017). A unified approach to interpreting model predictions. Advances in Neural Information Processing Systems, 30.",SHAP
+M23,"Mahlein, A.-K., Rumpf, T., Welke, P., Dehne, H.-W., Pluemer, L., Steiner, U., Oerke, E.-C. (2013). Development of spectral indices for detecting and identifying plant diseases. Remote Sensing of Environment, 128, 21-30.","Disease-specific indices, RELIEF-F"
+M24,"Nadeau, C., Bengio, Y. (2003). Inference for the generalization error. Machine Learning, 52, 239-281.",Corrected resampled t-test
+M25,"Pudil, P., Novovicova, J., Kittler, J. (1994). Floating search methods in feature selection. Pattern Recognition Letters, 15, 1119-1125.",SFFS
+M26,"Richards, J.A., Jia, X. (2006). Remote Sensing Digital Image Analysis: An Introduction (4th ed.). Springer, Berlin.",Jeffries-Matusita distance
+M27,"Roberts, D.R., Bahn, V., Ciuti, S., Boyce, M.S., Elith, J., Guillera-Arroita, G., et al. (2017). Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. Ecography, 40, 913-929.",Grouped CV
+M28,"Robnik-Sikonja, M., Kononenko, I. (2003). Theoretical and empirical analysis of ReliefF and RReliefF. Machine Learning, 53, 23-69.",ReliefF
+M29,"Saharan, G.S., Verma, P.R., Meena, P.D., Kumar, A. (2014). White Rust of Crucifers: Biology, Ecology and Management. Springer India (verify edition).",White rust biology
+M30,"Savitzky, A., Golay, M.J.E. (1964). Smoothing and differentiation of data by simplified least squares procedures. Analytical Chemistry, 36, 1627-1639.",SG filter
+M31,"Suykens, J.A.K., Vandewalle, J. (1999). Least squares support vector machine classifiers. Neural Processing Letters, 9, 293-300.",LS-SVM
+M32,"Torrence, C., Compo, G.P. (1998). A practical guide to wavelet analysis. Bulletin of the American Meteorological Society, 79, 61-78.",CWT
+M33,"Tsai, F., Philpot, W. (1998). Derivative analysis of hyperspectral data. Remote Sensing of Environment, 66, 41-51.",Derivatives
+M34,"van der Maaten, L., Hinton, G. (2008). Visualizing data using t-SNE. Journal of Machine Learning Research, 9, 2579-2605.",t-SNE
+M35,"Varma, S., Simon, R. (2006). Bias in error estimation when using cross-validation for model selection. BMC Bioinformatics, 7, 91.",Nested CV
+M36,"Wold, S., Antti, H., Lindgren, F., Ohman, J. (1998). Orthogonal signal correction of near-infrared spectra. Chemometrics and Intelligent Laboratory Systems, 44, 175-185.",OSC (considered)
+I1,"Apan, A., Held, A., Phinn, S., Markley, J. (2004). Detecting sugarcane 'orange rust' disease using EO-1 Hyperion hyperspectral imagery. International Journal of Remote Sensing, 25, 489-498.",DWSI
+I2,"Ashourloo, D., Mobasheri, M.R., Huete, A. (2014). Developing two spectral disease indices for detection of wheat leaf rust (Puccinia triticina). Remote Sensing, 6, 4723-4740.",LRDSI
+I3,"Barnes, E.M., Clarke, T.R., Richards, S.E., et al. (2000). Coincident detection of crop water stress, nitrogen status and canopy density using ground-based multispectral data. Proc. 5th Int. Conf. Precision Agriculture, Bloomington, USA.",NDRE
+I4,"Blackburn, G.A. (1998). Quantifying chlorophylls and caroteniods at leaf and canopy scales: an evaluation of some hyperspectral approaches. Remote Sensing of Environment, 66, 273-285.",PSSR
+I5,"Broge, N.H., Leblanc, E. (2001). Comparing prediction power and stability of broadband and hyperspectral vegetation indices for estimation of green leaf area index and canopy chlorophyll density. Remote Sensing of Environment, 76, 156-172.",TVI
+I6,"Dash, J., Curran, P.J. (2004). The MERIS terrestrial chlorophyll index. International Journal of Remote Sensing, 25, 5403-5413.",MTCI
+I7,"Datt, B. (1999). Visible/near infrared reflectance and chlorophyll content in Eucalyptus leaves. International Journal of Remote Sensing, 20, 2741-2759.",Datt index
+I8,"Daughtry, C.S.T., Walthall, C.L., Kim, M.S., de Colstoun, E.B., McMurtrey, J.E. (2000). Estimating corn leaf chlorophyll concentration from leaf and canopy reflectance. Remote Sensing of Environment, 74, 229-239.",MCARI
+I9,"Filella, I., Serrano, L., Serra, J., Penuelas, J. (1995). Evaluating wheat nitrogen status with canopy reflectance indices and discriminant analysis. Crop Science, 35, 1400-1405.",NRI
+I10,"Galvao, L.S., Formaggio, A.R., Tisot, D.A. (2005). Discrimination of sugarcane varieties in southeastern Brazil with EO-1 Hyperion data. Remote Sensing of Environment, 94, 523-534.",LWVI
+I11,"Gamon, J.A., Penuelas, J., Field, C.B. (1992). A narrow-waveband spectral index that tracks diurnal changes in photosynthetic efficiency. Remote Sensing of Environment, 41, 35-44.",PRI
+I12,"Gamon, J.A., Surfus, J.S. (1999). Assessing leaf pigment content and activity with a reflectometer. New Phytologist, 143, 105-117.",RGR
+I13,"Gamon, J.A., Huemmrich, K.F., Wong, C.Y.S., et al. (2016). A remotely sensed pigment index reveals photosynthetic phenology in evergreen conifers. PNAS, 113, 13087-13092.",CCI
+I14,"Gao, B.-C. (1996). NDWI - a normalized difference water index for remote sensing of vegetation liquid water from space. Remote Sensing of Environment, 58, 257-266.",NDWI
+I15,"Gitelson, A.A., Kaufman, Y.J., Merzlyak, M.N. (1996). Use of a green channel in remote sensing of global vegetation from EOS-MODIS. Remote Sensing of Environment, 58, 289-298.",GNDVI
+I16,"Gitelson, A.A., Merzlyak, M.N., Chivkunova, O.B. (2001). Optical properties and nondestructive estimation of anthocyanin content in plant leaves. Photochemistry and Photobiology, 74, 38-45.",ARI
+I17,"Gitelson, A.A., Zur, Y., Chivkunova, O.B., Merzlyak, M.N. (2002). Assessing carotenoid content in plant leaves with reflectance spectroscopy. Photochemistry and Photobiology, 75, 272-281.",CRI
+I18,"Gitelson, A.A., Gritz, Y., Merzlyak, M.N. (2003). Relationships between leaf chlorophyll content and spectral reflectance and algorithms for non-destructive chlorophyll assessment in higher plant leaves. Journal of Plant Physiology, 160, 271-282.",CI red-edge
+I19,"Guyot, G., Baret, F. (1988). Utilisation de la haute resolution spectrale pour suivre l'etat des couverts vegetaux. Proc. 4th Int. Colloquium on Spectral Signatures of Objects in Remote Sensing, ESA SP-287, 279-286.",REP (linear interpolation)
+I20,"Haboudane, D., Miller, J.R., Tremblay, N., Zarco-Tejada, P.J., Dextraze, L. (2002). Integrated narrow-band vegetation indices for prediction of crop chlorophyll content for application to precision agriculture. Remote Sensing of Environment, 81, 416-426.",TCARI/OSAVI
+I21,"Hardisky, M.A., Klemas, V., Smart, R.M. (1983). The influence of soil salinity, growth form, and leaf moisture on the spectral radiance of Spartina alterniflora canopies. Photogrammetric Engineering and Remote Sensing, 49, 77-83.",NDII
+I22,"Hunt, E.R., Rock, B.N. (1989). Detection of changes in leaf water content using near- and middle-infrared reflectances. Remote Sensing of Environment, 30, 43-54.",MSI
+I23,"Jordan, C.F. (1969). Derivation of leaf-area index from quality of light on the forest floor. Ecology, 50, 663-666.",SR
+I24,"Merton, R., Huntington, J. (1999). Early simulation results of the ARIES-1 satellite sensor for multi-temporal vegetation research derived from AVIRIS. Summaries of the 8th JPL Airborne Earth Science Workshop, Pasadena, 299-307.",RVSI
+I25,"Merzlyak, M.N., Gitelson, A.A., Chivkunova, O.B., Rakitin, V.Y. (1999). Non-destructive optical detection of pigment changes during leaf senescence and fruit ripening. Physiologia Plantarum, 106, 135-141.",PSRI
+I26,"Nagler, P.L., Daughtry, C.S.T., Goward, S.N. (2000). Plant litter and soil reflectance. Remote Sensing of Environment, 71, 207-215.",CAI
+I27,"Penuelas, J., Baret, F., Filella, I. (1995). Semi-empirical indices to assess carotenoids/chlorophyll a ratio from leaf spectral reflectance. Photosynthetica, 31, 221-230.",SIPI
+I28,"Penuelas, J., Pinol, J., Ogaya, R., Filella, I. (1997). Estimation of plant water concentration by the reflectance water index WI (R900/R970). International Journal of Remote Sensing, 18, 2869-2875.",WI
+I29,"Rondeaux, G., Steven, M., Baret, F. (1996). Optimization of soil-adjusted vegetation indices. Remote Sensing of Environment, 55, 95-107.",OSAVI
+I30,"Rouse, J.W., Haas, R.H., Schell, J.A., Deering, D.W. (1974). Monitoring vegetation systems in the Great Plains with ERTS. NASA SP-351, 309-317.",NDVI
+I31,"Serrano, L., Penuelas, J., Ustin, S.L. (2002). Remote sensing of nitrogen and lignin in Mediterranean vegetation from AVIRIS data. Remote Sensing of Environment, 81, 355-364.","NDNI, NDLI"
+I32,"Sims, D.A., Gamon, J.A. (2002). Relationships between leaf pigment content and spectral reflectance across a wide range of species, leaf structures and developmental stages. Remote Sensing of Environment, 81, 337-354.","mND705, mSR705"
+I33,"Vogelmann, J.E., Rock, B.N., Moss, D.M. (1993). Red edge spectral measurements from sugar maple leaves. International Journal of Remote Sensing, 14, 1563-1575.",Vogelmann indices
+R1,"[R] Panda, A. (2026, unpublished). Which features detect white rust? Filter, wrapper and embedded feature selection on the K1-K4 spectral feature pool of mustard leaves (23 methods). Division of Agricultural Physics, ICAR-IARI, New Delhi. Workbook and presentation provided by the researcher.",Source of the feature-selection ranking used in E8
+F1,"Das, B., Sahoo, R.N., Biswas, A., Pargal, S., Krishna, G., Verma, R., Chinnusamy, V., Sehgal, V.K., Gupta, V.K. (2020). Discrimination of rice genotypes using field spectroradiometry. Geocarto International, 35(1), 64-77.","QDA (equal priors), J-M tiers"
+F2,"Guyon, I., Elisseeff, A. (2003). An introduction to variable and feature selection. Journal of Machine Learning Research, 3, 1157-1182.",Filter/wrapper/embedded taxonomy
+F3,"Guyon, I., Weston, J., Barnhill, S., Vapnik, V. (2002). Gene selection for cancer classification using support vector machines. Machine Learning, 46, 389-422.",SVM-RFE
+F4,"Kira, K., Rendell, L.A. (1992). A practical approach to feature selection. Proceedings of the 9th International Workshop on Machine Learning, 249-256.",Relief
+F5,"Kohavi, R., John, G.H. (1997). Wrappers for feature subset selection. Artificial Intelligence, 97, 273-324.",Wrapper methods
+F6,"Kononenko, I. (1994). Estimating attributes: analysis and extensions of RELIEF. Machine Learning: ECML-94, LNCS 784, Springer, 171-182.",ReliefF
+F7,"Kuncheva, L.I. (2007). A stability index for feature selection. Proceedings of the 25th IASTED International Multi-Conference: Artificial Intelligence and Applications, 390-395.",Stability index
+F8,"Kursa, M.B., Rudnicki, W.R. (2010). Feature selection with the Boruta package. Journal of Statistical Software, 36(11), 1-13.",Boruta (screening)
+F9,"Li, H., Liang, Y., Xu, Q., Cao, D. (2009). Key wavelengths screening using competitive adaptive reweighted sampling method for multivariate calibration. Analytica Chimica Acta, 648(1), 77-84.",CARS
+F10,"Mustafa, G., Zheng, H., Khan, I.H., Tian, L., Jia, H., Li, G., Cheng, T., Tian, Y., Cao, W., Zhu, Y., Yao, X. (2022). Hyperspectral reflectance proxies to diagnose in-field fusarium head blight in wheat with machine learning. Remote Sensing, 14(12), 2784.",Boruta + SFFS
+F11,"Mustafa, G., Zheng, H., et al. (2023). Fusarium head blight monitoring in wheat ears using machine learning and multimodal data from asymptomatic to symptomatic periods. Frontiers in Plant Science, 13, 1102341.",SFFS with ML criterion
+F12,"Saeys, Y., Abeel, T., Van de Peer, Y. (2008). Robust feature selection using ensemble feature selection techniques. ECML PKDD 2008, LNAI 5212, Springer, 313-325.",Consensus (Borda)
+F13,"Saeys, Y., Inza, I., Larranaga, P. (2007). A review of feature selection techniques in bioinformatics. Bioinformatics, 23(19), 2507-2517.",Feature selection review
+F14,"Thomas, S., Kuska, M.T., Bohnenkamp, D., Brugger, A., Alisaac, E., Wahabzada, M., Behmann, J., Mahlein, A.-K. (2018). Benefits of hyperspectral imaging for plant disease detection and plant protection: a technical perspective. Journal of Plant Diseases and Protection, 125, 5-20.",Hyperspectral dimensionality
+F15,"Tibshirani, R. (1996). Regression shrinkage and selection via the lasso. Journal of the Royal Statistical Society B, 58(1), 267-288.",LASSO
+F16,"Wei, X., Johnson, M.A., Langston, D.B., Mehl, H.L., Li, S. (2021). Identifying optimal wavelengths as disease signatures using hyperspectral sensor and machine learning. Remote Sensing, 13(14), 2833.","RFE, minimum band distance"
+F17,"Nogueira, S., Sechidis, K., Brown, G. (2018). On the stability of feature selection algorithms. Journal of Machine Learning Research, 18(174), 1-54.",Stability
+F18,"Belsley, D.A., Kuh, E., Welsch, R.E. (1980). Regression Diagnostics: Identifying Influential Data and Sources of Collinearity. Wiley, New York.",Condition number / collinearity diagnostics
+F19,"Chong, I.-G., Jun, C.-H. (2005). Performance of some variable selection methods when multicollinearity is present. Chemometrics and Intelligent Laboratory Systems, 78, 103-112.",Multicollinearity in variable selection
+F20,"Dormann, C.F., Elith, J., Bacher, S., et al. (2013). Collinearity: a review of methods to deal with it and a simulation study evaluating their performance. Ecography, 36, 27-46.","VIF thresholds, |r| filters"
+R2,"[R] Panda, A. (2026, unpublished). Leaf-level hyperspectral discrimination of white rust in Indian mustard (previous chapter of this thesis; same 48 plots and four dates).",Leaf-level comparison (E10)
+M37,"Ojala, M., Garriga, G.C. (2010). Permutation tests for studying classifier performance. Journal of Machine Learning Research, 11, 1833-1863.",Label-permutation test (E5)
+M38,"Hurlbert, S.H. (1984). Pseudoreplication and the design of ecological field experiments. Ecological Monographs, 54, 187-211.",Block / pseudoreplication caveat (E6)
+M39,"Hedges, L.V. (1981). Distribution theory for Glass's estimator of effect size and related estimators. Journal of Educational Statistics, 6, 107-128.",Hedges g effect size
+M40,"Welch, B.L. (1947). The generalization of Student's problem when several different population variances are involved. Biometrika, 34, 28-35.",Welch t-test
+M41,"Hanley, J.A., McNeil, B.J. (1982). The meaning and use of the area under a receiver operating characteristic (ROC) curve. Radiology, 143, 29-36.",AUC
+M42,"Fawcett, T. (2006). An introduction to ROC analysis. Pattern Recognition Letters, 27, 861-874.",ROC curves
+M43,"Kruskal, W.H., Wallis, W.A. (1952). Use of ranks in one-criterion variance analysis. Journal of the American Statistical Association, 47, 583-621.",Kruskal-Wallis test
+M44,"Holm, S. (1979). A simple sequentially rejective multiple test procedure. Scandinavian Journal of Statistics, 6, 65-70.",Holm correction
+M45,"Wilcoxon, F. (1945). Individual comparisons by ranking methods. Biometrics Bulletin, 1, 80-83.",Wilcoxon signed-rank test
+I34,"Gong, P., Pu, R., Heald, R.C. (2002). Analysis of in situ hyperspectral data for nutrient estimation of giant sequoia. International Journal of Remote Sensing, 23, 1827-1850.",Blue/yellow/red-edge parameters
+I35,"Horler, D.N.H., Dockray, M., Barber, J. (1983). The red edge of plant leaf reflectance. International Journal of Remote Sensing, 4, 273-288.",REIP (maximum first derivative)
+I36,"Dawson, T.P., Curran, P.J. (1998). A new technique for interpolating the reflectance red edge position. International Journal of Remote Sensing, 19, 2133-2139.",REIP (Lagrangian interpolation)
+I37,"Cho, M.A., Skidmore, A.K. (2006). A new technique for extracting the red edge position from hyperspectral data: the linear extrapolation method. Remote Sensing of Environment, 101, 181-193.",REIP (linear extrapolation)
+I38,"Filella, I., Penuelas, J. (1994). The red edge position and shape as indicators of plant chlorophyll content, biomass and hydric status. International Journal of Remote Sensing, 15, 1459-1470.",Red-edge slope

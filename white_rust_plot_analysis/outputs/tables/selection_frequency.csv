@@ -1,0 +1,420 @@
+scenario,Scenario_name,Feature,Selected_in_folds,Frequency_pct,Median_n_features
+S10,All families combined + robust selection,D1_1940,38,47.5,6.0
+S10,All families combined + robust selection,D2_1800,28,35.0,6.0
+S10,All families combined + robust selection,WF1810_s4,24,30.0,6.0
+S10,All families combined + robust selection,CR4 water 1069–1258 nm position (nm),24,30.0,6.0
+S10,All families combined + robust selection,CR6 water 1721–2304 nm left area (nm),21,26.25,6.0
+S10,All families combined + robust selection,D3_1350,21,26.25,6.0
+S10,All families combined + robust selection,WF810_s1,20,25.0,6.0
+S10,All families combined + robust selection,CR3 water 914–1069 nm width (nm),19,23.75,6.0
+S10,All families combined + robust selection,WF910_s1,17,21.25,6.0
+S10,All families combined + robust selection,"SR(1820,1830)",16,20.0,6.0
+S10,All families combined + robust selection,WF1820_s2,16,20.0,6.0
+S10,All families combined + robust selection,"DI(1940,1950)",15,18.75,6.0
+S10,All families combined + robust selection,D1_970,12,15.0,6.0
+S10,All families combined + robust selection,WF930_s1,10,12.5,6.0
+S10,All families combined + robust selection,D2_850,10,12.5,6.0
+S10,All families combined + robust selection,"SR(2210,2230)",9,11.25,6.0
+S10,All families combined + robust selection,D2_760,9,11.25,6.0
+S10,All families combined + robust selection,D1_820,7,8.75,6.0
+S10,All families combined + robust selection,WF990_s3,7,8.75,6.0
+S10,All families combined + robust selection,WF1920_s1,6,7.5,6.0
+S10,All families combined + robust selection,D3_1800,6,7.5,6.0
+S10,All families combined + robust selection,D1_1830,6,7.5,6.0
+S10,All families combined + robust selection,WF1820_s1,6,7.5,6.0
+S10,All families combined + robust selection,"SR(2220,2230)",6,7.5,6.0
+S10,All families combined + robust selection,D1_800,5,6.25,6.0
+S10,All families combined + robust selection,WF1810_s2,5,6.25,6.0
+S10,All families combined + robust selection,D1_2210,5,6.25,6.0
+S10,All families combined + robust selection,D1_840,5,6.25,6.0
+S10,All families combined + robust selection,WF1350_s1,4,5.0,6.0
+S10,All families combined + robust selection,D1_780,4,5.0,6.0
+S10,All families combined + robust selection,D3_1370,4,5.0,6.0
+S10,All families combined + robust selection,CR3 water 914–1069 nm position (nm),4,5.0,6.0
+S10,All families combined + robust selection,WF1030_s5,4,5.0,6.0
+S10,All families combined + robust selection,WF2280_s2,4,5.0,6.0
+S10,All families combined + robust selection,D1_860,4,5.0,6.0
+S10,All families combined + robust selection,WF1800_s2,4,5.0,6.0
+S10,All families combined + robust selection,WF1020_s6,3,3.75,6.0
+S10,All families combined + robust selection,D2_1820,3,3.75,6.0
+S10,All families combined + robust selection,"NDSI(1820,1830)",3,3.75,6.0
+S10,All families combined + robust selection,D1_1810,3,3.75,6.0
+S10,All families combined + robust selection,D2_2280,2,2.5,6.0
+S10,All families combined + robust selection,D2_940,2,2.5,6.0
+S10,All families combined + robust selection,WF1220_s1,2,2.5,6.0
+S10,All families combined + robust selection,D2_1920,2,2.5,6.0
+S10,All families combined + robust selection,WF2030_s3,2,2.5,6.0
+S10,All families combined + robust selection,WF1810_s3,2,2.5,6.0
+S10,All families combined + robust selection,WF630_s4,2,2.5,6.0
+S10,All families combined + robust selection,D3_780,1,1.25,6.0
+S10,All families combined + robust selection,WF1920_s2,1,1.25,6.0
+S10,All families combined + robust selection,NWI2,1,1.25,6.0
+S10,All families combined + robust selection,D1_890,1,1.25,6.0
+S10,All families combined + robust selection,WF840_s4,1,1.25,6.0
+S10,All families combined + robust selection,D2_1810,1,1.25,6.0
+S10,All families combined + robust selection,D3_1330,1,1.25,6.0
+S10,All families combined + robust selection,"DI(1820,1830)",1,1.25,6.0
+S10,All families combined + robust selection,"SR(530,700)",1,1.25,6.0
+S10,All families combined + robust selection,WF1010_s6,1,1.25,6.0
+S10,All families combined + robust selection,D2_1340,1,1.25,6.0
+S11,SPA bands (reflectance),R1930,80,100.0,13.0
+S11,SPA bands (reflectance),R650,72,90.0,13.0
+S11,SPA bands (reflectance),R710,71,88.75,13.0
+S11,SPA bands (reflectance),R1360,67,83.75,13.0
+S11,SPA bands (reflectance),R560,65,81.25,13.0
+S11,SPA bands (reflectance),R680,63,78.75,13.0
+S11,SPA bands (reflectance),R1400,57,71.25,13.0
+S11,SPA bands (reflectance),R510,44,55.0,13.0
+S11,SPA bands (reflectance),R400,40,50.0,13.0
+S11,SPA bands (reflectance),R2030,32,40.0,13.0
+S11,SPA bands (reflectance),R2400,32,40.0,13.0
+S11,SPA bands (reflectance),R2020,22,27.5,13.0
+S11,SPA bands (reflectance),R690,22,27.5,13.0
+S11,SPA bands (reflectance),R1580,20,25.0,13.0
+S11,SPA bands (reflectance),R2310,19,23.75,13.0
+S11,SPA bands (reflectance),R1410,15,18.75,13.0
+S11,SPA bands (reflectance),R1570,15,18.75,13.0
+S11,SPA bands (reflectance),R770,14,17.5,13.0
+S11,SPA bands (reflectance),R820,14,17.5,13.0
+S11,SPA bands (reflectance),R440,13,16.25,13.0
+S11,SPA bands (reflectance),R670,12,15.0,13.0
+S11,SPA bands (reflectance),R460,12,15.0,13.0
+S11,SPA bands (reflectance),R1610,11,13.75,13.0
+S11,SPA bands (reflectance),R2350,11,13.75,13.0
+S11,SPA bands (reflectance),R2180,10,12.5,13.0
+S11,SPA bands (reflectance),R700,9,11.25,13.0
+S11,SPA bands (reflectance),R490,8,10.0,13.0
+S11,SPA bands (reflectance),R1070,8,10.0,13.0
+S11,SPA bands (reflectance),R2380,7,8.75,13.0
+S11,SPA bands (reflectance),R2200,7,8.75,13.0
+S11,SPA bands (reflectance),R1600,7,8.75,13.0
+S11,SPA bands (reflectance),R2040,7,8.75,13.0
+S11,SPA bands (reflectance),R530,6,7.5,13.0
+S11,SPA bands (reflectance),R750,6,7.5,13.0
+S11,SPA bands (reflectance),R1590,6,7.5,13.0
+S11,SPA bands (reflectance),R500,6,7.5,13.0
+S11,SPA bands (reflectance),R850,6,7.5,13.0
+S11,SPA bands (reflectance),R2210,6,7.5,13.0
+S11,SPA bands (reflectance),R830,6,7.5,13.0
+S11,SPA bands (reflectance),R840,5,6.25,13.0
+S11,SPA bands (reflectance),R480,5,6.25,13.0
+S11,SPA bands (reflectance),R810,5,6.25,13.0
+S11,SPA bands (reflectance),R720,5,6.25,13.0
+S11,SPA bands (reflectance),R520,5,6.25,13.0
+S11,SPA bands (reflectance),R780,5,6.25,13.0
+S11,SPA bands (reflectance),R570,5,6.25,13.0
+S11,SPA bands (reflectance),R2260,4,5.0,13.0
+S11,SPA bands (reflectance),R790,4,5.0,13.0
+S11,SPA bands (reflectance),R1620,4,5.0,13.0
+S11,SPA bands (reflectance),R730,4,5.0,13.0
+S11,SPA bands (reflectance),R1640,4,5.0,13.0
+S11,SPA bands (reflectance),R1890,3,3.75,13.0
+S11,SPA bands (reflectance),R1390,3,3.75,13.0
+S11,SPA bands (reflectance),R1560,3,3.75,13.0
+S11,SPA bands (reflectance),R740,3,3.75,13.0
+S11,SPA bands (reflectance),R1130,3,3.75,13.0
+S11,SPA bands (reflectance),R640,3,3.75,13.0
+S11,SPA bands (reflectance),R800,3,3.75,13.0
+S11,SPA bands (reflectance),R620,2,2.5,13.0
+S11,SPA bands (reflectance),R1300,2,2.5,13.0
+S11,SPA bands (reflectance),R1730,2,2.5,13.0
+S11,SPA bands (reflectance),R1110,2,2.5,13.0
+S11,SPA bands (reflectance),R1200,2,2.5,13.0
+S11,SPA bands (reflectance),R870,2,2.5,13.0
+S11,SPA bands (reflectance),R1670,2,2.5,13.0
+S11,SPA bands (reflectance),R1090,2,2.5,13.0
+S11,SPA bands (reflectance),R1650,2,2.5,13.0
+S11,SPA bands (reflectance),R1080,2,2.5,13.0
+S11,SPA bands (reflectance),R880,2,2.5,13.0
+S11,SPA bands (reflectance),R540,2,2.5,13.0
+S11,SPA bands (reflectance),R430,2,2.5,13.0
+S11,SPA bands (reflectance),R2230,2,2.5,13.0
+S11,SPA bands (reflectance),R860,1,1.25,13.0
+S11,SPA bands (reflectance),R1320,1,1.25,13.0
+S11,SPA bands (reflectance),R1230,1,1.25,13.0
+S11,SPA bands (reflectance),R1340,1,1.25,13.0
+S11,SPA bands (reflectance),R1530,1,1.25,13.0
+S11,SPA bands (reflectance),R760,1,1.25,13.0
+S11,SPA bands (reflectance),R1020,1,1.25,13.0
+S11,SPA bands (reflectance),R1870,1,1.25,13.0
+S11,SPA bands (reflectance),R2150,1,1.25,13.0
+S11,SPA bands (reflectance),R1120,1,1.25,13.0
+S11,SPA bands (reflectance),R2290,1,1.25,13.0
+S11,SPA bands (reflectance),R1660,1,1.25,13.0
+S11,SPA bands (reflectance),R2070,1,1.25,13.0
+S11,SPA bands (reflectance),R1750,1,1.25,13.0
+S11,SPA bands (reflectance),R2100,1,1.25,13.0
+S11,SPA bands (reflectance),R2390,1,1.25,13.0
+S11,SPA bands (reflectance),R2170,1,1.25,13.0
+S11,SPA bands (reflectance),R410,1,1.25,13.0
+S11,SPA bands (reflectance),R1740,1,1.25,13.0
+S11,SPA bands (reflectance),R2000,1,1.25,13.0
+S11,SPA bands (reflectance),R420,1,1.25,13.0
+S11,SPA bands (reflectance),R1460,1,1.25,13.0
+S11,SPA bands (reflectance),R1350,1,1.25,13.0
+S12,GA-PLS bands (reflectance),R1930,40,50.0,29.0
+S12,GA-PLS bands (reflectance),R1940,33,41.25,29.0
+S12,GA-PLS bands (reflectance),R1920,31,38.75,29.0
+S12,GA-PLS bands (reflectance),R1360,30,37.5,29.0
+S12,GA-PLS bands (reflectance),R1890,29,36.25,29.0
+S12,GA-PLS bands (reflectance),R1880,27,33.75,29.0
+S12,GA-PLS bands (reflectance),R2030,27,33.75,29.0
+S12,GA-PLS bands (reflectance),R2010,25,31.25,29.0
+S12,GA-PLS bands (reflectance),R2020,25,31.25,29.0
+S12,GA-PLS bands (reflectance),R2370,23,28.75,29.0
+S12,GA-PLS bands (reflectance),R810,23,28.75,29.0
+S12,GA-PLS bands (reflectance),R2040,22,27.5,29.0
+S12,GA-PLS bands (reflectance),R2350,21,26.25,29.0
+S12,GA-PLS bands (reflectance),R800,20,25.0,29.0
+S12,GA-PLS bands (reflectance),R2050,19,23.75,29.0
+S12,GA-PLS bands (reflectance),R1180,19,23.75,29.0
+S12,GA-PLS bands (reflectance),R1310,19,23.75,29.0
+S12,GA-PLS bands (reflectance),R760,18,22.5,29.0
+S12,GA-PLS bands (reflectance),R1350,18,22.5,29.0
+S12,GA-PLS bands (reflectance),R780,18,22.5,29.0
+S12,GA-PLS bands (reflectance),R510,18,22.5,29.0
+S12,GA-PLS bands (reflectance),R640,18,22.5,29.0
+S12,GA-PLS bands (reflectance),R1950,18,22.5,29.0
+S12,GA-PLS bands (reflectance),R2210,18,22.5,29.0
+S12,GA-PLS bands (reflectance),R900,17,21.25,29.0
+S12,GA-PLS bands (reflectance),R860,17,21.25,29.0
+S12,GA-PLS bands (reflectance),R740,17,21.25,29.0
+S12,GA-PLS bands (reflectance),R2060,17,21.25,29.0
+S12,GA-PLS bands (reflectance),R1320,16,20.0,29.0
+S12,GA-PLS bands (reflectance),R2000,16,20.0,29.0
+S12,GA-PLS bands (reflectance),R750,16,20.0,29.0
+S12,GA-PLS bands (reflectance),R1210,16,20.0,29.0
+S12,GA-PLS bands (reflectance),R1620,16,20.0,29.0
+S12,GA-PLS bands (reflectance),R520,16,20.0,29.0
+S12,GA-PLS bands (reflectance),R1850,16,20.0,29.0
+S12,GA-PLS bands (reflectance),R1840,16,20.0,29.0
+S12,GA-PLS bands (reflectance),R1220,15,18.75,29.0
+S12,GA-PLS bands (reflectance),R1020,15,18.75,29.0
+S12,GA-PLS bands (reflectance),R830,15,18.75,29.0
+S12,GA-PLS bands (reflectance),R1270,14,17.5,29.0
+S12,GA-PLS bands (reflectance),R1630,14,17.5,29.0
+S12,GA-PLS bands (reflectance),R2100,14,17.5,29.0
+S12,GA-PLS bands (reflectance),R2120,14,17.5,29.0
+S12,GA-PLS bands (reflectance),R680,14,17.5,29.0
+S12,GA-PLS bands (reflectance),R1200,14,17.5,29.0
+S12,GA-PLS bands (reflectance),R2140,14,17.5,29.0
+S12,GA-PLS bands (reflectance),R820,14,17.5,29.0
+S12,GA-PLS bands (reflectance),R920,14,17.5,29.0
+S12,GA-PLS bands (reflectance),R540,14,17.5,29.0
+S12,GA-PLS bands (reflectance),R770,14,17.5,29.0
+S12,GA-PLS bands (reflectance),R2090,14,17.5,29.0
+S12,GA-PLS bands (reflectance),R1910,14,17.5,29.0
+S12,GA-PLS bands (reflectance),R930,13,16.25,29.0
+S12,GA-PLS bands (reflectance),R1900,13,16.25,29.0
+S12,GA-PLS bands (reflectance),R1960,13,16.25,29.0
+S12,GA-PLS bands (reflectance),R2400,13,16.25,29.0
+S12,GA-PLS bands (reflectance),R1610,13,16.25,29.0
+S12,GA-PLS bands (reflectance),R1160,13,16.25,29.0
+S12,GA-PLS bands (reflectance),R1290,13,16.25,29.0
+S12,GA-PLS bands (reflectance),R2360,13,16.25,29.0
+S12,GA-PLS bands (reflectance),R950,13,16.25,29.0
+S12,GA-PLS bands (reflectance),R1870,13,16.25,29.0
+S12,GA-PLS bands (reflectance),R2390,13,16.25,29.0
+S12,GA-PLS bands (reflectance),R1190,13,16.25,29.0
+S12,GA-PLS bands (reflectance),R1600,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R2180,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R650,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R1240,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R1760,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R1770,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R880,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R980,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R1170,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R2300,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R1000,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R660,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R2150,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R1660,12,15.0,29.0
+S12,GA-PLS bands (reflectance),R710,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R960,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R1750,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R2130,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R2160,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R1100,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R1340,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R1030,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R1740,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R1810,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R2240,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R1260,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R1040,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R1050,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R1130,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R2290,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R1120,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R790,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R850,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R530,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R1010,11,13.75,29.0
+S12,GA-PLS bands (reflectance),R840,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R2340,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R1640,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R1790,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R1980,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R2310,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R2330,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R500,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R1140,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R1300,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R1990,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R420,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R1230,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R1580,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R1970,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R1280,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R1080,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R1830,10,12.5,29.0
+S12,GA-PLS bands (reflectance),R1680,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R550,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R970,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R1670,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R1860,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R2070,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R610,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R1520,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R1470,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R1550,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R1380,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R460,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R910,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R2260,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R2110,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R630,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R1730,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R1460,9,11.25,29.0
+S12,GA-PLS bands (reflectance),R570,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R1480,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R2230,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R590,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R600,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R1820,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R2200,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R2280,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R490,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R990,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R2190,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R2320,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R2380,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R1070,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R560,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R2170,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R1700,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R580,8,10.0,29.0
+S12,GA-PLS bands (reflectance),R670,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R1510,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R1690,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R1800,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R1570,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R1250,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R1490,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R1530,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R1450,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R1090,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R1110,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R870,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R1060,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R2270,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R700,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R450,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R1150,7,8.75,29.0
+S12,GA-PLS bands (reflectance),R720,6,7.5,29.0
+S12,GA-PLS bands (reflectance),R1780,6,7.5,29.0
+S12,GA-PLS bands (reflectance),R1370,6,7.5,29.0
+S12,GA-PLS bands (reflectance),R1540,6,7.5,29.0
+S12,GA-PLS bands (reflectance),R2080,6,7.5,29.0
+S12,GA-PLS bands (reflectance),R440,6,7.5,29.0
+S12,GA-PLS bands (reflectance),R400,6,7.5,29.0
+S12,GA-PLS bands (reflectance),R2220,6,7.5,29.0
+S12,GA-PLS bands (reflectance),R1410,5,6.25,29.0
+S12,GA-PLS bands (reflectance),R1420,5,6.25,29.0
+S12,GA-PLS bands (reflectance),R480,5,6.25,29.0
+S12,GA-PLS bands (reflectance),R1330,5,6.25,29.0
+S12,GA-PLS bands (reflectance),R1440,5,6.25,29.0
+S12,GA-PLS bands (reflectance),R1590,5,6.25,29.0
+S12,GA-PLS bands (reflectance),R2250,5,6.25,29.0
+S12,GA-PLS bands (reflectance),R1650,4,5.0,29.0
+S12,GA-PLS bands (reflectance),R410,4,5.0,29.0
+S12,GA-PLS bands (reflectance),R940,4,5.0,29.0
+S12,GA-PLS bands (reflectance),R890,4,5.0,29.0
+S12,GA-PLS bands (reflectance),R1390,4,5.0,29.0
+S12,GA-PLS bands (reflectance),R1500,4,5.0,29.0
+S12,GA-PLS bands (reflectance),R1430,4,5.0,29.0
+S12,GA-PLS bands (reflectance),R620,3,3.75,29.0
+S12,GA-PLS bands (reflectance),R1710,3,3.75,29.0
+S12,GA-PLS bands (reflectance),R470,3,3.75,29.0
+S12,GA-PLS bands (reflectance),R1560,3,3.75,29.0
+S12,GA-PLS bands (reflectance),R690,2,2.5,29.0
+S12,GA-PLS bands (reflectance),R1720,2,2.5,29.0
+S12,GA-PLS bands (reflectance),R430,2,2.5,29.0
+S12,GA-PLS bands (reflectance),R730,1,1.25,29.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"DI(1940,1950)",78,97.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"NDSI(1820,1830)",62,77.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"DI(1930,1960)",60,75.0,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"SR(1820,1830)",57,71.25,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"DI(1910,1920)",55,68.75,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"SR(530,700)",54,67.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"NDSI(530,700)",45,56.25,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"DI(1820,1830)",30,37.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"NDSI(2220,2230)",27,33.75,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"NDSI(540,700)",26,32.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"SR(540,700)",26,32.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"NDSI(1810,1840)",26,32.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"NDSI(2210,2230)",25,31.25,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"SR(1810,1840)",24,30.0,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"SR(2210,2230)",22,27.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"SR(2220,2230)",20,25.0,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"NDSI(2200,2240)",13,16.25,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"SR(2200,2240)",11,13.75,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"SR(520,630)",8,10.0,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"SR(510,690)",7,8.75,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"NDSI(510,690)",5,6.25,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"NDSI(520,630)",5,6.25,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"DI(570,700)",4,5.0,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"NDSI(430,650)",4,5.0,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"SR(440,650)",4,5.0,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"SR(410,660)",4,5.0,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"DI(530,700)",3,3.75,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"SR(500,690)",2,2.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"DI(580,700)",2,2.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"DI(1930,1950)",2,2.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"DI(1940,1960)",2,2.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"DI(1920,1970)",2,2.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"NDSI(2210,2240)",2,2.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"DI(540,700)",2,2.5,9.0
+S8,Optimised two-band indices (in-fold NDSI/SR/DI),"SR(410,650)",1,1.25,9.0
+S9,CWT coefficients + robust selection,WF1920_s1,34,42.5,4.0
+S9,CWT coefficients + robust selection,WF1810_s2,34,42.5,4.0
+S9,CWT coefficients + robust selection,WF1810_s4,31,38.75,4.0
+S9,CWT coefficients + robust selection,WF1350_s1,26,32.5,4.0
+S9,CWT coefficients + robust selection,WF990_s3,22,27.5,4.0
+S9,CWT coefficients + robust selection,WF1820_s2,20,25.0,4.0
+S9,CWT coefficients + robust selection,WF1920_s2,17,21.25,4.0
+S9,CWT coefficients + robust selection,WF630_s4,14,17.5,4.0
+S9,CWT coefficients + robust selection,WF810_s1,11,13.75,4.0
+S9,CWT coefficients + robust selection,WF1220_s1,10,12.5,4.0
+S9,CWT coefficients + robust selection,WF1010_s6,10,12.5,4.0
+S9,CWT coefficients + robust selection,WF910_s1,9,11.25,4.0
+S9,CWT coefficients + robust selection,WF1020_s5,9,11.25,4.0
+S9,CWT coefficients + robust selection,WF930_s1,9,11.25,4.0
+S9,CWT coefficients + robust selection,WF850_s4,7,8.75,4.0
+S9,CWT coefficients + robust selection,WF1820_s1,7,8.75,4.0
+S9,CWT coefficients + robust selection,WF2280_s2,6,7.5,4.0
+S9,CWT coefficients + robust selection,WF1800_s2,6,7.5,4.0
+S9,CWT coefficients + robust selection,WF1340_s3,4,5.0,4.0
+S9,CWT coefficients + robust selection,WF1020_s6,4,5.0,4.0
+S9,CWT coefficients + robust selection,WF840_s4,4,5.0,4.0
+S9,CWT coefficients + robust selection,WF1030_s5,3,3.75,4.0
+S9,CWT coefficients + robust selection,WF1220_s5,3,3.75,4.0
+S9,CWT coefficients + robust selection,WF2340_s3,2,2.5,4.0
+S9,CWT coefficients + robust selection,WF1080_s2,2,2.5,4.0
+S9,CWT coefficients + robust selection,WF1340_s1,2,2.5,4.0
+S9,CWT coefficients + robust selection,WF1000_s4,2,2.5,4.0
+S9,CWT coefficients + robust selection,WF2030_s3,2,2.5,4.0
+S9,CWT coefficients + robust selection,WF940_s6,1,1.25,4.0
+S9,CWT coefficients + robust selection,WF2020_s4,1,1.25,4.0
+S9,CWT coefficients + robust selection,WF1930_s3,1,1.25,4.0
