@@ -54,81 +54,86 @@ const T = (slide, text, o) => slide.addText(text, { isTextBox: true, fontFace: T
 const line = (slide, x, y, w, h, o = {}) => slide.addShape(pres.shapes.LINE, { x, y, w, h, line: { color: "4A5A50", width: 1, ...o } });
 
 // ---------------------------------------------------------------- slide 1: to-scale layout
+// Positions are worked out in the original orientation (metres), then rotated 180 degrees so
+// that the healthy block and Amrit Sarovar sit on the left and R1 on the far right.
 const S = 0.14;                 // inches per metre
-const X0 = 0.95, Y0 = 2.15;     // top-left corner of the field
-const mx = (m) => X0 + m * S, my = (m) => Y0 + m * S;
+const X0 = 1.75, Y0 = 2.05;     // top-left corner of the field on the slide
 let s = pres.addSlide({ masterName: "CONTENT" });
-s.addText("Field layout with a 30 m buffer between inoculated and healthy plots", { placeholder: "title" });
+s.addText("Field layout with 30 m buffer, Amrit Sarovar on the left", { placeholder: "title" });
 
-// column x-offsets in metres
 const colM = (c) => {
   const b = Math.floor(c / 3), i = c % 3;
   const blockStart = b < 3 ? b * (BLOCK_W + BUND) : INOC_W + BUFFER;
   return blockStart + i * (PLOT_W + BUND);
 };
 const rowM = (r) => r * PLOT_H + (r >= 1 ? CHANNEL : 0) + (r >= 3 ? CHANNEL : 0);
+// rotate a box given in original metres by 180 degrees and convert to slide inches
+const box = (xm, ym, wm, hm) => ({ x: X0 + (FIELD_W - xm - wm) * S, y: Y0 + (FIELD_H - ym - hm) * S, w: wm * S, h: hm * S });
+const bottom = Y0 + FIELD_H * S;
 
 // field boundary
-s.addShape(pres.shapes.RECTANGLE, { x: mx(0), y: my(0), w: FIELD_W * S, h: FIELD_H * S, fill: { color: "FAFBF9" }, line: { color: "4A5A50", width: 1 }, objectName: "field boundary" });
+s.addShape(pres.shapes.RECTANGLE, { ...box(0, 0, FIELD_W, FIELD_H), fill: { color: "FAFBF9" }, line: { color: "4A5A50", width: 1 }, objectName: "field boundary" });
 // buffer zone
-s.addShape(pres.shapes.RECTANGLE, { x: mx(INOC_W), y: my(0), w: BUFFER * S, h: FIELD_H * S, fill: { color: C.background2 }, line: { color: "6B7A70", width: 1.25, dashType: "dash" }, objectName: "buffer zone" });
+s.addShape(pres.shapes.RECTANGLE, { ...box(INOC_W, 0, BUFFER, FIELD_H), fill: { color: C.background2 }, line: { color: "6B7A70", width: 1.25, dashType: "dash" }, objectName: "buffer zone" });
 // channels
 [1, 3].forEach((r) => {
-  const y = my(rowM(r) - CHANNEL);
-  s.addShape(pres.shapes.RECTANGLE, { x: mx(0), y, w: FIELD_W * S, h: CHANNEL * S, fill: { color: "DCE8F2" }, line: { color: "DCE8F2", width: 0.5 }, objectName: `channel ${r}` });
-  T(s, "CHANNEL", { x: mx(0), y, w: INOC_W * S, h: CHANNEL * S, align: "center", valign: "middle", fontSize: 10, bold: true, color: C.accent5, charSpacing: 3 });
-  T(s, "CHANNEL", { x: mx(INOC_W + BUFFER), y, w: BLOCK_W * S, h: CHANNEL * S, align: "center", valign: "middle", fontSize: 10, bold: true, color: C.accent5 });
+  const ym = rowM(r) - CHANNEL;
+  s.addShape(pres.shapes.RECTANGLE, { ...box(0, ym, FIELD_W, CHANNEL), fill: { color: "DCE8F2" }, line: { color: "DCE8F2", width: 0.5 }, objectName: `channel ${r}` });
+  T(s, "CHANNEL", { ...box(0, ym, INOC_W, CHANNEL), align: "center", valign: "middle", fontSize: 10, bold: true, color: C.accent5, charSpacing: 3 });
+  T(s, "CHANNEL", { ...box(INOC_W + BUFFER, ym, BLOCK_W, CHANNEL), align: "center", valign: "middle", fontSize: 10, bold: true, color: C.accent5 });
 });
 // buffer label (on the middle strip, between channels)
+const mid = box(INOC_W, rowM(1), BUFFER, rowM(3) - CHANNEL - rowM(1));
 T(s, [
   { text: "30 m BUFFER ZONE", options: { bold: true, fontSize: 16, color: C.text2, breakLine: true } },
   { text: "No mustard or other crucifer.", options: { fontSize: 12, breakLine: true } },
   { text: "Keep fallow or sow a non-host crop;", options: { fontSize: 12, breakLine: true } },
   { text: "remove cruciferous weeds.", options: { fontSize: 12 } },
-], { x: mx(INOC_W) + 0.1, y: my(rowM(1)), w: BUFFER * S - 0.2, h: (rowM(3) - CHANNEL - rowM(1)) * S, align: "center", valign: "middle" });
+], { x: mid.x + 0.1, y: mid.y, w: mid.w - 0.2, h: mid.h, align: "center", valign: "middle" });
 
 // plots
 GRID.forEach((row, r) => row.forEach(([p, t], c) => {
   const b = BLOCKS[Math.floor(c / 3)];
-  const x = mx(colM(c)), y = my(rowM(r));
-  s.addShape(pres.shapes.RECTANGLE, { x, y, w: PLOT_W * S, h: PLOT_H * S, fill: { color: b.fill }, line: { color: "4A5A50", width: 0.75 }, objectName: `plot ${p}` });
+  const bx = box(colM(c), rowM(r), PLOT_W, PLOT_H);
+  s.addShape(pres.shapes.RECTANGLE, { ...bx, fill: { color: b.fill }, line: { color: "4A5A50", width: 0.75 }, objectName: `plot ${p}` });
   T(s, [{ text: t, options: { bold: true, fontSize: 10, breakLine: true } }, { text: `(${p})`, options: { fontSize: 10 } }],
-    { x, y, w: PLOT_W * S, h: PLOT_H * S, align: "center", valign: "middle" });
+    { ...bx, align: "center", valign: "middle" });
 }));
 
 // block labels under the field
 BLOCKS.forEach((b, i) => {
-  const x = i < 3 ? mx(i * (BLOCK_W + BUND)) : mx(INOC_W + BUFFER);
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: my(FIELD_H) + 0.12, w: BLOCK_W * S, h: 0.32, fill: { color: C.accent5 }, line: { color: C.accent5 }, rectRadius: 0.05, objectName: `${b.name} label` });
-  T(s, b.name, { x, y: my(FIELD_H) + 0.12, w: BLOCK_W * S, h: 0.32, align: "center", valign: "middle", fontSize: 13, bold: true, color: C.background1 });
+  const { x, w } = box(i < 3 ? i * (BLOCK_W + BUND) : INOC_W + BUFFER, 0, BLOCK_W, 0);
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: bottom + 0.12, w, h: 0.32, fill: { color: C.accent5 }, line: { color: C.accent5 }, rectRadius: 0.05, objectName: `${b.name} label` });
+  T(s, b.name, { x, y: bottom + 0.12, w, h: 0.32, align: "center", valign: "middle", fontSize: 13, bold: true, color: C.background1 });
 });
-T(s, "Inoculated (05/02/2026)", { x: mx(0), y: my(FIELD_H) + 0.5, w: INOC_W * S, h: 0.3, align: "center", fontSize: 12, italic: true, color: "4A5A50" });
-T(s, "Uninoculated control", { x: mx(INOC_W + BUFFER) - 0.3, y: my(FIELD_H) + 0.5, w: BLOCK_W * S + 0.6, h: 0.3, align: "center", fontSize: 12, italic: true, color: "4A5A50" });
+const inoc = box(0, 0, INOC_W, 0), heal = box(INOC_W + BUFFER, 0, BLOCK_W, 0), buf = box(INOC_W, 0, BUFFER, 0);
+T(s, "Inoculated (05/02/2026)", { x: inoc.x, y: bottom + 0.5, w: inoc.w, h: 0.3, align: "center", fontSize: 12, italic: true, color: "4A5A50" });
+T(s, "Uninoculated control", { x: heal.x - 0.3, y: bottom + 0.5, w: heal.w + 0.6, h: 0.3, align: "center", fontSize: 12, italic: true, color: "4A5A50" });
+// facing-field arrow: after rotation the viewing side is at the bottom
+s.addShape(pres.shapes.UP_ARROW, { x: buf.x + buf.w / 2 - 0.85, y: bottom + 0.2, w: 0.3, h: 0.4, fill: { color: C.accent5 }, line: { color: C.accent5 }, objectName: "facing field arrow" });
+T(s, "Facing field", { x: buf.x + buf.w / 2 - 0.45, y: bottom + 0.2, w: 1.4, h: 0.4, fontSize: 12, italic: true, color: "4A5A50", valign: "middle" });
 
 // dimension lines above the field
-const dimY = my(0) - 0.32;
+const dimY = Y0 - 0.32;
 const dim = (m0, m1, label) => {
-  line(s, mx(m0), dimY, (m1 - m0) * S, 0, { beginArrowType: "triangle", endArrowType: "triangle" });
-  T(s, label, { x: mx(m0), y: dimY - 0.3, w: (m1 - m0) * S, h: 0.26, align: "center", fontSize: 12, bold: true, color: C.text2 });
+  const { x, w } = box(m0, 0, m1 - m0, 0);
+  line(s, x, dimY, w, 0, { beginArrowType: "triangle", endArrowType: "triangle" });
+  T(s, label, { x, y: dimY - 0.3, w, h: 0.26, align: "center", fontSize: 12, bold: true, color: C.text2 });
 };
 dim(0, INOC_W, "35.5 m");
 dim(INOC_W, INOC_W + BUFFER, "30 m buffer");
 dim(INOC_W + BUFFER, FIELD_W, "11.5 m");
-T(s, `Total ${FIELD_W} m × ${FIELD_H} m`, { x: mx(0), y: dimY - 0.62, w: FIELD_W * S, h: 0.28, align: "center", fontSize: 13, bold: true, color: C.text1 });
-// facing-field arrow
-s.addShape(pres.shapes.DOWN_ARROW, { x: mx(0), y: dimY - 0.62, w: 0.3, h: 0.28, fill: { color: C.accent5 }, line: { color: C.accent5 }, objectName: "facing field arrow" });
-T(s, "Facing field", { x: mx(0) + 0.38, y: dimY - 0.62, w: 1.4, h: 0.28, fontSize: 11, italic: true, color: "4A5A50", valign: "middle" });
+T(s, `Total ${FIELD_W} m × ${FIELD_H} m`, { x: X0, y: dimY - 0.62, w: FIELD_W * S, h: 0.28, align: "center", fontSize: 13, bold: true, color: C.text1 });
 
-// vertical dimensions on the left
-const vx = mx(0) - 0.3;
-line(s, vx, my(0), 0, FIELD_H * S, { beginArrowType: "triangle", endArrowType: "triangle" });
-T(s, "24 m", { x: vx - 0.55, y: my(FIELD_H / 2) - 0.15, w: 0.5, h: 0.3, align: "right", fontSize: 12, bold: true, color: C.text2 });
-T(s, "5 m", { x: mx(0) - 0.27, y: my(0) + 0.05, w: 0.25, h: 0.2, fontSize: 10, color: "4A5A50" });
+// vertical dimension on the left, between Amrit Sarovar and the field
+const vx = X0 - 0.2;
+line(s, vx, Y0, 0, FIELD_H * S, { beginArrowType: "triangle", endArrowType: "triangle" });
+T(s, "24 m", { x: vx - 0.6, y: Y0 + 0.25, w: 0.52, h: 0.3, align: "right", fontSize: 12, bold: true, color: C.text2 });
 
-// Amrit Sarovar and north arrow on the right
-const rx = mx(FIELD_W) + 0.2;
-s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: rx, y: my(rowM(1)), w: 13.33 - 0.45 - rx, h: 1.1, fill: { color: C.accent5 }, line: { color: C.accent5 }, rectRadius: 0.12, objectName: "Amrit Sarovar" });
-T(s, "Amrit Sarovar", { x: rx, y: my(rowM(1)), w: 13.33 - 0.45 - rx, h: 1.1, align: "center", valign: "middle", fontSize: 12, bold: true, color: C.background1 });
+// Amrit Sarovar on the left
+const sv = { y: Y0 + (FIELD_H / 2) * S - 0.55 };  // centred on the field height
+s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.35, y: sv.y, w: 0.95, h: 1.1, fill: { color: C.accent5 }, line: { color: C.accent5 }, rectRadius: 0.12, objectName: "Amrit Sarovar" });
+T(s, "Amrit Sarovar", { x: 0.35, y: sv.y, w: 0.95, h: 1.1, align: "center", valign: "middle", fontSize: 12, bold: true, color: C.background1 });
 
 // key facts strip
 T(s, [
@@ -136,7 +141,7 @@ T(s, [
   { text: "Field grows from 48 m to 77 m wide (1,848 m²). ", options: { bold: true } },
   { text: "Afternoon winds at IARI blew from NW, W or N on 86 of 102 days (9 Dec-20 Mar, your weather file): place the healthy block on the north-west / west (upwind) side.", options: {} },
 ], { x: 0.5, y: 6.4, w: 12.33, h: 0.6, fontSize: 12, valign: "top" });
-s.addNotes("Drawn to scale (0.14 inch per metre). Plot numbers and treatments are unchanged from the original layout; only the 30 m buffer strip is added between R3 and the healthy block. The 0.5 m bund width is inferred from the original 48 m field width (12 plots x 3.5 m = 42 m plus 11 bunds).");
+s.addNotes("Drawn to scale (0.14 inch per metre). Plot numbers and treatments are unchanged from the original layout; the layout is rotated 180 degrees (viewed from the opposite side) so Amrit Sarovar is on the left, and a 30 m buffer strip separates R3 from the healthy block. The 0.5 m bund width is inferred from the original 48 m field width (12 plots x 3.5 m = 42 m plus 11 bunds).");
 
 // ---------------------------------------------------------------- slide 2: dimensions
 s = pres.addSlide({ masterName: "CONTENT" });
