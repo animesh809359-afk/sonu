@@ -53,10 +53,10 @@ function table(b) {
 }
 
 function figure(b) {
-  const file = path.join(FIG, b.fig + ".png");
+  const file = path.join(FIG, b.fig.endsWith(".png") ? b.fig : b.fig + ".png");
   const buf = fs.readFileSync(file);
   const w = buf.readUInt32BE(16), h = buf.readUInt32BE(20);
-  const maxW = (b.w || 6.2) * 96, maxH = 8.2 * 96;
+  const maxW = (b.w || 6.2) * 96, maxH = (b.h || 8.0) * 96;
   let dw = maxW, dh = maxW * h / w;
   if (dh > maxH) { dh = maxH; dw = maxH * w / h; }
   figNo++;
@@ -121,6 +121,7 @@ const cover = [
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Crop & soil parameter retrieval  •  Meteorology & El Niño  •  Statistics & ML  •  Digital twins", size: 21 })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Crop-residue burning  •  Conservation & regenerative agriculture  •  Carbon credits & MRV", size: 21 })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Precision agriculture & VRT  •  FASAL, YES-TECH & PMFBY  •  IARI Agricultural Physics  •  IAIRO", size: 21 })] }),
+  new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 200 }, children: [new TextRun({ text: "PART II: study of 15 research papers with figure screenshots (YES-TECH, FASAL, NADAMS, MODIS fire, ET upscaling, eddy covariance, PROSAIL, digital twins)", bold: true, color: "0F766E", size: 21 })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 1600 }, children: [new TextRun({ text: "Prepared: October 2026", size: 22, color: "64748B" })] }),
   new Paragraph({ children: [new PageBreak()] }),
   new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("Contents")] }),

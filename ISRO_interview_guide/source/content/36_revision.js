@@ -1,6 +1,6 @@
 module.exports = [
-{ h1: "19. Rapid revision: formula sheet, abbreviations and rapid-fire Q&A" },
-{ h2: "19.1 One-page formula sheet" },
+{ h1: "36. Rapid revision: formula sheet, abbreviations and rapid-fire Q&A" },
+{ h2: "36.1 One-page formula sheet" },
 { table: { widths: [3, 7], head: ["Quantity", "Formula"], rows: [
   ["Wien / Stefan–Boltzmann", "λmax = 2898/T µm ;  M = εσT⁴"],
   ["NDVI / EVI", "(NIR − R)/(NIR + R) ;  2.5(NIR − R)/(NIR + 6R − 7.5B + 1)"],
@@ -29,7 +29,7 @@ module.exports = [
   ["CWSI", "(Tc − Twet)/(Tdry − Twet)"],
   ["Topp equation", "θv = −0.053 + 0.0292ε − 5.5×10⁻⁴ε² + 4.3×10⁻⁶ε³"],
 ] } },
-{ h2: "19.2 Abbreviations" },
+{ h2: "36.2 Abbreviations" },
 { table: { widths: [2, 8], head: ["Abbreviation", "Expansion"], rows: [
   ["ALEXI", "Atmosphere–Land EXchange Inverse"], ["AWD", "Alternate Wetting and Drying"], ["BAI", "Burned Area Index"],
   ["CAQM", "Commission for Air Quality Management in NCR and adjoining areas"], ["CBG", "Compressed Bio-Gas"], ["CCE", "Crop Cutting Experiment"],
@@ -49,7 +49,7 @@ module.exports = [
   ["VCU", "Verified Carbon Unit (Verra)"], ["VRT", "Variable-Rate Technology"], ["VVB", "Validation/Verification Body"],
   ["WINDS", "Weather Information Network and Data Systems"], ["YES-TECH", "Yield Estimation System based on TECHnology"],
 ] } },
-{ h2: "19.3 Rapid-fire questions (one-line answers)" },
+{ h2: "36.3 Rapid-fire questions (one-line answers)" },
 { qa: [
   ["When did FLEX launch?", "15 September 2026, on Vega-C VV30 from Kourou, together with Sentinel-3C."],
   ["FLEX spatial resolution and swath?", "300 m; 150 km."],
