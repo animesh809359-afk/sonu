@@ -43,6 +43,8 @@ avg_cols, block_start = [], None
 for j in range(2, ws.max_column + 1):
     name = ws.cell(row=1, column=j).value
     pl = ws.cell(row=2, column=j).value
+    if name is None:          # unnamed copies of spectra (plot 27 on 11/02): neither spectrum nor average
+        continue
     if isinstance(name, str) and name.endswith(".sco"):
         if block_start is None:
             block_start = j
