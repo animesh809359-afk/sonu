@@ -1,0 +1,2 @@
+# Output workbook contains the raw ASD spectra; it is delivered directly, not versioned
+*.xlsx
